@@ -985,7 +985,7 @@ html, body {
 /* ── Theme helpers ── */
 let _dark = true;
 function pal(d, l) { return _dark ? d : l; }
-function _toggleTheme() {
+function toggleTheme() {
   _dark = !_dark;
   document.body.classList.toggle('light', !_dark);
   document.querySelector('.theme-toggle').textContent = _dark ? 'light mode' : 'dark mode';
@@ -1138,7 +1138,14 @@ function genLayerData(li) {
     return v < 0.55 ? 0 : ((v - 0.55) / 0.45) ** 1.6;
   });
 
-  return { ln1, ln2, attn, mlp };
+  // Per-token write magnitudes (normalized 0..1)
+  // attn_write: how much attention added to each token this layer
+  // mlp_write: how much the MLP added to each token this layer
+  const rng2 = seededRng(li * 1337 + 99);
+  const attn_write = Array.from({length: SEQ_LEN}, () => Math.min(1, Math.max(0.05, rng2() * 0.9)));
+  const mlp_write  = Array.from({length: SEQ_LEN}, () => Math.min(1, Math.max(0.05, rng2() * 0.85)));
+
+  return { ln1, ln2, attn, mlp, attn_write, mlp_write };
 }
 
 const layerData = Array.from({length: NUM_LAYERS}, (_, i) => genLayerData(i));
@@ -1163,21 +1170,24 @@ const ATTN_BLOCK_H = HEAD_ROWS * HEAD_H + (HEAD_ROWS - 1) * HEAD_INNER_GAP;
 // MLP neurons
 const NEURON_CELL = Math.floor((CONTENT_W - (MLP_COLS - 1) * 1) / MLP_COLS);
 const MLP_BLOCK_H = MLP_ROWS * NEURON_CELL + (MLP_ROWS - 1) * 1;
+const RESID_H     = 18;
 
 const CANVAS_H = Math.ceil(
-  CARD_PAD +                          // top pad
-  LABEL_H + SEC_GAP/2 + BAR_H + SEC_GAP + // LN1
-  LABEL_H + SEC_GAP/2 + ATTN_BLOCK_H + SEC_GAP + // ATTN
-  LABEL_H + SEC_GAP/2 + BAR_H + SEC_GAP + // LN2
-  LABEL_H + SEC_GAP/2 + MLP_BLOCK_H + // MLP
-  CARD_PAD                            // bottom pad
+  CARD_PAD +                                         // top pad
+  LABEL_H + SEC_GAP/2 + BAR_H + SEC_GAP +           // LN1
+  LABEL_H + SEC_GAP/2 + ATTN_BLOCK_H + SEC_GAP +    // ATTN
+  LABEL_H + SEC_GAP/2 + RESID_H + SEC_GAP +         // RESID MID
+  LABEL_H + SEC_GAP/2 + BAR_H + SEC_GAP +           // LN2
+  LABEL_H + SEC_GAP/2 + MLP_BLOCK_H + SEC_GAP +     // MLP
+  LABEL_H + SEC_GAP/2 + RESID_H +                   // RESID POST
+  CARD_PAD                                           // bottom pad
 );
 
 /* ══════════════════════════════════════════════
    DRAW LAYER CANVAS
    state: 'inactive' | 'done' | 'processing' | 'pending'
 ══════════════════════════════════════════════ */
-function drawLayerCanvas(canvas, state, data) {
+function drawLayerCanvas(canvas, state, data, tokens) {
   const W = canvas.width;
   const H = canvas.height;
   const ctx = canvas.getContext('2d');
@@ -1209,25 +1219,66 @@ function drawLayerCanvas(canvas, state, data) {
     ctx.fillStyle = pal('rgba(255,255,255,0.06)', 'rgba(255,255,255,0.07)');
     ctx.fillRect(pad, y, cw, bh);
     if (isActive && fill > 0) {
-      ctx.fillStyle = state === 'done'
-        ? pal(`rgba(196,255,61,0.82)`, `rgba(143,220,0,0.85)`)
-        : pal(`rgba(196,255,61,${animating ? 0.6 : 0.82})`, `rgba(143,220,0,${animating ? 0.65 : 0.85})`);
+      ctx.fillStyle = state === 'processing'
+        ? 'rgba(61,169,255,0.95)'   /* --cool */
+        : 'rgba(61,169,255,0.75)';
       ctx.fillRect(pad, y, cw * fill, bh);
     }
     y += bh + SEC_GAP * s;
   }
 
-  // ─────────── LN 1 ───────────
-  const ln1Color = state === 'done'
+  // ── helper: per-token write magnitude strip with labels ──
+  function drawWriteStrip(writes) {
+    const T     = writes.length;
+    const rh    = RESID_H * s;
+    const gap   = 2 * s;
+    const cellW = Math.max(1, (cw - gap * (T - 1)) / T);
+    for (let i = 0; i < T; i++) {
+      const rx = pad + i * (cellW + gap);
+      const w  = writes[i] ?? 0;
+
+      // Background
+      if (!isActive) {
+        ctx.fillStyle = pal('rgba(255,255,255,0.04)', 'rgba(255,255,255,0.05)');
+      } else {
+        const a = (0.08 + w * 0.82).toFixed(3);
+        ctx.fillStyle = `rgba(61,169,255,${a})`;  /* --cool */
+      }
+      ctx.fillRect(rx, y, cellW, rh);
+
+      // Token label — only when active and token text is available
+      const label = tokens && tokens[i];
+      if (isActive && label) {
+        ctx.font = `${Math.round(6.5 * s)}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = w > 0.5
+          ? 'rgba(8,8,8,0.85)'
+          : 'rgba(61,169,255,0.65)';  /* --cool dim */
+        ctx.fillText(label, rx + cellW / 2, y + rh / 2);
+      }
+    }
+    y += rh + SEC_GAP * s;
+  }
+
+  const labelOff  = pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
+  const acidLabel = state === 'done'
     ? pal('rgba(138,171,42,0.8)', 'rgba(143,220,0,0.8)')
     : state === 'processing'
       ? pal('rgba(196,255,61,0.8)', 'rgba(143,220,0,0.9)')
-      : pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
-  label('LN 1', ln1Color);
+      : labelOff;
+  const coolLabel = state === 'done'
+    ? 'rgba(61,169,255,0.75)'
+    : state === 'processing'
+      ? 'rgba(61,169,255,0.95)'
+      : labelOff;
+
+  // ─────────── LN 1 ───────────
+  label('LN 1', coolLabel);
   bar(data.ln1, false);
 
   // ─────────── ATTN ───────────
-  label('ATTN', ln1Color);
+  label('ATTN', acidLabel);
 
   for (let h = 0; h < NUM_HEADS; h++) {
     const col = h % HEAD_COLS;
@@ -1271,12 +1322,16 @@ function drawLayerCanvas(canvas, state, data) {
 
   y += (ATTN_BLOCK_H + SEC_GAP) * s;
 
+  // ─────────── RESIDUAL MID ───────────
+  label('RESIDUAL MID', coolLabel);
+  drawWriteStrip(data.attn_write);
+
   // ─────────── LN 2 ───────────
-  label('LN 2', ln1Color);
+  label('LN 2', coolLabel);
   bar(data.ln2, false);
 
   // ─────────── MLP ───────────
-  label('MLP', ln1Color);
+  label('MLP', acidLabel);
 
   const ncell = NEURON_CELL * s;
   const ngap  = 1 * s;
@@ -1310,6 +1365,11 @@ function drawLayerCanvas(canvas, state, data) {
     }
     ctx.fillRect(nx, ny, ncell, ncell);
   }
+
+  // ─────────── RESIDUAL POST ───────────
+  y += MLP_BLOCK_H * s + SEC_GAP * s;
+  label('RESIDUAL POST', coolLabel);
+  drawWriteStrip(data.mlp_write);
 }
 
 /* ── Redraw all layers using current state ── */
@@ -1319,7 +1379,7 @@ function redrawAllLayers() {
     const state = card.classList.contains('state-done') ? 'done'
       : card.classList.contains('state-processing') ? 'processing'
       : 'inactive';
-    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), state, layerData[i]);
+    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), state, layerData[i], TOKEN_TEXTS);
   }
 }
 
@@ -1364,6 +1424,7 @@ const INPUT_TOKENS = [
   { text: 'the',  id: 262  },
   { text: 'mat',  id: 2603 },
 ];
+const TOKEN_TEXTS = INPUT_TOKENS.map(t => t.text);
 
 const _CANDIDATES = [
   { text: '.',       id: 13,   prob: 0.38 },
@@ -1464,7 +1525,7 @@ function resetAll() {
 
   for (let i = 0; i < NUM_LAYERS; i++) {
     layerCards[i].className = 'layer-card';
-    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), 'inactive', layerData[i]);
+    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), 'inactive', layerData[i], TOKEN_TEXTS);
   }
 
   document.getElementById('btn-inactive').classList.add('active');
@@ -1472,7 +1533,7 @@ function resetAll() {
   if (window._streamReset) window._streamReset();
 }
 
-function _setAppState(state) {
+function setAppState(state) {
   document.getElementById('btn-inactive').classList.toggle('active', state === 'inactive');
   document.getElementById('btn-processing').classList.toggle('active', state === 'processing');
   if (state === 'inactive') resetAll();
@@ -1568,8 +1629,8 @@ function drawEmbedSlot({ ctx, vector, offset, canvasW, canvasH, numCells }) {
     const abs = Math.abs(v);
     const alpha = (0.1 + abs * 0.85).toFixed(3);
     ctx.fillStyle = v >= 0
-      ? pal(`rgba(196,255,61,${alpha})`, `rgba(143,220,0,${alpha})`)
-      : pal(`rgba(61,169,255,${alpha})`, `rgba(0,130,210,${alpha})`);
+      ? `rgba(125,216,125,${alpha})`   /* --positive: #7dd87d */
+      : `rgba(255,94,108,${alpha})`;   /* --negative: #ff5e6c */
     ctx.fillRect(c * stride, 0, cellW, canvasH);
   }
   ctx.restore();
@@ -1727,7 +1788,7 @@ function startRun() {
 function animateLayers(layerIdx) {
   if (layerIdx > 0) {
     layerCards[layerIdx - 1].className = 'layer-card state-done';
-    drawLayerCanvas(document.getElementById(`layer-canvas-${layerIdx - 1}`), 'done', layerData[layerIdx - 1]);
+    drawLayerCanvas(document.getElementById(`layer-canvas-${layerIdx - 1}`), 'done', layerData[layerIdx - 1], TOKEN_TEXTS);
   }
 
   if (layerIdx >= NUM_LAYERS) {
@@ -1736,11 +1797,11 @@ function animateLayers(layerIdx) {
   }
 
   layerCards[layerIdx].className = 'layer-card state-processing';
-  drawLayerCanvas(document.getElementById(`layer-canvas-${layerIdx}`), 'processing', layerData[layerIdx]);
+  drawLayerCanvas(document.getElementById(`layer-canvas-${layerIdx}`), 'processing', layerData[layerIdx], TOKEN_TEXTS);
 
   for (let i = layerIdx + 1; i < NUM_LAYERS; i++) {
     layerCards[i].className = 'layer-card';
-    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), 'inactive', layerData[i]);
+    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), 'inactive', layerData[i], TOKEN_TEXTS);
   }
 
   animTimeout = setTimeout(() => animateLayers(layerIdx + 1), layerDelay());

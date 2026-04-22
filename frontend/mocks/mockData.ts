@@ -1,5 +1,5 @@
 import type { Candidate, LayerData, Token } from '@/lib/processTypes'
-import { seededRng } from '@/lib/rng'
+import { seededRng } from '@/mocks/rng'
 
 export const INPUT_TOKENS: Token[] = [
   { text: 'The', id: 464 },
@@ -121,10 +121,21 @@ export function genLayerData(li: number, seqLen = 6): LayerData {
     })
   })
 
+  // Per-token attention write magnitudes (normalized to [0,1])
+  // How much attention added to each token's residual at this layer
+  const attn_write: number[] = Array.from({ length: seqLen }, () =>
+    Math.min(1, Math.max(0.05, rng() * 0.9))
+  )
+
   const mlp: number[] = Array.from({ length: MLP_DIM }, () => {
     const v = rng()
     return v < 0.55 ? 0 : ((v - 0.55) / 0.45) ** 1.6
   })
 
-  return { ln1, ln2, attn, mlp }
+  // Per-token MLP write magnitudes — generally different pattern from attention
+  const mlp_write: number[] = Array.from({ length: seqLen }, () =>
+    Math.min(1, Math.max(0.05, rng() * 0.85))
+  )
+
+  return { ln1, ln2, attn, attn_write, mlp, mlp_write }
 }

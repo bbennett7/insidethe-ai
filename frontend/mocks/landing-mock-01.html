@@ -157,10 +157,10 @@ html, body {
 /* ── PORTAL GRID ── */
 .portal-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   width: 100%;
-  max-width: 580px;
+  max-width: 880px;
 }
 
 /* ── PORTAL CARD ── */
@@ -195,6 +195,8 @@ html, body {
 .portal:nth-child(2) { animation-delay: 0.7s; }
 .portal:nth-child(3) { animation-delay: 1.4s; }
 .portal:nth-child(4) { animation-delay: 2.1s; }
+.portal:nth-child(5) { animation-delay: 2.8s; }
+.portal:nth-child(6) { animation-delay: 3.5s; }
 
 @keyframes float-card {
   0%, 100% { transform: translateY(0px); }
@@ -215,12 +217,8 @@ html, body {
 }
 
 /* Disabled overlay */
-.portal--disabled .portal-preview::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(10,10,10,0.55);
-  backdrop-filter: grayscale(1);
+.portal--disabled .portal-preview {
+  opacity: 0.45;
 }
 
 /* Footer area below the preview */
@@ -324,7 +322,10 @@ html, body {
 .footer .acid { color: var(--acid-dim); }
 
 /* ── MOBILE ── */
-@media (max-width: 600px) {
+@media (max-width: 720px) {
+  .portal-grid { grid-template-columns: repeat(2, 1fr); max-width: 560px; }
+}
+@media (max-width: 520px) {
   .portal-grid { grid-template-columns: 1fr; max-width: 400px; }
   .nav { padding: 16px 20px; }
   .main { padding: 80px 20px 40px; gap: 36px; }
@@ -368,9 +369,6 @@ html, body {
 }
 .light .portal--disabled {
   opacity: 0.72;
-}
-.light .portal--disabled .portal-preview::after {
-  background: rgba(15,15,15,0.6);
 }
 
 /* ── THEME TOGGLE ── */
@@ -483,6 +481,36 @@ html, body {
       </div>
     </div>
 
+    <!-- 05 · Inside the Memory (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-memory"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Memory</span>
+        <div class="portal-row">
+          <span class="portal-num">05</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 · Inside the Frontier (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-frontier"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Frontier</span>
+        <div class="portal-row">
+          <span class="portal-num">06</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <footer class="footer">
@@ -501,7 +529,7 @@ function _toggleTheme() {
   _dark = !_dark;
   document.body.classList.toggle('light', !_dark);
   document.querySelector('.theme-toggle').textContent = _dark ? 'light mode' : 'dark mode';
-  drawChip(); drawAlgo(); drawAgent();
+  drawChip(); drawAlgo(); drawAgent(); drawMemory(); drawFrontier();
 }
 
 /* ══════════════════════════════════════════════
@@ -608,13 +636,13 @@ requestAnimationFrame(bgLoop);
 
 /* ══════════════════════════════════════════════
    PORTAL 01 — Inside the Processing
-   Live attention weight matrix (8×8, causal)
+   Live attention weight matrix (7×7, causal)
 ══════════════════════════════════════════════ */
 const procCanvas = document.getElementById('canvas-process');
 const procCtx = procCanvas.getContext('2d');
 
-const N = 8;
-const TOKENS = ['in', 'side', 'the', '.ai', 'maps', 'to', 'new', '▸'];
+const N = 7;
+const TOKENS = ['the', 'cat', 'sat', 'on', 'the', 'soft', 'mat'];
 
 function makeWeights() {
   return Array.from({length: N}, (_, i) =>
@@ -622,7 +650,8 @@ function makeWeights() {
       if (j > i) return 0;
       if (j === i) return 0.1 + Math.random() * 0.25;
       if (j === i - 1) return 0.3 + Math.random() * 0.45;
-      if (j === 2 && i > 3) return 0.25 + Math.random() * 0.5;
+      if (i === 6 && j === 1) return 0.5 + Math.random() * 0.4; // mat→cat hero
+      if (i === 6 && j === 5) return 0.3 + Math.random() * 0.3; // mat→soft
       if (j === 0) return 0.04 + Math.random() * 0.1;
       return Math.max(0, Math.random() * 0.28 - 0.05);
     })
@@ -717,11 +746,6 @@ function drawProc(_t) {
   });
 
   // Header label
-  procCtx.fillStyle = pal('rgba(196,255,61,0.45)', 'rgba(143,220,0,0.85)');
-  procCtx.font = `${Math.floor(9 * dpr)}px "JetBrains Mono", monospace`;
-  procCtx.textAlign = 'left';
-  procCtx.textBaseline = 'top';
-  procCtx.fillText('ATTN · LAYER 06 · HEAD 03', pad, 10 * dpr);
 }
 
 let _procRaf;
@@ -741,7 +765,7 @@ requestAnimationFrame(procLoop);
 
 /* ══════════════════════════════════════════════
    PORTAL 02 — Inside the Chip (static)
-   Circuit board trace pattern
+   H100-style die shot: HBM panels + compute die
 ══════════════════════════════════════════════ */
 function drawChip() {
   const el = document.getElementById('canvas-chip');
@@ -754,71 +778,127 @@ function drawChip() {
 
   const ctx = el.getContext('2d');
   const W = el.width, H = el.height;
-  ctx.fillStyle = pal('#0c0c0c', '#2a2a2a');
+
+  // PCB background
+  ctx.fillStyle = '#0c0c0e';
   ctx.fillRect(0, 0, W, H);
 
-  const grid = 22 * dpr;
-  const cols = Math.ceil(W / grid);
-  const rows = Math.ceil(H / grid);
-
-  // Dots at grid intersections
-  ctx.fillStyle = pal('rgba(255,255,255,0.07)', 'rgba(255,255,255,0.08)');
-  for (let r = 0; r <= rows; r++) {
-    for (let c = 0; c <= cols; c++) {
+  // PCB dot texture
+  ctx.fillStyle = 'rgba(196,255,61,0.035)';
+  const ds = 6 * dpr;
+  for (let x = ds/2; x < W; x += ds) {
+    for (let y = ds/2; y < H; y += ds) {
       ctx.beginPath();
-      ctx.arc(c * grid, r * grid, 1.2 * dpr, 0, Math.PI * 2);
+      ctx.arc(x, y, 0.25*dpr, 0, Math.PI*2);
       ctx.fill();
     }
   }
 
-  // Horizontal + vertical trace segments (random subset)
-  const rng = seededRng(42);
-  ctx.strokeStyle = pal('rgba(255,255,255,0.09)', 'rgba(255,255,255,0.1)');
-  ctx.lineWidth = 1.2 * dpr;
-  ctx.lineCap = 'round';
+  // PCB border
+  ctx.strokeStyle = 'rgba(196,255,61,0.15)';
+  ctx.lineWidth = 0.6*dpr;
+  ctx.strokeRect(0.05*W, 0.08*H, 0.9*W, 0.84*H);
 
-  for (let r = 0; r <= rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (rng() > 0.38) {
-        ctx.beginPath();
-        ctx.moveTo(c * grid, r * grid);
-        ctx.lineTo((c + 1) * grid, r * grid);
-        ctx.stroke();
-      }
-    }
-  }
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c <= cols; c++) {
-      if (rng() > 0.38) {
-        ctx.beginPath();
-        ctx.moveTo(c * grid, r * grid);
-        ctx.lineTo(c * grid, (r + 1) * grid);
-        ctx.stroke();
-      }
-    }
-  }
+  // Mounting holes
+  [[0.115,0.18],[0.185,0.18],[0.815,0.18],[0.885,0.18],
+   [0.115,0.82],[0.185,0.82],[0.815,0.82],[0.885,0.82]].forEach(([fx, fy]) => {
+    const hx = fx*W, hy = fy*H, hr = 6*dpr;
+    const g = ctx.createRadialGradient(hx,hy,0,hx,hy,hr);
+    g.addColorStop(0,'#c4ff3d'); g.addColorStop(0.4,'#8faf2b'); g.addColorStop(1,'#4a5a18');
+    ctx.beginPath(); ctx.arc(hx,hy,hr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.arc(hx,hy,hr*0.45,0,Math.PI*2); ctx.fillStyle='#0a0a0c'; ctx.fill();
+  });
 
-  // Larger component squares
-  ctx.strokeStyle = pal('rgba(255,255,255,0.12)', 'rgba(255,255,255,0.13)');
-  ctx.lineWidth = 1.5 * dpr;
-  [[3,2],[6,5],[2,7],[7,3],[4,8],[9,6]].forEach(([c, r]) => {
-    if (c * grid < W && r * grid < H) {
-      ctx.strokeRect(c * grid - 8 * dpr, r * grid - 8 * dpr, 16 * dpr, 16 * dpr);
+  // HBM panels
+  const hbmW=0.135*W, hbmH=0.54*H, hbmY=(H-hbmH)/2;
+  const leftX=0.088*W, rightX=W-0.088*W-hbmW;
+
+  function drawHbm(x,y,w,h) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+    const sw = 3*dpr;
+    for (let sx=x; sx<x+w; sx+=sw) {
+      ctx.fillStyle='#c4ff3d'; ctx.fillRect(sx,y,sw-0.4*dpr,h);
+      ctx.fillStyle='rgba(10,10,10,0.25)';
+      ctx.fillRect(sx,y,0.3*dpr,h);
+      ctx.fillRect(sx+sw-0.6*dpr,y,0.3*dpr,h);
+    }
+    const gloss = ctx.createLinearGradient(x,y,x+w,y+h);
+    gloss.addColorStop(0,'rgba(255,255,255,0.25)');
+    gloss.addColorStop(0.5,'rgba(255,255,255,0)');
+    gloss.addColorStop(1,'rgba(0,0,0,0.15)');
+    ctx.fillStyle=gloss; ctx.fillRect(x,y,w,h);
+    ctx.restore();
+    ctx.strokeStyle='rgba(10,10,10,0.4)'; ctx.lineWidth=0.4*dpr; ctx.strokeRect(x,y,w,h);
+  }
+  drawHbm(leftX,hbmY,hbmW,hbmH);
+  drawHbm(rightX,hbmY,hbmW,hbmH);
+
+  // Connector pins top/bottom of each HBM
+  ctx.fillStyle='rgba(196,255,61,0.6)';
+  const pinW=0.6*dpr, pinH=1.5*dpr, pinStep=3*dpr;
+  [leftX,rightX].forEach(hx => {
+    for (let px=hx+1.5*dpr; px+pinW<hx+hbmW; px+=pinStep) {
+      ctx.fillRect(px, hbmY-pinH-0.5*dpr, pinW, pinH);
+      ctx.fillRect(px, hbmY+hbmH+0.5*dpr, pinW, pinH);
     }
   });
 
-  // Label
-  ctx.fillStyle = pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
-  ctx.font = `${9 * dpr}px "JetBrains Mono", monospace`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('SILICON · LOCKED', 10 * dpr, 10 * dpr);
+  // Compute die substrate
+  const dieX=leftX+hbmW+0.03*W, dieW=rightX-leftX-hbmW*2-0.06*W;
+  const dieH=0.68*H, dieY=(H-dieH)/2;
+  const subG = ctx.createLinearGradient(0,dieY,0,dieY+dieH);
+  subG.addColorStop(0,'#2a3d2a'); subG.addColorStop(1,'#1a2a1a');
+  ctx.fillStyle=subG; ctx.fillRect(dieX,dieY,dieW,dieH);
+  ctx.strokeStyle='rgba(196,255,61,0.35)'; ctx.lineWidth=0.6*dpr;
+  ctx.strokeRect(dieX,dieY,dieW,dieH);
+
+  // Silicon panels
+  const panelG = ctx.createLinearGradient(0,dieY,0,dieY+dieH);
+  panelG.addColorStop(0,'#e8e5dc'); panelG.addColorStop(0.5,'#f4f1ea'); panelG.addColorStop(1,'#c8c5bd');
+  const pd=0.065*dieW, cw=(dieW-4*pd)/3;
+  const c0=dieX+pd, c1=dieX+2*pd+cw, c2=dieX+3*pd+2*cw;
+  [
+    [c0, dieY+0.058*dieH, cw, 0.350*dieH],
+    [c0, dieY+0.450*dieH, cw, 0.295*dieH],
+    [c0, dieY+0.785*dieH, cw, 0.165*dieH],
+    [c1, dieY+0.058*dieH, cw, 0.130*dieH],
+    [c1, dieY+0.208*dieH, cw, 0.180*dieH],
+    [c1, dieY+0.418*dieH, cw, 0.130*dieH],
+    [c1, dieY+0.578*dieH, cw, 0.375*dieH],
+    [c2, dieY+0.058*dieH, cw, 0.350*dieH],
+    [c2, dieY+0.450*dieH, cw, 0.295*dieH],
+    [c2, dieY+0.785*dieH, cw, 0.165*dieH],
+  ].forEach(([px,py,pw,ph]) => {
+    ctx.fillStyle=panelG; ctx.fillRect(px,py,pw,ph);
+    ctx.strokeStyle='rgba(10,10,10,0.3)'; ctx.lineWidth=0.3*dpr; ctx.strokeRect(px,py,pw,ph);
+  });
+
+  // Center mark
+  const cx=dieX+dieW/2, cy=dieY+dieH/2;
+  ctx.beginPath(); ctx.arc(cx,cy,7*dpr,0,Math.PI*2);
+  ctx.strokeStyle='#0a0a0a'; ctx.lineWidth=dpr; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,3.5*dpr,0,Math.PI*2);
+  ctx.fillStyle='#c4ff3d'; ctx.fill();
+
+  // Solder bumps
+  ctx.fillStyle='rgba(196,255,61,0.5)';
+  for (let bx=dieX+1.5*dpr; bx+0.5*dpr<dieX+dieW; bx+=3*dpr) {
+    ctx.fillRect(bx, dieY-dpr, 0.5*dpr, dpr);
+    ctx.fillRect(bx, dieY+dieH, 0.5*dpr, dpr);
+  }
+
+  // Surface highlight
+  const hlG = ctx.createLinearGradient(0,0,W,H);
+  hlG.addColorStop(0,'rgba(255,255,255,0.04)'); hlG.addColorStop(1,'rgba(0,0,0,0.3)');
+  ctx.globalAlpha=0.5; ctx.fillStyle=hlG; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+
 }
+
 
 
 /* ══════════════════════════════════════════════
    PORTAL 03 — Inside the Algorithms (static)
-   Loss landscape contours
+   Beautiful Mind: overlapping handwritten equations
 ══════════════════════════════════════════════ */
 function drawAlgo() {
   const el = document.getElementById('canvas-algo');
@@ -831,59 +911,74 @@ function drawAlgo() {
 
   const ctx = el.getContext('2d');
   const W = el.width, H = el.height;
-  ctx.fillStyle = pal('#0c0c0c', '#2a2a2a');
+  ctx.fillStyle = '#131313';
   ctx.fillRect(0, 0, W, H);
 
-  // Draw contour lines of a 2D loss surface
-  // Simulated with concentric warped ellipses at different offsets
-  const centers = [
-    { x: W * 0.38, y: H * 0.45, rx: W * 0.28, ry: H * 0.22 },
-    { x: W * 0.62, y: H * 0.55, rx: W * 0.18, ry: H * 0.15 },
-  ];
+  // Subtle radial background
+  const bgG = ctx.createRadialGradient(W*0.7,H*0.3,0,W*0.7,H*0.3,W*0.6);
+  bgG.addColorStop(0,'rgba(196,255,61,0.04)'); bgG.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bgG; ctx.fillRect(0,0,W,H);
 
-  centers.forEach(({ x, y, rx, ry }) => {
-    for (let k = 1; k <= 8; k++) {
-      const scale = k / 8;
-      ctx.beginPath();
-      for (let a = 0; a <= Math.PI * 2; a += 0.04) {
-        const w = 1 + 0.08 * Math.sin(3 * a + k * 0.4);
-        const px = x + rx * scale * w * Math.cos(a);
-        const py = y + ry * scale * w * Math.sin(a);
-        a < 0.05 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = pal(`rgba(255,255,255,${0.06 * (1 - scale * 0.5)})`, `rgba(255,255,255,${0.07 * (1 - scale * 0.5)})`);
-      ctx.lineWidth = 0.8 * dpr;
-      ctx.stroke();
-    }
-    // Minimum marker
-    ctx.beginPath();
-    ctx.arc(x, y, 3 * dpr, 0, Math.PI * 2);
-    ctx.fillStyle = pal('rgba(255,255,255,0.18)', 'rgba(255,255,255,0.2)');
-    ctx.fill();
-  });
-
-  // Gradient descent path
+  // Ellipse around central equation
   ctx.beginPath();
-  ctx.setLineDash([3 * dpr, 4 * dpr]);
-  ctx.moveTo(W * 0.15, H * 0.12);
-  ctx.bezierCurveTo(W * 0.3, H * 0.28, W * 0.36, H * 0.38, W * 0.38, H * 0.45);
-  ctx.strokeStyle = pal('rgba(255,255,255,0.14)', 'rgba(255,255,255,0.15)');
-  ctx.lineWidth = 1 * dpr;
-  ctx.stroke();
+  ctx.ellipse(W*0.5,H*0.5,W*0.235,H*0.22,0,0,Math.PI*2);
+  ctx.strokeStyle='rgba(196,255,61,0.5)'; ctx.lineWidth=0.8*dpr; ctx.stroke();
+
+  // Pointer arrow to center
+  ctx.beginPath(); ctx.moveTo(W*0.37,H*0.245);
+  ctx.quadraticCurveTo(W*0.39,H*0.36,W*0.415,H*0.435);
+  ctx.strokeStyle='rgba(244,241,234,0.3)'; ctx.lineWidth=0.6*dpr; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(W*0.408,H*0.432); ctx.lineTo(W*0.42,H*0.443); ctx.lineTo(W*0.424,H*0.428);
+  ctx.strokeStyle='rgba(244,241,234,0.3)'; ctx.lineWidth=0.6*dpr; ctx.stroke();
+
+  // Dashed connection between bottom equations
+  ctx.beginPath(); ctx.setLineDash([2*dpr,2*dpr]);
+  ctx.moveTo(W*0.3,H*0.82); ctx.quadraticCurveTo(W*0.45,H*0.78,W*0.6,H*0.825);
+  ctx.strokeStyle='rgba(244,241,234,0.25)'; ctx.lineWidth=0.5*dpr; ctx.stroke();
   ctx.setLineDash([]);
 
-  ctx.fillStyle = pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
-  ctx.font = `${9 * dpr}px "JetBrains Mono", monospace`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('OPTIM · LOCKED', 10 * dpr, 10 * dpr);
+  // Scribbled underline under central eq
+  ctx.beginPath();
+  ctx.moveTo(W*0.265,H*0.605); ctx.quadraticCurveTo(W*0.425,H*0.625,W*0.5,H*0.6);
+  ctx.quadraticCurveTo(W*0.575,H*0.578,W*0.65,H*0.605);
+  ctx.strokeStyle='rgba(196,255,61,0.6)'; ctx.lineWidth=0.8*dpr; ctx.stroke();
+
+  // Strikethrough on discarded equation
+  ctx.beginPath(); ctx.moveTo(W*0.70,H*0.205); ctx.lineTo(W*0.965,H*0.19);
+  ctx.strokeStyle='rgba(244,241,234,0.3)'; ctx.lineWidth=0.6*dpr; ctx.stroke();
+
+  function eq(text, x, y, size, alpha, deg, accent) {
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.translate(x,y); ctx.rotate(deg*Math.PI/180);
+    ctx.font=`italic 300 ${size}px "Fraunces","Times New Roman",serif`;
+    ctx.fillStyle=accent?'#c4ff3d':'rgba(244,241,234,1)';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText(text,0,0); ctx.restore();
+  }
+
+  eq('∂L/∂w = ∂L/∂y · ∂y/∂w',     W*0.085, H*0.112, 13*dpr, 0.22, -4);
+  eq('y = Wx + b + ε',              W*0.70,  H*0.175, 12*dpr, 0.28,  2);
+  eq('Attn(Q,K,V) = softmax(QKᵀ/√d)V', W*0.135, H*0.272, 15*dpr, 0.45, -2);
+  eq('σ(xᵢ) = eˣⁱ / Σⱼ eˣʲ',      W*0.18,  H*0.425, 22*dpr, 1.0,  -1, true);
+  eq('H(p,q) = −Σ p(x)log q(x)',   W*0.555, H*0.598, 12*dpr, 0.28,  3);
+  eq('θt+1 = θt − η∇L(θt)',        W*0.08,  H*0.735, 14*dpr, 0.45,  1.5);
+  eq('LN(x) = γ(x−μ)/σ + β',       W*0.595, H*0.775, 13*dpr, 0.22, -2.5);
+
+  // Annotation
+  ctx.save(); ctx.globalAlpha=0.65;
+  ctx.translate(W*0.52,H*0.72); ctx.rotate(-5*Math.PI/180);
+  ctx.font=`600 ${14*dpr}px "JetBrains Mono",monospace`;
+  ctx.fillStyle='#c4ff3d'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('→ the core!',0,0); ctx.restore();
+
 }
+
 
 
 /* ══════════════════════════════════════════════
    PORTAL 04 — Inside the Agent (static)
-   Decision tree / tool call chain
+   ReAct loop: think / act / observe / reflect
 ══════════════════════════════════════════════ */
 function drawAgent() {
   const el = document.getElementById('canvas-agent');
@@ -896,54 +991,270 @@ function drawAgent() {
 
   const ctx = el.getContext('2d');
   const W = el.width, H = el.height;
+  ctx.fillStyle = '#131313';
+  ctx.fillRect(0, 0, W, H);
+
+  const acid = '#c4ff3d';
+
+  // Node centers
+  const T  = {x: 0.35*W, y: 0.38*H};
+  const A  = {x: 0.725*W, y: 0.48*H};
+  const O  = {x: 0.6125*W, y: 0.80*H};
+  const R  = {x: 0.225*W, y: 0.70*H};
+  const rT = 0.07*W, rO = 0.055*W;
+
+  function arrowHead(x,y,dx,dy) {
+    const len=Math.sqrt(dx*dx+dy*dy), nx=dx/len, ny=dy/len, s=7*dpr;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x-s*(nx+ny*0.55), y-s*(ny-nx*0.55));
+    ctx.lineTo(x-s*(nx-ny*0.55), y-s*(ny+nx*0.55));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function arc(x1,y1,cpx,cpy,x2,y2,alpha,dashed) {
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.strokeStyle=acid; ctx.fillStyle=acid;
+    ctx.lineWidth=1.4*dpr; ctx.lineCap='round';
+    if(dashed) ctx.setLineDash([3*dpr,2*dpr]);
+    ctx.beginPath(); ctx.moveTo(x1,y1);
+    ctx.quadraticCurveTo(cpx,cpy,x2,y2); ctx.stroke();
+    ctx.setLineDash([]);
+    arrowHead(x2,y2,x2-cpx,y2-cpy);
+    ctx.restore();
+  }
+
+  arc(0.43*W,0.38*H,  0.575*W,0.352*H, 0.675*W,0.42*H,  1.0);
+  arc(0.7175*W,0.536*H, 0.7125*W,0.70*H, 0.655*W,0.768*H, 0.85);
+  arc(0.57*W,0.82*H,  0.40*W,0.86*H,  0.2775*W,0.752*H, 0.70);
+  arc(0.235*W,0.628*H, 0.25*W,0.44*H,  0.305*W,0.392*H, 0.55, true);
+
+  // THINK — acid fill with glow
+  const glow=ctx.createRadialGradient(T.x,T.y,0,T.x,T.y,rT*1.8);
+  glow.addColorStop(0,'rgba(196,255,61,0.25)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(T.x,T.y,rT*1.8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(T.x,T.y,rT,0,Math.PI*2); ctx.fillStyle=acid; ctx.fill();
+  ctx.font=`italic 400 ${17*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='#0a0a0a'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('think',T.x,T.y+dpr);
+
+  // ACT
+  ctx.beginPath(); ctx.arc(A.x,A.y,rO,0,Math.PI*2);
+  ctx.fillStyle='#131313'; ctx.fill();
+  ctx.strokeStyle=acid; ctx.lineWidth=1.2*dpr; ctx.stroke();
+  ctx.font=`italic 300 ${13*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='#f4f1ea'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('act',A.x,A.y+dpr);
+
+  // OBSERVE
+  ctx.beginPath(); ctx.arc(O.x,O.y,rO,0,Math.PI*2);
+  ctx.fillStyle='#131313'; ctx.fill();
+  ctx.strokeStyle='rgba(196,255,61,0.6)'; ctx.lineWidth=dpr; ctx.stroke();
+  ctx.font=`italic 300 ${12*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='rgba(244,241,234,0.85)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('observe',O.x,O.y+dpr);
+
+  // REFLECT
+  ctx.beginPath(); ctx.arc(R.x,R.y,rO,0,Math.PI*2);
+  ctx.fillStyle='#131313'; ctx.fill();
+  ctx.strokeStyle='rgba(196,255,61,0.4)'; ctx.lineWidth=dpr; ctx.stroke();
+  ctx.font=`italic 300 ${12*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='rgba(244,241,234,0.70)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('reflect',R.x,R.y+dpr);
+
+  // Arrow labels
+  ctx.font=`${7*dpr}px "JetBrains Mono",monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(196,255,61,0.7)';  ctx.fillText('plan',  W*0.54,  H*0.328);
+  ctx.fillStyle='rgba(196,255,61,0.6)';  ctx.fillText('tool',  W*0.762, H*0.672);
+  ctx.fillStyle='rgba(196,255,61,0.5)';  ctx.fillText('result',W*0.44,  H*0.88);
+  ctx.fillStyle='rgba(196,255,61,0.4)';  ctx.fillText('loop',  W*0.23,  H*0.525);
+
+}
+
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 05 — Inside the Memory (static)
+   Palimpsest: layered text at varying opacity/rotation
+══════════════════════════════════════════════ */
+function drawMemory() {
+  const el = document.getElementById('canvas-memory');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
   ctx.fillStyle = pal('#0c0c0c', '#2a2a2a');
   ctx.fillRect(0, 0, W, H);
 
-  const nodes = [
-    { x: 0.5, y: 0.12, label: 'PERCEIVE' },
-    { x: 0.5, y: 0.35, label: 'REASON' },
-    { x: 0.25, y: 0.6,  label: 'PLAN' },
-    { x: 0.75, y: 0.6,  label: 'TOOL' },
-    { x: 0.25, y: 0.85, label: 'ACT' },
-    { x: 0.75, y: 0.85, label: 'OBSERVE' },
-  ];
+  const d = dpr;
 
-  const edges = [[0,1],[1,2],[1,3],[2,4],[3,5]];
+  function rotText(text, x, y, size, alpha, deg, mono) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(deg * Math.PI / 180);
+    ctx.font = mono
+      ? `400 ${size}px "JetBrains Mono", monospace`
+      : `italic 300 ${size}px "Fraunces", "Times New Roman", serif`;
+    ctx.fillStyle = pal('rgba(244,241,234,1)', 'rgba(244,241,234,1)');
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
 
-  // Edges
-  ctx.strokeStyle = pal('rgba(255,255,255,0.09)', 'rgba(255,255,255,0.1)');
-  ctx.lineWidth = 1 * dpr;
-  ctx.setLineDash([4 * dpr, 4 * dpr]);
-  edges.forEach(([a, b]) => {
-    const na = nodes[a], nb = nodes[b];
-    ctx.beginPath();
-    ctx.moveTo(na.x * W, na.y * H);
-    ctx.lineTo(nb.x * W, nb.y * H);
-    ctx.stroke();
-  });
-  ctx.setLineDash([]);
+  rotText('remember when',           -0.05*W, 0.10*H, 62*d, 0.055, -8);
+  rotText('a conversation we had',    0.10*W, 0.40*H, 30*d, 0.10,  -3);
+  rotText('the mind of the model',    0.35*W, 0.24*H, 18*d, 0.15,   4);
+  rotText('system · you are a helpful assistant…', 0.07*W, 0.66*H, 9*d, 0.20, -1, true);
+  rotText('what was said before',     0.22*W, 0.54*H, 22*d, 0.26,   2);
 
-  // Nodes
-  nodes.forEach(({ x, y, label }) => {
-    const nr = 16 * dpr;
-    ctx.beginPath();
-    ctx.arc(x * W, y * H, nr, 0, Math.PI * 2);
-    ctx.strokeStyle = pal('rgba(255,255,255,0.11)', 'rgba(255,255,255,0.12)');
-    ctx.lineWidth = 1 * dpr;
-    ctx.stroke();
-
-    ctx.fillStyle = pal('rgba(85,85,85,0.65)', 'rgba(130,130,130,0.8)');
-    ctx.font = `${8 * dpr}px "JetBrains Mono", monospace`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, x * W, y * H);
-  });
-
-  ctx.fillStyle = pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
-  ctx.font = `${9 * dpr}px "JetBrains Mono", monospace`;
+  // Top layer with acid highlight
+  ctx.save();
+  ctx.translate(0.175*W, 0.36*H);
+  ctx.rotate(-0.5 * Math.PI / 180);
+  const topPx = 26*d;
+  ctx.font = `italic 400 ${topPx}px "Fraunces", "Times New Roman", serif`;
+  ctx.fillStyle = 'rgba(244,241,234,0.9)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText('AGENT · LOCKED', 10 * dpr, 10 * dpr);
+  ctx.fillText('and now, ', 0, 0);
+  const prefixW = ctx.measureText('and now, ').width;
+  const hlPx = topPx * 0.68;
+  ctx.font = `500 ${hlPx}px "JetBrains Mono", monospace`;
+  const hlText = 'current thought';
+  const hlW = ctx.measureText(hlText).width;
+  const hlH = hlPx * 1.3;
+  ctx.fillStyle = pal('#c4ff3d', '#c4ff3d');
+  ctx.fillRect(prefixW, topPx * 0.05, hlW + 8*d, hlH);
+  ctx.fillStyle = '#0a0a0a';
+  ctx.textBaseline = 'top';
+  ctx.fillText(hlText, prefixW + 4*d, topPx * 0.05 + (hlH - hlPx) * 0.45);
+  ctx.restore();
+
+  // Depth annotation
+  const labels = ['depth 6 / recent', 'depth 5', 'depth 4', 'depth 3', 'depth 2', 'depth 1 / oldest'];
+  const markerTop = 14*d, markerStep = 14*d;
+  ctx.font = `${8*d}px "JetBrains Mono", monospace`;
+  ctx.fillStyle = 'rgba(244,241,234,0.32)';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  labels.forEach((label, i) => ctx.fillText(label, W - 8*d, markerTop + i * markerStep));
+
+  // Vertical rule
+  const ruleGrad = ctx.createLinearGradient(0, markerTop, 0, markerTop + labels.length * markerStep);
+  ruleGrad.addColorStop(0, '#c4ff3d');
+  ruleGrad.addColorStop(1, 'rgba(196,255,61,0.04)');
+  ctx.strokeStyle = ruleGrad;
+  ctx.lineWidth = d;
+  ctx.beginPath();
+  ctx.moveTo(W - 3*d, markerTop);
+  ctx.lineTo(W - 3*d, markerTop + labels.length * markerStep);
+  ctx.stroke();
+
+}
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 06 — Inside the Frontier (static)
+   Exponential compute growth curve
+══════════════════════════════════════════════ */
+function drawFrontier() {
+  const el = document.getElementById('canvas-frontier');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
+  ctx.fillStyle = pal('#0c0c0c', '#2a2a2a');
+  ctx.fillRect(0, 0, W, H);
+
+  const padL = 40*dpr, padR = 20*dpr, padT = 24*dpr, padB = 20*dpr;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 0.6*dpr;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, H - padB);
+  ctx.moveTo(padL, H - padB); ctx.lineTo(W - padR, H - padB);
+  ctx.stroke();
+
+  // Gridlines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5*dpr;
+  [0.25, 0.5, 0.75].forEach(f => {
+    const y = padT + chartH * (1 - f);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+  });
+
+  // Curve points
+  const raw = [[0,0.01],[0.12,0.01],[0.25,0.02],[0.38,0.03],[0.50,0.05],[0.60,0.09],
+               [0.68,0.18],[0.76,0.35],[0.84,0.58],[0.90,0.78],[0.95,0.92],[0.99,0.99]];
+  const pts = raw.map(([fx, fy]) => [padL + fx*chartW, padT + chartH*(1 - fy)]);
+  const last = pts[pts.length - 1];
+
+  // Area fill
+  const fillGrad = ctx.createLinearGradient(0, padT, 0, H - padB);
+  fillGrad.addColorStop(0, 'rgba(196,255,61,0.22)');
+  fillGrad.addColorStop(1, 'rgba(196,255,61,0)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    const [x1,y1] = pts[i-1], [x2,y2] = pts[i];
+    ctx.quadraticCurveTo(x1, y1, (x1+x2)/2, (y1+y2)/2);
+  }
+  ctx.lineTo(last[0], last[1]);
+  ctx.lineTo(last[0], H - padB);
+  ctx.lineTo(pts[0][0], H - padB);
+  ctx.closePath();
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  function buildPath() {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) {
+      const [x1,y1] = pts[i-1], [x2,y2] = pts[i];
+      ctx.quadraticCurveTo(x1, y1, (x1+x2)/2, (y1+y2)/2);
+    }
+    ctx.lineTo(last[0], last[1]);
+  }
+
+  // Glow pass
+  ctx.save();
+  ctx.filter = `blur(${2.5*dpr}px)`;
+  ctx.strokeStyle = 'rgba(196,255,61,0.5)';
+  ctx.lineWidth = 2.5*dpr; ctx.lineCap = 'round';
+  buildPath(); ctx.stroke();
+  ctx.restore();
+
+  // Crisp curve
+  ctx.strokeStyle = '#c4ff3d';
+  ctx.lineWidth = 1.8*dpr; ctx.lineCap = 'round';
+  buildPath(); ctx.stroke();
+
+  // Terminal dot
+  ctx.save();
+  ctx.filter = `blur(${2*dpr}px)`;
+  ctx.beginPath(); ctx.arc(last[0], last[1], 5*dpr, 0, Math.PI*2);
+  ctx.fillStyle = '#c4ff3d'; ctx.fill();
+  ctx.restore();
+  ctx.beginPath(); ctx.arc(last[0], last[1], 4*dpr, 0, Math.PI*2);
+  ctx.fillStyle = '#c4ff3d'; ctx.fill();
+  ctx.beginPath(); ctx.arc(last[0], last[1], 9*dpr, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(196,255,61,0.4)'; ctx.lineWidth = 0.8*dpr; ctx.stroke();
+
 }
 
 
@@ -962,6 +1273,9 @@ window.addEventListener('load', () => {
   drawChip();
   drawAlgo();
   drawAgent();
+  drawMemory();
+  drawFrontier();
+  document.fonts.ready.then(() => { drawAlgo(); drawAgent(); drawMemory(); });
 });
 
 window.addEventListener('resize', () => {
@@ -970,6 +1284,8 @@ window.addEventListener('resize', () => {
   drawChip();
   drawAlgo();
   drawAgent();
+  drawMemory();
+  drawFrontier();
 });
 
 </script>
