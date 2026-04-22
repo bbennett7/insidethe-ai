@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>insidethe.ai — Inside the Processing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+<style>
+
+/* ── DESIGN TOKENS ── */
+:root {
+  --bg:          #0a0a0a;
+  --surface-1:   #111111;
+  --surface-2:   #1a1a1a;
+  --surface-3:   #222222;
+  --ink:         #f5f5f0;
+  --ink-muted:   #888888;
+  --ink-quiet:   #555555;
+  --ink-faint:   #2a2a2a;
+  --acid:        #c4ff3d;
+  --acid-dim:    #8aab2a;
+  --acid-glow:   rgba(196,255,61,0.12);
+  --warm:        #ff6b3d;
+  --cool:        #3da9ff;
+  --line:        rgba(255,255,255,0.07);
+  --line-strong: rgba(255,255,255,0.14);
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-body:    'Newsreader', 'Georgia', serif;
+  --font-mono:    'JetBrains Mono', 'Menlo', monospace;
+  --ease:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+  --dur-fast:  120ms;
+  --dur-mid:   240ms;
+  --dur-slow:  480ms;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+/* ── BACKGROUND CANVAS ── */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── NAV ── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 32px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Wordmark — size-sm from style system */
+.tok-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 400;
+}
+.tok {
+  position: relative;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.tok::after {
+  content: attr(data-id);
+  position: absolute;
+  top: -13px; left: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.tok.tok-accent {
+  background: var(--acid);
+  color: #0a0a0a;
+  border-color: var(--acid);
+  font-weight: 700;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.nav-right .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--acid);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ── APP LAYOUT ── */
+.app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100vh;
+  padding-top: 95px;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  width: 294px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: -95px;
+  padding-top: 95px;
+}
+
+/* ── LEFT PANEL SECTIONS ── */
+.panel-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.panel-section:first-child {
+  padding-top: 14px;
+}
+.panel-section:last-child {
+  border-bottom: none;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  margin-bottom: 12px;
+}
+
+/* ── PROMPT INPUT ── */
+.prompt-box {
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color var(--dur-mid) var(--ease), box-shadow var(--dur-mid) var(--ease);
+}
+.prompt-box:focus-within {
+  border-color: var(--acid);
+  box-shadow: 0 0 0 4px var(--acid-glow);
+}
+.prompt-textarea {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  min-height: 64px;
+  background: transparent;
+  border: 0;
+  resize: none;
+  width: 100%;
+  outline: none;
+  padding: 0;
+}
+.prompt-textarea::placeholder {
+  color: var(--ink-quiet);
+  font-style: italic;
+  font-family: var(--font-body);
+}
+.prompt-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.btn-primary {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 2px;
+  border: 1px solid var(--acid);
+  background: var(--acid);
+  color: #0a0a0a;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background var(--dur-fast) var(--ease);
+}
+.btn-primary:hover { background: #d4ff5e; border-color: #d4ff5e; }
+
+/* ── TOKEN CHIPS (in left panel) ── */
+.token-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  min-height: 36px;
+  align-items: flex-start;
+}
+.token-chips .tok {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.token-chips .tok::after {
+  top: -13px;
+  font-size: 8px;
+}
+.token-chips-empty {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-quiet);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+  padding-top: 4px;
+}
+
+/* ── BPE MERGE ANIMATION ── */
+.merge-wrap {
+  position: relative;
+  min-height: 32px;
+}
+.merge-stage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  transition: opacity 280ms ease;
+}
+.ch {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 2px;
+  color: var(--ink-quiet);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  transition: background 280ms, border-color 280ms, color 280ms;
+}
+.ch.merged {
+  background: rgba(196,255,61,0.07);
+  border-color: rgba(196,255,61,0.22);
+  color: var(--ink-muted);
+}
+.ch.space {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-quiet);
+  opacity: 0.4;
+  padding: 6px 3px;
+}
+
+/* ── EMBED STRIP ── */
+.embed-token-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.embed-canvas {
+  display: block;
+  border-radius: 1px;
+  image-rendering: pixelated;
+}
+.embed-lookup-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* ── OUTPUT SECTION ── */
+.output-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+  min-height: 36px;
+}
+
+.next-token-display {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.next-token-chip {
+  position: relative;
+  padding: 10px 16px;
+  background: var(--acid);
+  border: 1px solid var(--acid);
+  color: #0a0a0a;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.next-token-chip::after {
+  content: attr(data-id);
+  position: absolute;
+  top: -13px; left: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+}
+.next-token-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.next-token-prob {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--acid);
+  letter-spacing: -0.02em;
+}
+.next-token-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+.candidates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.candidate-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.candidate-token {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-muted);
+  width: 52px;
+  flex-shrink: 0;
+}
+.candidate-token.top { color: var(--acid); }
+.candidate-bar-wrap {
+  flex: 1;
+  height: 3px;
+  background: var(--ink-faint);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.candidate-bar {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--acid);
+  transition: width var(--dur-slow) var(--ease);
+}
+.candidate-prob {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-quiet);
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Computing placeholder */
+.computing-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.computing-placeholder .dot-blink {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--acid);
+  animation: pulse-dot 0.8s ease-in-out infinite;
+}
+
+/* Output empty state */
+.output-empty {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-quiet);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: -95px;
+  padding-top: 95px;
+  overflow: hidden;
+}
+
+.right-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+}
+.right-panel-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.token-counter {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+}
+.token-counter .acid { color: var(--acid); }
+
+/* ── LAYERS CONTAINER ── */
+.layers-scroll {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 0 20px 20px;
+  align-items: flex-start;
+}
+
+/* ── LAYER CARD ── */
+.layer-card {
+  flex-shrink: 0;
+  width: 264px;
+  background: rgba(17,17,17,0.9);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color var(--dur-mid) var(--ease), box-shadow var(--dur-mid) var(--ease);
+}
+.layer-card.state-done {
+  border-color: rgba(196,255,61,0.18);
+}
+.layer-card.state-processing {
+  border-color: rgba(196,255,61,0.5);
+  box-shadow: 0 0 0 1px rgba(196,255,61,0.08) inset, 0 4px 24px rgba(196,255,61,0.1);
+}
+
+.layer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.layer-card-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.layer-card.state-done .layer-card-label { color: var(--acid-dim); }
+.layer-card.state-processing .layer-card-label { color: var(--acid); }
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  flex-shrink: 0;
+}
+.layer-card.state-done .status-dot { background: var(--acid); }
+.layer-card.state-processing .status-dot {
+  background: var(--acid);
+  animation: pulse-dot 0.7s ease-in-out infinite;
+  box-shadow: 0 0 4px var(--acid);
+}
+
+/* Canvas fills width of card, height set by JS */
+.layer-viz-canvas {
+  display: block;
+  width: 264px;
+}
+
+/* ── STATE TOGGLE (fixed corner) ── */
+.state-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 30;
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.state-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  background: var(--surface-1);
+  border: none;
+  color: var(--ink-quiet);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.state-btn.active {
+  background: var(--acid);
+  color: #0a0a0a;
+  font-weight: 700;
+}
+.state-btn:hover:not(.active) {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+/* ── PLAYBACK CONTROLS ── */
+.playback-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.playback-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.playback-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  width: 38px;
+  flex-shrink: 0;
+}
+.speed-slider {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 3px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--acid);
+  cursor: pointer;
+}
+.speed-slider::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--acid);
+  border: none;
+  cursor: pointer;
+}
+.speed-value {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-muted);
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.mode-toggle {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mode-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  background: var(--surface-1);
+  border: none;
+  color: var(--ink-quiet);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.mode-btn.active {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+.mode-btn:hover:not(.active) {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+/* ── VIEW TOGGLE ── */
+.view-toggle {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.view-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  background: var(--surface-1);
+  border: none;
+  color: var(--ink-quiet);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.view-btn.active {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+.view-btn:hover:not(.active) {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+/* ── STREAM PANEL ── */
+.stream-panel {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.stream-panel.visible { display: flex; }
+.stream-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.stream-bar-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+}
+.stream-bar-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--acid);
+}
+.stream-bar-status.idle { color: var(--ink-quiet); }
+.stream-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 20px 20px;
+}
+.stream-empty {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-quiet);
+  font-size: 13px;
+  font-weight: 300;
+  padding: 14px 0 4px;
+}
+.stream-frame {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  animation: frame-in 150ms var(--ease);
+}
+@keyframes frame-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.frame-gutter {
+  width: 56px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 1px;
+}
+.frame-num {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ink-quiet);
+}
+.frame-ts {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--acid-dim);
+}
+.frame-body { flex: 1; min-width: 0; }
+.frame-dir {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ink-quiet);
+  margin-bottom: 4px;
+}
+.frame-json {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  word-break: break-all;
+}
+.jk  { color: var(--ink-quiet); }
+.jvs { color: var(--ink); }
+.jvn { color: var(--acid); font-weight: 500; }
+.jp  { color: var(--ink-quiet); opacity: 0.5; }
+
+/* ── NEXT TOKEN BUTTON ── */
+.btn-next {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 2px;
+  border: 1px solid var(--acid);
+  background: transparent;
+  color: var(--acid);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  width: 100%;
+  margin-top: 12px;
+}
+.btn-next:hover {
+  background: var(--acid);
+  color: #0a0a0a;
+}
+
+/* ── LIGHT MODE ── */
+.light {
+  --bg:          #f5f5f0;
+  --surface-1:   #ebebea;
+  --surface-2:   #e0e0de;
+  --surface-3:   #d6d6d4;
+  --ink:         #0a0a0a;
+  --ink-muted:   #555555;
+  --ink-quiet:   #888888;
+  --ink-faint:   #ccccca;
+  --acid:        #8fdc00;
+  --acid-dim:    #6aaa00;
+  --acid-glow:   rgba(143,220,0,0.14);
+  --line:        rgba(0,0,0,0.08);
+  --line-strong: rgba(0,0,0,0.14);
+}
+.light .tok {
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.12);
+}
+.light .tok.tok-accent {
+  background: #8fdc00;
+  color: #0a0a0a;
+  border-color: #8fdc00;
+}
+.light .layer-card {
+  background: #2e2e2e;
+  border-color: rgba(255,255,255,0.1);
+}
+.light .layer-card.state-done {
+  border-color: rgba(143,220,0,0.22);
+}
+.light .layer-card.state-processing {
+  border-color: rgba(143,220,0,0.5);
+  box-shadow: 0 0 0 1px rgba(143,220,0,0.08) inset, 0 4px 24px rgba(143,220,0,0.08);
+}
+.light .ch {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.07);
+}
+.light .ch.merged {
+  background: rgba(143,220,0,0.08);
+  border-color: rgba(143,220,0,0.22);
+}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 50;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 7px 13px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 120ms;
+}
+.theme-toggle:hover { color: var(--ink); }
+
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="tok-row">
+    <span class="tok" data-id="259">in</span>
+    <span class="tok" data-id="1589">side</span>
+    <span class="tok" data-id="1169">the</span>
+    <span class="tok tok-accent" data-id="13 / 1872">.ai</span>
+  </div>
+  <div class="nav-right">
+    <span class="dot"></span>
+    <span>gpt-2 · ready</span>
+  </div>
+</nav>
+
+<!-- TWO-COLUMN APP LAYOUT -->
+<div class="app">
+
+  <!-- ══ LEFT PANEL ══ -->
+  <div class="left-panel">
+
+    <!-- 1. Input area -->
+    <div class="panel-section">
+      <div class="section-eyebrow">Prompt</div>
+      <div class="prompt-box" id="prompt-box">
+        <textarea class="prompt-textarea" id="prompt-textarea" rows="3" placeholder="The cat sat on the mat"></textarea>
+        <div class="prompt-controls">
+          <button class="btn-primary" id="run-btn">Run →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Playback controls -->
+    <div class="panel-section">
+      <div class="section-eyebrow">Playback</div>
+      <div class="playback-controls">
+        <div class="playback-row">
+          <span class="playback-label">Speed</span>
+          <input type="range" class="speed-slider" id="speed-slider" min="0.01" max="1" step="0.01" value="0.5" />
+          <span class="speed-value" id="speed-value">0.50</span>
+        </div>
+        <div class="playback-row">
+          <span class="playback-label">Mode</span>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="btn-stream">Stream</button>
+            <button class="mode-btn" id="btn-step">Step</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Tokenized input -->
+    <div class="panel-section">
+      <div class="section-eyebrow">Input Tokens</div>
+      <div class="token-chips" id="input-tokens">
+        <span class="token-chips-empty">tokens appear here</span>
+      </div>
+    </div>
+
+    <!-- 4. Output tokens -->
+    <div class="panel-section">
+      <div class="section-eyebrow">Output Tokens</div>
+      <div class="output-section" id="output-section">
+        <span class="output-empty">run the model to see output</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <div class="right-panel" id="right-panel">
+
+    <div class="right-panel-header">
+      <span class="right-panel-eyebrow" id="right-eyebrow">12 layers · 12 heads · 768 dimensions · 3072 neurons</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="token-counter" id="token-counter" style="display:none;">token <span class="acid" id="tok-gen-num">1</span></span>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btn-layers-view">Layers</button>
+          <button class="view-btn" id="btn-stream-view">Stream</button>
+        </div>
+        <span class="stream-bar-status idle" id="stream-status">● idle</span>
+      </div>
+    </div>
+
+    <div class="layers-scroll" id="layers-scroll">
+      <!-- 12 layer cards injected by JS -->
+    </div>
+
+    <!-- Stream panel (hidden until toggled) -->
+    <div class="stream-panel" id="stream-panel">
+      <div class="stream-feed" id="stream-feed">
+        <span class="stream-empty">stream frames appear here</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- STATE TOGGLE -->
+<div class="state-toggle">
+  <button class="state-btn active" id="btn-inactive" onclick="setAppState('inactive')">Inactive</button>
+  <button class="state-btn" id="btn-processing" onclick="setAppState('processing')">Processing</button>
+</div>
+
+<button class="theme-toggle" onclick="toggleTheme()">light mode</button>
+
+<script>
+/* ── Theme helpers ── */
+let _dark = true;
+function pal(d, l) { return _dark ? d : l; }
+function _toggleTheme() {
+  _dark = !_dark;
+  document.body.classList.toggle('light', !_dark);
+  document.querySelector('.theme-toggle').textContent = _dark ? 'light mode' : 'dark mode';
+  redrawAllLayers();
+}
+
+/* ══════════════════════════════════════════════
+   BACKGROUND — gravitational lensing grid
+   Ported exactly from landing-mock-01.html
+══════════════════════════════════════════════ */
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth * devicePixelRatio;
+  bgCanvas.height = window.innerHeight * devicePixelRatio;
+  bgCanvas.style.width = `${window.innerWidth}px`;
+  bgCanvas.style.height = `${window.innerHeight}px`;
+}
+
+function drawBg(t) {
+  const W = bgCanvas.width, H = bgCanvas.height;
+  const dpr = devicePixelRatio;
+  const cx = W * 0.5, cy = H * 0.5;
+
+  bgCtx.clearRect(0, 0, W, H);
+  bgCtx.fillStyle = pal('#0a0a0a', '#f5f5f0');
+  bgCtx.fillRect(0, 0, W, H);
+
+  const spacing = 46 * dpr;
+  const lensR = Math.min(W, H) * 0.22;
+  const lensStrength = lensR * lensR * 1.1;
+
+  function lensPoint(x, y) {
+    const dx = x - cx, dy = y - cy;
+    const dist2 = dx * dx + dy * dy;
+    if (dist2 < 4) return [cx, cy];
+    const dist = Math.sqrt(dist2);
+    const wave = 0.04 * Math.sin(dist * 0.009 - t * 0.0005);
+    const pull = (lensStrength / (dist2 + lensR * lensR * 0.12)) * (1 + wave);
+    return [x - dx * pull, y - dy * pull];
+  }
+
+  bgCtx.lineWidth = 0.9 * dpr;
+  const lineAlpha = 0.1;
+
+  for (let gx = (cx % spacing); gx <= W + spacing; gx += spacing) {
+    bgCtx.beginPath();
+    let first = true;
+    for (let gy = -spacing; gy <= H + spacing; gy += 4) {
+      const [px, py] = lensPoint(gx, gy);
+      first ? bgCtx.moveTo(px, py) : bgCtx.lineTo(px, py);
+      first = false;
+    }
+    bgCtx.strokeStyle = pal(`rgba(255,255,255,${lineAlpha})`, `rgba(0,0,0,${lineAlpha})`);
+    bgCtx.stroke();
+  }
+
+  for (let gy = (cy % spacing); gy <= H + spacing; gy += spacing) {
+    bgCtx.beginPath();
+    let first = true;
+    for (let gx = -spacing; gx <= W + spacing; gx += 4) {
+      const [px, py] = lensPoint(gx, gy);
+      first ? bgCtx.moveTo(px, py) : bgCtx.lineTo(px, py);
+      first = false;
+    }
+    bgCtx.strokeStyle = pal(`rgba(255,255,255,${lineAlpha})`, `rgba(0,0,0,${lineAlpha})`);
+    bgCtx.stroke();
+  }
+
+  const voidR = lensR * 0.55;
+  const voidGrd = bgCtx.createRadialGradient(cx, cy, 0, cx, cy, voidR * 2.2);
+  const _vFull = pal('rgba(10,10,10,1)',    'rgba(245,245,240,1)');
+  const _vMid  = pal('rgba(10,10,10,0.55)', 'rgba(245,245,240,0.55)');
+  const _vNone = pal('rgba(10,10,10,0)',    'rgba(245,245,240,0)');
+  voidGrd.addColorStop(0,    _vFull);
+  voidGrd.addColorStop(0.45, _vFull);
+  voidGrd.addColorStop(0.75, _vMid);
+  voidGrd.addColorStop(1,    _vNone);
+  bgCtx.fillStyle = voidGrd;
+  bgCtx.fillRect(0, 0, W, H);
+
+  const ringR = voidR * 1.15;
+  const ringGrd = bgCtx.createRadialGradient(cx, cy, ringR * 0.8, cx, cy, ringR * 1.6);
+  ringGrd.addColorStop(0,    'rgba(0,0,0,0)');
+  ringGrd.addColorStop(0.35, pal('rgba(196,255,61,0.055)', 'rgba(143,220,0,0.1)'));
+  ringGrd.addColorStop(0.65, pal('rgba(196,255,61,0.025)', 'rgba(143,220,0,0.05)'));
+  ringGrd.addColorStop(1,    'rgba(0,0,0,0)');
+  bgCtx.fillStyle = ringGrd;
+  bgCtx.fillRect(0, 0, W, H);
+}
+
+window.addEventListener('resize', resizeBg);
+resizeBg();
+
+function bgLoop(ts) {
+  drawBg(ts);
+  requestAnimationFrame(bgLoop);
+}
+requestAnimationFrame(bgLoop);
+
+
+/* ══════════════════════════════════════════════
+   SEEDED RNG
+══════════════════════════════════════════════ */
+function seededRng(seed) {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+const layersScroll = document.getElementById('layers-scroll');
+const NUM_LAYERS = 12;
+const NUM_HEADS  = 12;
+const SEQ_LEN    = 6;   // "The cat sat on the mat"
+const MLP_DIM    = 3072;
+const MLP_COLS   = 48;
+const MLP_ROWS   = 64;  // 48×64 = 3072
+
+/* ── Generate realistic-looking layer data (seeded) ── */
+function genLayerData(li) {
+  const rng = seededRng(li * 997 + 41);
+
+  // LayerNorm scalars
+  const ln1 = 0.38 + rng() * 0.56;
+  const ln2 = 0.32 + rng() * 0.58;
+
+  // Causal attention weights: 12 heads × SEQ_LEN × SEQ_LEN
+  const attn = Array.from({length: NUM_HEADS}, (_, h) => {
+    const r = seededRng(li * 131 + h * 17 + 3);
+    return Array.from({length: SEQ_LEN}, (__, i) => {
+      // Softmax-like distribution over positions 0..i
+      const raw = Array.from({length: SEQ_LEN}, (_, j) => {
+        if (j > i) return 0;
+        if (j === i)   return 2.0 + r() * 1.5;
+        if (j === i-1) return 1.5 + r() * 1.5;
+        if (j === 2 && i > 2) return 1.0 + r() * 2.0; // subject bias
+        return r() * 0.8;
+      });
+      const sum = raw.reduce((a, b) => a + b, 0) || 1;
+      return raw.map(v => v / sum);
+    });
+  });
+
+  // MLP neuron activations — sparse (ReLU-like)
+  const mlp = Array.from({length: MLP_DIM}, () => {
+    const v = rng();
+    return v < 0.55 ? 0 : ((v - 0.55) / 0.45) ** 1.6;
+  });
+
+  return { ln1, ln2, attn, mlp };
+}
+
+const layerData = Array.from({length: NUM_LAYERS}, (_, i) => genLayerData(i));
+
+/* ── CARD CANVAS DIMENSIONS ── */
+const CARD_W   = 264; // CSS pixels (matches .layer-card width)
+const CARD_PAD = 12;
+const CONTENT_W = CARD_W - CARD_PAD * 2;
+
+// Calculate canvas height from content
+const DPR = devicePixelRatio || 1;
+const LABEL_H   = 13;  // px per section label
+const SEC_GAP   = 10;  // gap after each section
+const BAR_H     = 5;
+// Attn heads: 2 rows × 6 cols, each matrix = SEQ_LEN×SEQ_LEN
+const HEAD_COLS = 6;
+const HEAD_ROWS = Math.ceil(NUM_HEADS / HEAD_COLS);
+const HEAD_INNER_GAP = 3; // gap between heads
+const HEAD_W = Math.floor((CONTENT_W - HEAD_INNER_GAP * (HEAD_COLS - 1)) / HEAD_COLS);
+const HEAD_H = HEAD_W; // square head matrix
+const ATTN_BLOCK_H = HEAD_ROWS * HEAD_H + (HEAD_ROWS - 1) * HEAD_INNER_GAP;
+// MLP neurons
+const NEURON_CELL = Math.floor((CONTENT_W - (MLP_COLS - 1) * 1) / MLP_COLS);
+const MLP_BLOCK_H = MLP_ROWS * NEURON_CELL + (MLP_ROWS - 1) * 1;
+
+const CANVAS_H = Math.ceil(
+  CARD_PAD +                          // top pad
+  LABEL_H + SEC_GAP/2 + BAR_H + SEC_GAP + // LN1
+  LABEL_H + SEC_GAP/2 + ATTN_BLOCK_H + SEC_GAP + // ATTN
+  LABEL_H + SEC_GAP/2 + BAR_H + SEC_GAP + // LN2
+  LABEL_H + SEC_GAP/2 + MLP_BLOCK_H + // MLP
+  CARD_PAD                            // bottom pad
+);
+
+/* ══════════════════════════════════════════════
+   DRAW LAYER CANVAS
+   state: 'inactive' | 'done' | 'processing' | 'pending'
+══════════════════════════════════════════════ */
+function drawLayerCanvas(canvas, state, data) {
+  const W = canvas.width;
+  const H = canvas.height;
+  const ctx = canvas.getContext('2d');
+  const s = DPR; // scale factor
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = pal('#111111', '#2a2a2a');
+  ctx.fillRect(0, 0, W, H);
+
+  const pad  = CARD_PAD * s;
+  const cw   = CONTENT_W * s;
+  let   y    = pad;
+
+  const isActive = state === 'done' || state === 'processing';
+
+  // ── helper: section label ──
+  function label(text, color) {
+    ctx.fillStyle = color || pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
+    ctx.font = `${Math.round(8 * s)}px "JetBrains Mono", monospace`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(text, pad, y);
+    y += LABEL_H * s;
+  }
+
+  // ── helper: bar ──
+  function bar(fill, animating) {
+    const bh = BAR_H * s;
+    ctx.fillStyle = pal('rgba(255,255,255,0.06)', 'rgba(255,255,255,0.07)');
+    ctx.fillRect(pad, y, cw, bh);
+    if (isActive && fill > 0) {
+      ctx.fillStyle = state === 'done'
+        ? pal(`rgba(196,255,61,0.82)`, `rgba(143,220,0,0.85)`)
+        : pal(`rgba(196,255,61,${animating ? 0.6 : 0.82})`, `rgba(143,220,0,${animating ? 0.65 : 0.85})`);
+      ctx.fillRect(pad, y, cw * fill, bh);
+    }
+    y += bh + SEC_GAP * s;
+  }
+
+  // ─────────── LN 1 ───────────
+  const ln1Color = state === 'done'
+    ? pal('rgba(138,171,42,0.8)', 'rgba(143,220,0,0.8)')
+    : state === 'processing'
+      ? pal('rgba(196,255,61,0.8)', 'rgba(143,220,0,0.9)')
+      : pal('rgba(85,85,85,0.7)', 'rgba(130,130,130,0.8)');
+  label('LN 1', ln1Color);
+  bar(data.ln1, false);
+
+  // ─────────── ATTN ───────────
+  label('ATTN', ln1Color);
+
+  for (let h = 0; h < NUM_HEADS; h++) {
+    const col = h % HEAD_COLS;
+    const row = Math.floor(h / HEAD_COLS);
+    const hx  = pad + col * (HEAD_W + HEAD_INNER_GAP) * s;
+    const hy  = y + row * (HEAD_H + HEAD_INNER_GAP) * s;
+    const hw  = HEAD_W * s;
+    const cellSz = hw / SEQ_LEN;
+
+    // Head index label (tiny, above matrix)
+    ctx.fillStyle = pal('rgba(60,60,60,0.9)', 'rgba(130,130,130,0.8)');
+    ctx.font = `${Math.round(5.5 * s)}px "JetBrains Mono", monospace`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(String(h).padStart(2, '0'), hx, hy - 1 * s);
+
+    for (let i = 0; i < SEQ_LEN; i++) {
+      for (let j = 0; j < SEQ_LEN; j++) {
+        const cx = hx + j * cellSz;
+        const cy = hy + i * cellSz;
+        const sz = cellSz - 1;
+
+        if (j > i) {
+          // Causal mask
+          ctx.fillStyle = pal('rgba(255,255,255,0.015)', 'rgba(255,255,255,0.02)');
+        } else if (!isActive) {
+          ctx.fillStyle = pal('rgba(255,255,255,0.05)', 'rgba(255,255,255,0.06)');
+        } else {
+          const w = data.attn[h][i][j];
+          // Partial fill for processing state (only heads 0..6 computed)
+          if (state === 'processing' && h >= 7) {
+            ctx.fillStyle = pal('rgba(255,255,255,0.05)', 'rgba(255,255,255,0.06)');
+          } else {
+            ctx.fillStyle = pal(`rgba(196,255,61,${(0.04 + w * 0.94).toFixed(3)})`, `rgba(143,220,0,${(0.06 + w * 0.92).toFixed(3)})`);
+          }
+        }
+        ctx.fillRect(cx, cy, sz, sz);
+      }
+    }
+  }
+
+  y += (ATTN_BLOCK_H + SEC_GAP) * s;
+
+  // ─────────── LN 2 ───────────
+  label('LN 2', ln1Color);
+  bar(data.ln2, false);
+
+  // ─────────── MLP ───────────
+  label('MLP', ln1Color);
+
+  const ncell = NEURON_CELL * s;
+  const ngap  = 1 * s;
+
+  for (let n = 0; n < MLP_DIM; n++) {
+    const col = n % MLP_COLS;
+    const row = Math.floor(n / MLP_COLS);
+    const nx  = pad + col * (ncell + ngap);
+    const ny  = y   + row * (ncell + ngap);
+
+    const _mlpOff = pal('rgba(255,255,255,0.04)', 'rgba(255,255,255,0.05)');
+    if (!isActive) {
+      ctx.fillStyle = _mlpOff;
+    } else {
+      const act = data.mlp[n];
+      if (state === 'processing') {
+        // Only rows processed so far
+        const processedRows = Math.floor(MLP_ROWS * 0.55);
+        if (row < processedRows) {
+          ctx.fillStyle = act < 0.02
+            ? _mlpOff
+            : pal(`rgba(196,255,61,${(0.06 + act * 0.88).toFixed(3)})`, `rgba(143,220,0,${(0.08 + act * 0.86).toFixed(3)})`);
+        } else {
+          ctx.fillStyle = _mlpOff;
+        }
+      } else {
+        ctx.fillStyle = act < 0.02
+          ? _mlpOff
+          : pal(`rgba(196,255,61,${(0.06 + act * 0.88).toFixed(3)})`, `rgba(143,220,0,${(0.08 + act * 0.86).toFixed(3)})`);
+      }
+    }
+    ctx.fillRect(nx, ny, ncell, ncell);
+  }
+}
+
+/* ── Redraw all layers using current state ── */
+function redrawAllLayers() {
+  for (let i = 0; i < NUM_LAYERS; i++) {
+    const card = document.getElementById(`layer-card-${i}`);
+    const state = card.classList.contains('state-done') ? 'done'
+      : card.classList.contains('state-processing') ? 'processing'
+      : 'inactive';
+    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), state, layerData[i]);
+  }
+}
+
+/* ── Build 12 layer card DOM elements ── */
+const layerCards = [];
+for (let i = 0; i < NUM_LAYERS; i++) {
+  const num  = String(i).padStart(2, '0');
+  const card = document.createElement('div');
+  card.className = 'layer-card';
+  card.id = `layer-card-${i}`;
+
+  const header = document.createElement('div');
+  header.className = 'layer-card-header';
+  header.innerHTML = `
+    <span class="layer-card-label">LAYER ${num}</span>
+    <span class="status-dot" id="status-dot-${i}"></span>
+  `;
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'layer-viz-canvas';
+  canvas.id = `layer-canvas-${i}`;
+  canvas.width  = Math.round(CARD_W * DPR);
+  canvas.height = Math.round(CANVAS_H * DPR);
+  canvas.style.width  = `${CARD_W}px`;
+  canvas.style.height = `${CANVAS_H}px`;
+
+  card.appendChild(header);
+  card.appendChild(canvas);
+  layersScroll.appendChild(card);
+  layerCards.push(card);
+}
+
+
+/* ══════════════════════════════════════════════
+   TOKEN DATA for the example sentence
+══════════════════════════════════════════════ */
+const INPUT_TOKENS = [
+  { text: 'The',  id: 464  },
+  { text: 'cat',  id: 3797 },
+  { text: 'sat',  id: 3332 },
+  { text: 'on',   id: 319  },
+  { text: 'the',  id: 262  },
+  { text: 'mat',  id: 2603 },
+];
+
+const _CANDIDATES = [
+  { text: '.',       id: 13,   prob: 0.38 },
+  { text: '"',       id: 1,    prob: 0.17 },
+  { text: 'and',     id: 290,  prob: 0.11 },
+  { text: ',',       id: 11,   prob: 0.08 },
+  { text: 'with',    id: 351,  prob: 0.06 },
+];
+
+
+/* ══════════════════════════════════════════════
+   PLAYBACK CONTROLS
+══════════════════════════════════════════════ */
+const promptTextarea = document.getElementById('prompt-textarea');
+const speedSlider    = document.getElementById('speed-slider');
+const speedValueEl   = document.getElementById('speed-value');
+const btnStream      = document.getElementById('btn-stream');
+const btnStep        = document.getElementById('btn-step');
+
+speedSlider.addEventListener('input', () => {
+  speedValueEl.textContent = parseFloat(speedSlider.value).toFixed(2);
+});
+
+btnStream.addEventListener('click', () => {
+  btnStream.classList.add('active');
+  btnStep.classList.remove('active');
+});
+btnStep.addEventListener('click', () => {
+  btnStep.classList.add('active');
+  btnStream.classList.remove('active');
+});
+
+function isStepMode() { return btnStep.classList.contains('active'); }
+function layerDelay()  {
+  const s = parseFloat(speedSlider.value);
+  // speed 1 → 60ms per layer, speed 0.01 → 2500ms
+  return Math.round((1 - s) * 2440 + 60);
+}
+
+
+/* ══════════════════════════════════════════════
+   MOCK OUTPUT SEQUENCES (cycles through these)
+══════════════════════════════════════════════ */
+const OUTPUT_SEQUENCES = [
+  [
+    { text: '.',    id: 13,  prob: 0.38 },
+    { text: '"',    id: 1,   prob: 0.17 },
+    { text: 'and',  id: 290, prob: 0.11 },
+    { text: ',',    id: 11,  prob: 0.08 },
+    { text: 'with', id: 351, prob: 0.06 },
+  ],
+  [
+    { text: 'while', id: 981,  prob: 0.29 },
+    { text: '.',     id: 13,   prob: 0.22 },
+    { text: 'as',    id: 355,  prob: 0.14 },
+    { text: ',',     id: 11,   prob: 0.09 },
+    { text: 'and',   id: 290,  prob: 0.07 },
+  ],
+  [
+    { text: ',',     id: 11,  prob: 0.41 },
+    { text: '.',     id: 13,  prob: 0.19 },
+    { text: 'and',   id: 290, prob: 0.12 },
+    { text: 'but',   id: 475, prob: 0.08 },
+    { text: 'when',  id: 618, prob: 0.05 },
+  ],
+];
+
+let tokenGenCount  = 0;
+let animTimeout    = null;
+let awaitingStep   = false;
+
+
+/* ══════════════════════════════════════════════
+   APP STATE
+══════════════════════════════════════════════ */
+function setOutputStatus(html) {
+  const sec = document.getElementById('output-section');
+  sec.querySelectorAll('.output-status').forEach(e => e.remove());
+  if (html) {
+    const div = document.createElement('div');
+    div.className = 'output-status';
+    div.innerHTML = html;
+    sec.appendChild(div);
+  }
+}
+
+function resetAll() {
+  clearTimeout(animTimeout);
+  stopEmbedAnimation();
+  awaitingStep = false;
+  tokenGenCount = 0;
+
+  promptTextarea.value = '';
+  document.getElementById('input-tokens').innerHTML = '<span class="token-chips-empty">tokens appear here</span>';
+  document.getElementById('output-section').innerHTML = '<span class="output-empty">run the model to see output</span>';
+  document.getElementById('right-eyebrow').textContent = '12 layers · 12 heads · 768 dimensions · 3072 neurons';
+  document.getElementById('token-counter').style.display = 'none';
+
+  for (let i = 0; i < NUM_LAYERS; i++) {
+    layerCards[i].className = 'layer-card';
+    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), 'inactive', layerData[i]);
+  }
+
+  document.getElementById('btn-inactive').classList.add('active');
+  document.getElementById('btn-processing').classList.remove('active');
+  if (window._streamReset) window._streamReset();
+}
+
+function _setAppState(state) {
+  document.getElementById('btn-inactive').classList.toggle('active', state === 'inactive');
+  document.getElementById('btn-processing').classList.toggle('active', state === 'processing');
+  if (state === 'inactive') resetAll();
+  else startRun();
+}
+
+
+/* ══════════════════════════════════════════════
+   BPE MERGE + EMBED ANIMATION
+══════════════════════════════════════════════ */
+
+// Three merge stages for "The cat sat on the mat"
+const MERGE_STAGES = [
+  // Stage 0 — raw characters
+  [
+    {t:'T'},{t:'h'},{t:'e'},{t:'·',sp:true},
+    {t:'c'},{t:'a'},{t:'t'},{t:'·',sp:true},
+    {t:'s'},{t:'a'},{t:'t'},{t:'·',sp:true},
+    {t:'o'},{t:'n'},{t:'·',sp:true},
+    {t:'t'},{t:'h'},{t:'e'},{t:'·',sp:true},
+    {t:'m'},{t:'a'},{t:'t'},
+  ],
+  // Stage 1 — first merges (common bigrams)
+  [
+    {t:'Th',m:true},{t:'e'},{t:'·',sp:true},
+    {t:'c'},{t:'at',m:true},{t:'·',sp:true},
+    {t:'s'},{t:'at',m:true},{t:'·',sp:true},
+    {t:'on',m:true},{t:'·',sp:true},
+    {t:'th',m:true},{t:'e'},{t:'·',sp:true},
+    {t:'m'},{t:'at',m:true},
+  ],
+  // Stage 2 — second merges → final tokens
+  [
+    {t:'The',m:true},{t:'·',sp:true},
+    {t:'cat',m:true},{t:'·',sp:true},
+    {t:'sat',m:true},{t:'·',sp:true},
+    {t:'on',m:true},{t:'·',sp:true},
+    {t:'the',m:true},{t:'·',sp:true},
+    {t:'mat',m:true},
+  ],
+];
+
+function stageDelay() {
+  const s = parseFloat(speedSlider.value);
+  return Math.round((1 - s) * 900 + 250);
+}
+
+function renderMergeStage(stage) {
+  return `<div class="merge-stage">` +
+    stage.map(({t, sp, m}) =>
+      `<span class="ch${sp ? ' space' : m ? ' merged' : ''}">${t}</span>`
+    ).join('') +
+  `</div>`;
+}
+
+const EMBED_CELL_W  = 4;
+const EMBED_CELL_H  = 6;
+const EMBED_GAP     = 1;
+
+function genEmbedVector(tokenIdx) {
+  const rng = seededRng(tokenIdx * 233 + 91);
+  // 768 values in range -1..1, shaped to feel like real embeddings (mostly small, occasional spikes)
+  return Float32Array.from({length: 768}, () => {
+    const v = rng() * 2 - 1;
+    return v * v * Math.sign(v); // square-compress toward zero, preserves sign
+  });
+}
+
+let embedAnimId   = null;
+const embedSlots  = []; // { canvas, ctx, vector, offset }
+
+function stopEmbedAnimation() {
+  if (embedAnimId) { cancelAnimationFrame(embedAnimId); embedAnimId = null; }
+  embedSlots.length = 0;
+}
+
+function drawEmbedSlot({ ctx, vector, offset, canvasW, canvasH, numCells }) {
+  const dpr    = devicePixelRatio;
+  const stride = (EMBED_CELL_W + EMBED_GAP) * dpr;
+  const cellW  = EMBED_CELL_W * dpr;
+  const frac   = offset % 1; // sub-cell fractional position
+
+  ctx.clearRect(0, 0, canvasW, canvasH);
+  ctx.save();
+  ctx.rect(0, 0, canvasW, canvasH); // clip to canvas
+  ctx.clip();
+  ctx.translate(-frac * stride, 0); // smooth sub-pixel shift
+
+  const startDim = Math.floor(offset);
+  for (let c = 0; c <= numCells + 1; c++) {
+    const dim = (startDim + c) % 768;
+    const v   = vector[dim];
+    const abs = Math.abs(v);
+    const alpha = (0.1 + abs * 0.85).toFixed(3);
+    ctx.fillStyle = v >= 0
+      ? pal(`rgba(196,255,61,${alpha})`, `rgba(143,220,0,${alpha})`)
+      : pal(`rgba(61,169,255,${alpha})`, `rgba(0,130,210,${alpha})`);
+    ctx.fillRect(c * stride, 0, cellW, canvasH);
+  }
+  ctx.restore();
+}
+
+function startEmbedAnimation() {
+  let last = null;
+  function loop(ts) {
+    const dt    = Math.min(last ? ts - last : 16, 50);
+    last = ts;
+    const speed  = parseFloat(speedSlider.value);
+    const scroll = (speed * 0.007 + 0.0008) * dt; // slow gentle stream
+    embedSlots.forEach(slot => {
+      slot.offset = (slot.offset + scroll) % 768;
+      drawEmbedSlot(slot);
+    });
+    embedAnimId = requestAnimationFrame(loop);
+  }
+  embedAnimId = requestAnimationFrame(loop);
+}
+
+function phaseLabel(text) {
+  return `<div class="embed-lookup-label" style="margin-bottom:8px">` +
+    `<span class="dot-blink" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--acid)"></span>` +
+    `${text}</div>`;
+}
+
+function animateTokenization(onComplete) {
+  const el  = document.getElementById('input-tokens');
+  const DOT = `<span class="dot-blink" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--acid)"></span>`;
+
+  function setLabel(html) {
+    const lb = el.querySelector('.embed-lookup-label');
+    if (lb) lb.innerHTML = DOT + html;
+  }
+
+  // Init: label + stage 0
+  el.innerHTML = `${phaseLabel('merging&hellip;')}<div class="merge-wrap">${renderMergeStage(MERGE_STAGES[0])}</div>`;
+
+  let stageIdx = 0;
+
+  function nextStage() {
+    stageIdx++;
+    if (stageIdx >= MERGE_STAGES.length) { showFinalChips(); return; }
+    const current = el.querySelector('.merge-stage');
+    if (current) current.style.opacity = '0';
+    animTimeout = setTimeout(() => {
+      el.querySelector('.merge-wrap').innerHTML = renderMergeStage(MERGE_STAGES[stageIdx]);
+      const next = el.querySelector('.merge-stage');
+      next.style.opacity = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        next.style.opacity = '1';
+        animTimeout = setTimeout(nextStage, stageDelay());
+      }));
+    }, 280);
+  }
+
+  function showFinalChips() {
+    const mergeWrap = el.querySelector('.merge-wrap');
+    if (mergeWrap) mergeWrap.style.opacity = '0';
+    setTimeout(() => {
+      if (mergeWrap) mergeWrap.remove();
+      // Each wrap already reserves embed height via a spacer — no layout jump later
+      INPUT_TOKENS.forEach((t, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'embed-token-wrap';
+        wrap.style.cssText = `opacity:0;transition:opacity 220ms ${i*55}ms;display:inline-flex;flex-direction:column;vertical-align:top;margin:2px 4px 8px 0`;
+        wrap.innerHTML =
+          `<span class="tok" data-id="${t.id}" style="font-size:13px;padding:6px 10px">${t.text}</span>` +
+          `<div class="embed-spacer" style="height:${EMBED_CELL_H}px;margin-top:4px"></div>`;
+        el.appendChild(wrap);
+      });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.querySelectorAll('.embed-token-wrap').forEach(w => w.style.opacity = '1');
+      }));
+      animTimeout = setTimeout(showEmbedLookup, stageDelay() * 0.6 + INPUT_TOKENS.length * 55 + 200);
+    }, 280);
+  }
+
+  function showEmbedLookup() {
+    // Just update label text — tokens and spacers stay put
+    setLabel('looking up embeddings&hellip;');
+    animTimeout = setTimeout(showEmbedStrips, stageDelay());
+  }
+
+  function showEmbedStrips() {
+    stopEmbedAnimation();
+    const dpr = devicePixelRatio;
+    const ch  = Math.round(EMBED_CELL_H * dpr);
+
+    requestAnimationFrame(() => {
+      el.querySelectorAll('.embed-token-wrap').forEach((wrap, idx) => {
+        const chip   = wrap.querySelector('.tok');
+        const spacer = wrap.querySelector('.embed-spacer');
+        const chipW  = chip.offsetWidth;
+        const cw     = Math.round(chipW * dpr);
+        const nCells = Math.floor(chipW / (EMBED_CELL_W + EMBED_GAP));
+
+        const canvas = document.createElement('canvas');
+        canvas.className = 'embed-canvas';
+        canvas.width  = cw;
+        canvas.height = ch;
+        canvas.style.width    = `${chipW}px`;
+        canvas.style.height   = `${EMBED_CELL_H}px`;
+        canvas.style.marginTop = '4px';
+        if (spacer) spacer.replaceWith(canvas);
+
+        const vector = genEmbedVector(idx);
+        const slot   = { ctx: canvas.getContext('2d'), vector, offset: idx * 47, canvasW: cw, canvasH: ch, numCells: nCells };
+        embedSlots.push(slot);
+        drawEmbedSlot(slot);
+      });
+
+      startEmbedAnimation();
+      animTimeout = setTimeout(onComplete, stageDelay() + 300);
+    });
+  }
+
+  animTimeout = setTimeout(nextStage, stageDelay());
+}
+
+
+/* ══════════════════════════════════════════════
+   ANIMATION — layer by layer
+══════════════════════════════════════════════ */
+function startRun() {
+  clearTimeout(animTimeout);
+  awaitingStep = false;
+
+  if (tokenGenCount === 0 && window._streamInit) window._streamInit();
+
+  promptTextarea.value = 'The cat sat on the mat';
+
+  document.getElementById('token-counter').style.display = 'block';
+  document.getElementById('tok-gen-num').textContent = tokenGenCount + 1;
+
+  if (tokenGenCount === 0) {
+    // First token: run full tokenisation + embed sequence
+    document.getElementById('input-tokens').innerHTML = '<span class="token-chips-empty">tokenising&hellip;</span>';
+    // Clear empty state, show waiting
+    document.getElementById('output-section').innerHTML = '';
+    setOutputStatus(`<div class="computing-placeholder"><span class="dot-blink" style="background:var(--ink-quiet);animation:none"></span>waiting&hellip;</div>`);
+    animateTokenization(() => {
+      stopEmbedAnimation();
+      setOutputStatus(`<div class="computing-placeholder"><span class="dot-blink"></span>computing&hellip;</div>`);
+      animateLayers(0);
+    });
+  } else {
+    // Subsequent tokens: skip tokenisation, go straight to forward pass
+    setOutputStatus(`<div class="computing-placeholder"><span class="dot-blink"></span>computing&hellip;</div>`);
+    animateLayers(0);
+  }
+}
+
+function animateLayers(layerIdx) {
+  if (layerIdx > 0) {
+    layerCards[layerIdx - 1].className = 'layer-card state-done';
+    drawLayerCanvas(document.getElementById(`layer-canvas-${layerIdx - 1}`), 'done', layerData[layerIdx - 1]);
+  }
+
+  if (layerIdx >= NUM_LAYERS) {
+    onLayersComplete();
+    return;
+  }
+
+  layerCards[layerIdx].className = 'layer-card state-processing';
+  drawLayerCanvas(document.getElementById(`layer-canvas-${layerIdx}`), 'processing', layerData[layerIdx]);
+
+  for (let i = layerIdx + 1; i < NUM_LAYERS; i++) {
+    layerCards[i].className = 'layer-card';
+    drawLayerCanvas(document.getElementById(`layer-canvas-${i}`), 'inactive', layerData[i]);
+  }
+
+  animTimeout = setTimeout(() => animateLayers(layerIdx + 1), layerDelay());
+}
+
+function onLayersComplete() {
+  const seq = OUTPUT_SEQUENCES[tokenGenCount % OUTPUT_SEQUENCES.length];
+  tokenGenCount++;
+
+  const sec = document.getElementById('output-section');
+
+  // Remove status, append new token chip
+  setOutputStatus(null);
+  const chip = document.createElement('span');
+  chip.className = 'tok';
+  chip.dataset.id = seq[0].id;
+  chip.dataset.candidates = JSON.stringify(seq);
+  chip.textContent = seq[0].text;
+  chip.style.cssText = 'font-size:13px;padding:6px 10px;opacity:0;transition:opacity 200ms;margin:0 4px 8px 0;display:inline-block;cursor:default';
+  sec.appendChild(chip);
+  requestAnimationFrame(() => requestAnimationFrame(() => chip.style.opacity = '1'));
+
+  document.getElementById('tok-gen-num').textContent = tokenGenCount;
+  if (window._streamToken) window._streamToken(seq[0]);
+
+  if (isStepMode()) {
+    awaitingStep = true;
+    const btn = document.createElement('button');
+    btn.className = 'btn-next output-status';
+    btn.style.cssText = 'display:block;width:100%;margin-top:8px';
+    btn.textContent = 'Next token →';
+    btn.addEventListener('click', stepNext);
+    sec.appendChild(btn);
+  } else {
+    animTimeout = setTimeout(startRun, layerDelay() * 2 + 400);
+  }
+}
+
+function stepNext() {
+  if (!awaitingStep) return;
+  awaitingStep = false;
+  startRun();
+}
+
+
+/* ══════════════════════════════════════════════
+   RUN BUTTON
+══════════════════════════════════════════════ */
+document.getElementById('run-btn').addEventListener('click', () => {
+  resetAll();
+  document.getElementById('btn-processing').classList.add('active');
+  document.getElementById('btn-inactive').classList.remove('active');
+  startRun();
+});
+
+
+/* ══════════════════════════════════════════════
+   TOKEN HOVER TOOLTIP
+══════════════════════════════════════════════ */
+const tooltip = document.createElement('div');
+tooltip.style.cssText = [
+  'position:fixed','z-index:200',
+  'background:#1a1a1a','border:1px solid rgba(255,255,255,0.14)',
+  'border-radius:4px','padding:10px 12px',
+  'font-family:"JetBrains Mono",monospace','font-size:10px',
+  'pointer-events:none','opacity:0','transition:opacity 140ms ease',
+  'min-width:150px','box-shadow:0 4px 20px rgba(0,0,0,0.5)',
+  'letter-spacing:0.04em',
+].join(';');
+document.body.appendChild(tooltip);
+
+function positionTooltip(e) {
+  const pad = 14;
+  let x = e.clientX + pad, y = e.clientY - pad;
+  const tw = tooltip.offsetWidth || 160;
+  const th = tooltip.offsetHeight || 120;
+  if (x + tw > window.innerWidth  - pad) x = e.clientX - tw - pad;
+  if (y + th > window.innerHeight - pad) y = e.clientY - th - pad;
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top  = `${y}px`;
+}
+
+document.addEventListener('mouseover', e => {
+  const chip = e.target.closest('.tok[data-candidates]');
+  if (!chip) return;
+  const cands = JSON.parse(chip.dataset.candidates);
+  const max   = cands[0].prob;
+  tooltip.innerHTML =
+    `<div style="color:#f5f5f0;font-size:14px;font-weight:500;margin-bottom:3px">${chip.textContent}</div>` +
+    `<div style="color:#555;margin-bottom:10px;font-size:9px;letter-spacing:0.12em">ID ${chip.dataset.id}</div>` +
+    cands.map((c, i) =>
+      `<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">` +
+        `<span style="color:${i===0?'#c4ff3d':'#666'};width:34px;flex-shrink:0">${c.text}</span>` +
+        `<div style="flex:1;height:2px;background:#2a2a2a;border-radius:1px">` +
+          `<div style="width:${Math.round(c.prob/max*100)}%;height:100%;background:${i===0?'#c4ff3d':'#3a3a3a'};border-radius:1px"></div>` +
+        `</div>` +
+        `<span style="color:#555;width:30px;text-align:right;flex-shrink:0">${c.prob.toFixed(2)}</span>` +
+      `</div>`
+    ).join('');
+  tooltip.style.opacity = '1';
+  positionTooltip(e);
+});
+
+document.addEventListener('mousemove', e => {
+  if (parseFloat(tooltip.style.opacity) > 0) positionTooltip(e);
+});
+
+document.addEventListener('mouseout', e => {
+  if (e.target.closest?.('.tok[data-candidates]')) {
+    tooltip.style.opacity = '0';
+  }
+});
+
+
+/* ══════════════════════════════════════════════
+   STREAM VIEW
+══════════════════════════════════════════════ */
+let _sfCount = 0;
+let _sfStart = 0;
+
+function _jsonHtml(obj) {
+  const entries = Object.entries(obj);
+  const parts = entries.map(([k, v], i) => {
+    const comma = i < entries.length - 1 ? '<span class="jp">, </span>' : '';
+    const key   = `<span class="jk">"${k}"</span><span class="jp">: </span>`;
+    const val   = typeof v === 'string'
+      ? `<span class="jvs">"${v.replace(/</g,'&lt;')}"</span>`
+      : `<span class="jvn">${v}</span>`;
+    return key + val + comma;
+  });
+  return `<span class="jp">{</span>${parts.join('')}<span class="jp">}</span>`;
+}
+
+function _pushFrame(obj) {
+  const feed = document.getElementById('stream-feed');
+  if (!feed) return;
+  feed.querySelector('.stream-empty')?.remove();
+
+  _sfCount++;
+  const num = `#${String(_sfCount).padStart(3, '0')}`;
+  const ms  = Date.now() - _sfStart;
+  const ts  = ms < 1000 ? `+${ms}ms` : `+${(ms / 1000).toFixed(2)}s`;
+
+  const el = document.createElement('div');
+  el.className = 'stream-frame';
+  el.innerHTML =
+    `<div class="frame-gutter">` +
+      `<div class="frame-num">${num}</div>` +
+      `<div class="frame-ts">${ts}</div>` +
+    `</div>` +
+    `<div class="frame-body">` +
+      `<div class="frame-dir">← recv</div>` +
+      `<div class="frame-json">${_jsonHtml(obj)}</div>` +
+    `</div>`;
+  feed.appendChild(el);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+window._streamInit = () => {
+  _sfCount = 0;
+  _sfStart = Date.now();
+  const feed = document.getElementById('stream-feed');
+  if (feed) feed.innerHTML = '';
+  const st = document.getElementById('stream-status');
+  if (st) { st.textContent = '● live'; st.className = 'stream-bar-status'; }
+  _pushFrame({ type: 'start', model: 'gpt-2', prompt: 'The cat sat on the mat', input_tokens: 6 });
+};
+
+window._streamToken = (tok) => {
+  const logprob = parseFloat((-Math.log(tok.prob)).toFixed(3));
+  _pushFrame({ type: 'token', text: tok.text, id: tok.id, logprob, p: tok.prob });
+};
+
+window._streamReset = () => {
+  _sfCount = 0;
+  const feed = document.getElementById('stream-feed');
+  if (feed) feed.innerHTML = '<span class="stream-empty">stream frames appear here</span>';
+  const st = document.getElementById('stream-status');
+  if (st) { st.textContent = '● idle'; st.className = 'stream-bar-status idle'; }
+};
+
+/* ── View toggle ── */
+document.getElementById('btn-layers-view').addEventListener('click', () => {
+  document.getElementById('btn-layers-view').classList.add('active');
+  document.getElementById('btn-stream-view').classList.remove('active');
+  document.getElementById('layers-scroll').style.display = '';
+  document.getElementById('stream-panel').classList.remove('visible');
+});
+document.getElementById('btn-stream-view').addEventListener('click', () => {
+  document.getElementById('btn-stream-view').classList.add('active');
+  document.getElementById('btn-layers-view').classList.remove('active');
+  document.getElementById('layers-scroll').style.display = 'none';
+  document.getElementById('stream-panel').classList.add('visible');
+});
+
+
+// Init
+resetAll();
+
+</script>
+</body>
+</html>

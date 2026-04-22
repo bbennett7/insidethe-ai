@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>insidethe.ai — design system v01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+<style>
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ DESIGN TOKENS ═══
+   The single source of truth.
+   ════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* — COLOR : SURFACE — */
+  --bg:           #0a0a0a;   /* page */
+  --surface-1:    #111111;   /* cards, panels */
+  --surface-2:    #1a1a1a;   /* nested */
+  --surface-3:    #222222;   /* hover, active */
+
+  /* — COLOR : INK — */
+  --ink:          #f5f5f0;   /* primary text */
+  --ink-muted:    #888888;   /* secondary */
+  --ink-quiet:    #555555;   /* tertiary, captions */
+  --ink-faint:    #2a2a2a;   /* dividers, hairlines */
+
+  /* — COLOR : ACCENT — */
+  --acid:         #c4ff3d;   /* the brand color */
+  --acid-dim:     #8aab2a;   /* muted variant */
+  --acid-glow:    rgba(196, 255, 61, 0.15);
+
+  /* — COLOR : SEMANTIC (for heatmaps / data) — */
+  --warm:         #ff6b3d;   /* high attention */
+  --cool:         #3da9ff;   /* low attention */
+  --positive:     #7dd87d;
+  --negative:     #ff5e6c;
+
+  /* — COLOR : LINES — */
+  --line:         rgba(255,255,255,0.08);
+  --line-strong:  rgba(255,255,255,0.16);
+
+  /* — TYPE — */
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-body:    'Newsreader', 'Georgia', serif;
+  --font-mono:    'JetBrains Mono', 'Menlo', monospace;
+
+  /* — SPACING (8pt base) — */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* — RADIUS — */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  /* — MOTION — */
+  --ease:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+  --dur-fast:   120ms;
+  --dur-mid:    240ms;
+  --dur-slow:   480ms;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ PAGE LAYOUT ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--space-9) 6vw;
+}
+
+.section {
+  padding: var(--space-9) 0;
+  border-top: 1px solid var(--line);
+  position: relative;
+}
+.section:first-of-type { border-top: 0; padding-top: var(--space-7); }
+
+.section-header {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--space-7);
+  margin-bottom: var(--space-7);
+  align-items: baseline;
+}
+@media (max-width: 800px) {
+  .section-header { grid-template-columns: 1fr; gap: var(--space-3); }
+}
+
+.section-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.section-num::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--ink-muted);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(28px, 3.4vw, 44px);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.section-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--acid);
+}
+
+.section-desc {
+  margin-top: var(--space-3);
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: 15px;
+  max-width: 56ch;
+  font-weight: 300;
+}
+
+.spec {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.spec::before {
+  content: '·';
+  color: var(--acid);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 00 · MASTHEAD ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.masthead {
+  padding-bottom: var(--space-7);
+  border-bottom: 1px solid var(--line);
+}
+.masthead-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.masthead-eyebrow::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--ink-muted);
+}
+.masthead-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(40px, 6vw, 80px);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  margin-bottom: var(--space-5);
+}
+.masthead-title em {
+  font-style: italic;
+  color: var(--acid);
+}
+.masthead-meta {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-7);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.masthead-meta span strong {
+  color: var(--ink);
+  font-weight: 500;
+  display: block;
+  margin-top: 4px;
+  letter-spacing: 0;
+  font-size: 13px;
+  text-transform: none;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 01 · WORDMARK ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.wordmark-stage {
+  background: var(--surface-1);
+  padding: var(--space-9) var(--space-7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  position: relative;
+  min-height: 280px;
+}
+.wordmark-stage::before {
+  content: 'wordmark · primary';
+  position: absolute;
+  top: var(--space-3); left: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.wordmark-stage::after {
+  content: '01';
+  position: absolute;
+  bottom: var(--space-3); right: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--ink-quiet);
+}
+
+/* THE WORDMARK ITSELF — primitive */
+.tok-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: clamp(20px, 2.6vw, 30px);
+  font-weight: 400;
+}
+.tok {
+  position: relative;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+.tok::after {
+  content: attr(data-id);
+  position: absolute;
+  top: -16px; left: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+}
+.tok.tok-accent {
+  background: var(--acid);
+  color: var(--bg);
+  border-color: var(--acid);
+  font-weight: 700;
+}
+
+/* Wordmark size variants */
+.tok-row.size-lg { font-size: clamp(28px, 3.6vw, 42px); }
+.tok-row.size-lg .tok { padding: 14px 22px; }
+.tok-row.size-lg .tok::after { top: -20px; font-size: 10px; }
+
+.tok-row.size-md { font-size: clamp(20px, 2.6vw, 30px); }
+
+.tok-row.size-sm { font-size: 16px; gap: 3px; }
+.tok-row.size-sm .tok { padding: 6px 10px; }
+.tok-row.size-sm .tok::after { top: -12px; font-size: 8px; }
+
+.tok-row.size-xs { font-size: 12px; gap: 2px; }
+.tok-row.size-xs .tok { padding: 4px 7px; }
+.tok-row.size-xs .tok::after { display: none; }
+
+.wordmark-variants {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  margin-top: var(--space-4);
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+@media (max-width: 720px) {
+  .wordmark-variants { grid-template-columns: 1fr; }
+}
+.variant-cell {
+  background: var(--surface-1);
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-height: 140px;
+  justify-content: space-between;
+  position: relative;
+}
+.variant-cell.on-light { background: var(--ink); }
+.variant-cell.on-light .tok {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.18);
+  color: var(--bg);
+}
+.variant-cell.on-light .tok::after { color: #c4502c; }
+.variant-cell.on-light .tok.tok-accent {
+  background: var(--bg); color: var(--acid); border-color: var(--bg);
+}
+.variant-cell.on-light .variant-label { color: #555; }
+.variant-cell.on-acid { background: var(--acid); }
+.variant-cell.on-acid .tok {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.2);
+  color: var(--bg);
+}
+.variant-cell.on-acid .tok::after { color: rgba(10,10,10,0.7); }
+.variant-cell.on-acid .tok.tok-accent {
+  background: var(--bg); color: var(--acid); border-color: var(--bg);
+}
+.variant-cell.on-acid .variant-label { color: rgba(10,10,10,0.7); }
+.variant-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 02 · COLOR ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.swatch {
+  background: var(--surface-1);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 160px;
+  position: relative;
+}
+.swatch-chip {
+  width: 100%;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+.swatch-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.swatch-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-quiet);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+}
+.swatch-meta span:first-child { color: var(--ink-muted); }
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 03 · TYPOGRAPHY ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.type-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+.type-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--space-7);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--line);
+  align-items: baseline;
+}
+@media (max-width: 800px) {
+  .type-row { grid-template-columns: 1fr; gap: var(--space-3); }
+}
+.type-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.type-label strong {
+  color: var(--ink-muted);
+  font-weight: 400;
+  font-size: 11px;
+}
+.type-sample { color: var(--ink); }
+
+.t-display      { font-family: var(--font-display); font-weight: 300; font-size: 64px; letter-spacing: -0.035em; line-height: 1; }
+.t-display em   { font-style: italic; font-weight: 400; color: var(--acid); }
+.t-h1           { font-family: var(--font-display); font-weight: 300; font-size: 44px; letter-spacing: -0.025em; line-height: 1.05; }
+.t-h2           { font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: -0.015em; line-height: 1.15; }
+.t-h2 em        { font-style: italic; color: var(--acid); }
+.t-h3           { font-family: var(--font-mono); font-weight: 500; font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+.t-lede         { font-family: var(--font-body); font-weight: 300; font-size: 22px; line-height: 1.4; color: var(--ink); }
+.t-lede em      { font-style: italic; color: var(--acid); }
+.t-body         { font-family: var(--font-body); font-weight: 400; font-size: 16px; line-height: 1.6; color: var(--ink); max-width: 56ch; }
+.t-body em      { font-style: italic; color: var(--ink-muted); }
+.t-caption      { font-family: var(--font-body); font-style: italic; font-weight: 300; font-size: 14px; line-height: 1.5; color: var(--ink-muted); }
+.t-mono         { font-family: var(--font-mono); font-weight: 400; font-size: 13px; color: var(--ink); }
+.t-mono .acid   { color: var(--acid); }
+.t-mono .quiet  { color: var(--ink-quiet); }
+.t-eyebrow      { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-muted); }
+.t-numeric      { font-family: var(--font-display); font-weight: 300; font-size: 48px; letter-spacing: -0.02em; font-feature-settings: "tnum"; color: var(--ink); }
+.t-numeric .acid { color: var(--acid); }
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 04 · FAVICON ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.favicon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.favicon-cell {
+  background: var(--surface-1);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+.favicon-cell.light { background: var(--ink); }
+.favicon-cell.light .favicon-label { color: #555; }
+.favicon-cell.light .favicon-size { color: #999; }
+.favicon-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.favicon-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.favicon-size {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-quiet);
+}
+
+/* The favicon: the .ai token lifted from the wordmark.
+   SVG-based so it stays crisp at 16px. Token ID floats above
+   at 128/64; the chip occupies more area at 32/16 for legibility. */
+.fav { display: block; }
+.fav-lg { width: 128px; height: 128px; border-radius: 22px; }
+.fav-md { width: 64px;  height: 64px;  border-radius: 14px; }
+.fav-sm { width: 32px;  height: 32px;  border-radius: 7px; }
+.fav-xs { width: 16px;  height: 16px;  border-radius: 4px; }
+
+/* Browser tab mock */
+.tab-mock {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px 8px 0 0;
+  padding: var(--space-3) var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  max-width: 260px;
+}
+.tab-mock .tab-title {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab-mock .tab-close {
+  color: var(--ink-quiet);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  margin-left: auto;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 05 · PROMPT INPUT ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.prompt-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.prompt-input {
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  position: relative;
+  transition: border-color var(--dur-mid) var(--ease);
+}
+.prompt-input.focused { border-color: var(--acid); box-shadow: 0 0 0 4px var(--acid-glow); }
+.prompt-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.prompt-label .acid { color: var(--acid); }
+.prompt-textarea {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--ink);
+  min-height: 80px;
+  background: transparent;
+  border: 0;
+  resize: none;
+  width: 100%;
+  outline: none;
+  padding: 0;
+}
+.prompt-textarea::placeholder { color: var(--ink-quiet); font-style: italic; font-family: var(--font-body); }
+
+.prompt-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.prompt-meta {
+  display: flex;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-quiet);
+}
+.prompt-meta strong { color: var(--ink-muted); font-weight: 400; }
+
+.btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--dur-fast) var(--ease);
+  font-weight: 500;
+}
+.btn:hover { background: var(--ink); color: var(--bg); }
+.btn-primary {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--bg);
+  font-weight: 700;
+}
+.btn-primary:hover { background: #d4ff5e; border-color: #d4ff5e; color: var(--bg); }
+.btn-ghost {
+  border-color: var(--line-strong);
+  color: var(--ink-muted);
+}
+.btn-ghost:hover { color: var(--ink); border-color: var(--ink-muted); background: transparent; }
+.btn .arrow { font-family: var(--font-mono); transition: transform var(--dur-fast) var(--ease); }
+.btn-primary:hover .arrow { transform: translateX(4px); }
+
+/* Tokenized output preview */
+.prompt-output {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+.prompt-output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.prompt-output-header .acid { color: var(--acid); }
+.prompt-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.prompt-tokens .tok {
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.prompt-tokens .tok::after { top: -13px; font-size: 8px; }
+.prompt-tokens .tok.next {
+  background: var(--acid);
+  color: var(--bg);
+  border-color: var(--acid);
+  font-weight: 700;
+  position: relative;
+  animation: pulse 1.6s var(--ease) infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--acid-glow); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 06 · ATTENTION HEATMAP ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.heatmap-wrap {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  padding: var(--space-7);
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-7);
+}
+@media (max-width: 800px) {
+  .heatmap-wrap { grid-template-columns: 1fr; }
+}
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.heatmap-header .acid { color: var(--acid); }
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(8, 1fr);
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.hm-axis {
+  color: var(--ink-quiet);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--space-3);
+  font-size: 11px;
+}
+.hm-axis-x {
+  color: var(--ink-quiet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  padding-bottom: var(--space-2);
+  writing-mode: horizontal-tb;
+}
+.hm-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(10,10,10,0.6);
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease);
+}
+.hm-cell:hover { transform: scale(1.1); z-index: 2; }
+.hm-cell.empty { background: transparent; }
+
+.heatmap-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.legend-block {
+  border: 1px solid var(--line);
+  padding: var(--space-4);
+  background: var(--surface-2);
+}
+.legend-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-3);
+}
+.legend-scale {
+  display: flex;
+  height: 24px;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+  background: linear-gradient(to right,
+    rgba(196,255,61,0.04),
+    rgba(196,255,61,0.2),
+    rgba(196,255,61,0.45),
+    rgba(196,255,61,0.7),
+    rgba(196,255,61,1));
+}
+.legend-axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-quiet);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.legend-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.legend-stat strong {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum";
+}
+.legend-stat strong .acid { color: var(--acid); font-style: italic; }
+.legend-stat span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ 07 · UI PRIMITIVES ═══
+   ════════════════════════════════════════════════════════════════ */
+
+.primitives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.primitive {
+  background: var(--surface-1);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 160px;
+}
+.primitive-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+/* Card */
+.card-mock {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.card-mock .card-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+.card-mock .card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.card-mock .card-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* Tag */
+.tag-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-muted);
+  border-radius: var(--radius-sm);
+}
+.tag.acid { background: var(--acid); color: var(--bg); border-color: var(--acid); font-weight: 700; }
+
+/* Stat */
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-block .stat-num {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum";
+  color: var(--ink);
+  line-height: 1;
+}
+.stat-block .stat-num em {
+  color: var(--acid);
+  font-style: italic;
+  font-weight: 400;
+}
+.stat-block .stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+/* Link */
+.link-mock {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--acid);
+  text-decoration: none;
+  border-bottom: 1px solid var(--acid-dim);
+  padding-bottom: 1px;
+  transition: border-color var(--dur-fast) var(--ease);
+  font-size: 16px;
+}
+.link-mock:hover { border-color: var(--acid); }
+.link-mock.muted { color: var(--ink-muted); border-bottom-color: var(--ink-quiet); }
+
+/* ════════════════════════════════════════════════════════════════
+   ═══ FOOTER ═══
+   ════════════════════════════════════════════════════════════════ */
+
+footer {
+  margin-top: var(--space-9);
+  padding-top: var(--space-7);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+footer em {
+  font-family: var(--font-body);
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-weight: 300;
+}
+
+</style>
+</head>
+<body>
+
+<main class="page">
+
+<!-- ═══════════ MASTHEAD ═══════════ -->
+<section class="masthead">
+  <div class="masthead-eyebrow">Design System · v01 · April 2026</div>
+  <h1 class="masthead-title">insidethe<em>.ai</em></h1>
+  <p class="t-lede" style="max-width: 56ch;">A visual language for looking inside the machine. Cool, technical, a little electric — built around a single primitive: <em>the token</em>.</p>
+  <div class="masthead-meta">
+    <span>Brand<strong>insidethe.ai</strong></span>
+    <span>Version<strong>v01</strong></span>
+    <span>Mark<strong>Tokenized · Acid</strong></span>
+    <span>Surface<strong>Dark-first</strong></span>
+  </div>
+</section>
+
+<!-- ═══════════ 01 · WORDMARK ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">01 · Wordmark</div>
+    <div>
+      <h2 class="section-title">The mark <em>is</em> the lesson.</h2>
+      <p class="section-desc">Four tokens — <em>in</em>, <em>side</em>, <em>the</em>, <em>.ai</em> — each with its own ID floating above. The site teaches what tokenization looks like; the wordmark demonstrates it before you scroll.</p>
+    </div>
+  </div>
+
+  <div class="wordmark-stage">
+    <div class="tok-row size-lg">
+      <span class="tok" data-id="2294">in</span>
+      <span class="tok" data-id="3349">side</span>
+      <span class="tok" data-id="1820">the</span>
+      <span class="tok tok-accent" data-id="13">.ai</span>
+    </div>
+  </div>
+
+  <div class="wordmark-variants">
+    <div class="variant-cell">
+      <span class="variant-label">Medium · Dark surface</span>
+      <div class="tok-row size-md">
+        <span class="tok" data-id="2294">in</span>
+        <span class="tok" data-id="3349">side</span>
+        <span class="tok" data-id="1820">the</span>
+        <span class="tok tok-accent" data-id="13">.ai</span>
+      </div>
+    </div>
+    <div class="variant-cell">
+      <span class="variant-label">Small · Nav use</span>
+      <div class="tok-row size-sm">
+        <span class="tok" data-id="2294">in</span>
+        <span class="tok" data-id="3349">side</span>
+        <span class="tok" data-id="1820">the</span>
+        <span class="tok tok-accent" data-id="13">.ai</span>
+      </div>
+    </div>
+    <div class="variant-cell on-light">
+      <span class="variant-label">Inverse · Light surface</span>
+      <div class="tok-row size-md">
+        <span class="tok" data-id="2294">in</span>
+        <span class="tok" data-id="3349">side</span>
+        <span class="tok" data-id="1820">the</span>
+        <span class="tok tok-accent" data-id="13">.ai</span>
+      </div>
+    </div>
+    <div class="variant-cell on-acid">
+      <span class="variant-label">On acid · Promo</span>
+      <div class="tok-row size-md">
+        <span class="tok" data-id="2294">in</span>
+        <span class="tok" data-id="3349">side</span>
+        <span class="tok" data-id="1820">the</span>
+        <span class="tok tok-accent" data-id="13">.ai</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 02 · COLOR ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">02 · Color</div>
+    <div>
+      <h2 class="section-title">Black, bone, <em>acid</em>.</h2>
+      <p class="section-desc">A near-monochrome system with one electric accent. The acid green earns its weight by being the only loud color — used for the live token, attention peaks, and active state.</p>
+    </div>
+  </div>
+
+  <p class="spec">Surface · Ink</p>
+  <div class="swatch-grid" style="margin-bottom: var(--space-6);">
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #0a0a0a;"></div>
+      <div class="swatch-name">--bg</div>
+      <div class="swatch-meta"><span>Page surface</span><span>#0a0a0a</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #111111;"></div>
+      <div class="swatch-name">--surface-1</div>
+      <div class="swatch-meta"><span>Cards, panels</span><span>#111111</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #1a1a1a;"></div>
+      <div class="swatch-name">--surface-2</div>
+      <div class="swatch-meta"><span>Nested</span><span>#1a1a1a</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #f5f5f0;"></div>
+      <div class="swatch-name">--ink</div>
+      <div class="swatch-meta"><span>Primary text</span><span>#f5f5f0</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #888888;"></div>
+      <div class="swatch-name">--ink-muted</div>
+      <div class="swatch-meta"><span>Secondary</span><span>#888888</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #555555;"></div>
+      <div class="swatch-name">--ink-quiet</div>
+      <div class="swatch-meta"><span>Captions</span><span>#555555</span></div>
+    </div>
+  </div>
+
+  <p class="spec">Accent · Brand</p>
+  <div class="swatch-grid" style="margin-bottom: var(--space-6);">
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #c4ff3d; border-color: transparent;"></div>
+      <div class="swatch-name">--acid</div>
+      <div class="swatch-meta"><span>Brand accent</span><span>#c4ff3d</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #8aab2a; border-color: transparent;"></div>
+      <div class="swatch-name">--acid-dim</div>
+      <div class="swatch-meta"><span>Muted accent</span><span>#8aab2a</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: rgba(196,255,61,0.15);"></div>
+      <div class="swatch-name">--acid-glow</div>
+      <div class="swatch-meta"><span>Focus ring</span><span>15% alpha</span></div>
+    </div>
+  </div>
+
+  <p class="spec">Semantic · Data viz</p>
+  <div class="swatch-grid">
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #ff6b3d;"></div>
+      <div class="swatch-name">--warm</div>
+      <div class="swatch-meta"><span>High attention</span><span>#ff6b3d</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #3da9ff;"></div>
+      <div class="swatch-name">--cool</div>
+      <div class="swatch-meta"><span>Low attention</span><span>#3da9ff</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #7dd87d;"></div>
+      <div class="swatch-name">--positive</div>
+      <div class="swatch-meta"><span>Confidence ↑</span><span>#7dd87d</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-chip" style="background: #ff5e6c;"></div>
+      <div class="swatch-name">--negative</div>
+      <div class="swatch-meta"><span>Confidence ↓</span><span>#ff5e6c</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 03 · TYPOGRAPHY ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">03 · Typography</div>
+    <div>
+      <h2 class="section-title">Three voices. <em>One conversation.</em></h2>
+      <p class="section-desc">Fraunces says it slowly. Newsreader explains it quietly. JetBrains Mono shows you the numbers.</p>
+    </div>
+  </div>
+
+  <div class="type-stack">
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Display</span>
+        <strong>Fraunces 300 · 64/64 · -3.5%</strong>
+      </div>
+      <div class="type-sample t-display">Look <em>inside</em> the machine.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>H1</span>
+        <strong>Fraunces 300 · 44/46 · -2.5%</strong>
+      </div>
+      <div class="type-sample t-h1">A transformer, in slow motion.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>H2</span>
+        <strong>Fraunces 400 · 28/32 · -1.5%</strong>
+      </div>
+      <div class="type-sample t-h2">What is <em>attention</em>, really?</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>H3 / Section</span>
+        <strong>JetBrains Mono 500 · 14 · 12% · UPPER</strong>
+      </div>
+      <div class="type-sample t-h3">02 · The Forward Pass</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Lede</span>
+        <strong>Newsreader 300 · 22/31</strong>
+      </div>
+      <div class="type-sample t-lede">Every model you've used is built on the same trick. Once you see <em>how it pays attention</em>, the magic doesn't disappear — it gets more interesting.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Body</span>
+        <strong>Newsreader 400 · 16/26</strong>
+      </div>
+      <div class="type-sample t-body">When a transformer reads a sentence, it doesn't process the words one by one. It looks at <em>all of them at once</em>, weighing how much each word should pay attention to every other word — and then it does that, in parallel, dozens of times over.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Caption</span>
+        <strong>Newsreader 300 italic · 14/21</strong>
+      </div>
+      <div class="type-sample t-caption">Figure 02 · Attention from token "the" to all preceding tokens, layer 6, head 3.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Mono / Code</span>
+        <strong>JetBrains Mono 400 · 13/20</strong>
+      </div>
+      <div class="type-sample t-mono">
+        <span class="quiet">// layer 6, head 3</span><br>
+        attention<span class="acid">[</span><span class="quiet">"the"</span><span class="acid">]</span> <span class="acid">→</span> {<br>
+        &nbsp;&nbsp;<span class="quiet">"machine"</span>: <span class="acid">0.84</span>,<br>
+        &nbsp;&nbsp;<span class="quiet">"learning"</span>: <span class="acid">0.71</span>,<br>
+        }
+      </div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Eyebrow</span>
+        <strong>JetBrains Mono 400 · 11 · 18% · UPPER</strong>
+      </div>
+      <div class="type-sample t-eyebrow">Layer 06 · Head 03</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-label">
+        <span>Numeric</span>
+        <strong>Fraunces 300 · 48 · tnum</strong>
+      </div>
+      <div class="type-sample t-numeric">12<span class="acid">,</span>288 <span style="font-size: 14px; font-family: var(--font-mono); color: var(--ink-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-left: 8px;">params</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ 04 · FAVICON ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">04 · Favicon</div>
+    <div>
+      <h2 class="section-title">The <em>.ai</em> token, lifted from the wordmark.</h2>
+      <p class="section-desc">The favicon is a literal piece of the logo — the final acid token, with its ID floating above. Strongest possible brand continuity: see it in a tab, recognize the site instantly. SVG-based, crisp at every size.</p>
+    </div>
+  </div>
+
+  <div class="favicon-grid">
+
+    <div class="favicon-cell">
+      <div class="favicon-art">
+        <svg class="fav fav-lg" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="22" fill="#0a0a0a"/>
+          <text x="22" y="44" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#c4ff3d" letter-spacing="2">13</text>
+          <rect x="22" y="52" width="84" height="48" rx="4" fill="#c4ff3d"/>
+          <text x="64" y="89" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="30" font-weight="700" fill="#0a0a0a">.ai</text>
+        </svg>
+      </div>
+      <div class="favicon-label">Primary · 128px</div>
+      <div class="favicon-size">App icon · social share</div>
+    </div>
+
+    <div class="favicon-cell">
+      <div class="favicon-art">
+        <svg class="fav fav-md" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="22" fill="#0a0a0a"/>
+          <text x="22" y="44" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#c4ff3d" letter-spacing="2">13</text>
+          <rect x="22" y="52" width="84" height="48" rx="4" fill="#c4ff3d"/>
+          <text x="64" y="89" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="30" font-weight="700" fill="#0a0a0a">.ai</text>
+        </svg>
+      </div>
+      <div class="favicon-label">Touch · 64px</div>
+      <div class="favicon-size">PWA · home screen</div>
+    </div>
+
+    <div class="favicon-cell">
+      <div class="favicon-art">
+        <svg class="fav fav-sm" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="22" fill="#0a0a0a"/>
+          <rect x="14" y="38" width="100" height="58" rx="6" fill="#c4ff3d"/>
+          <text x="64" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="38" font-weight="700" fill="#0a0a0a">.ai</text>
+        </svg>
+      </div>
+      <div class="favicon-label">Standard · 32px</div>
+      <div class="favicon-size">ID drops · chip grows</div>
+    </div>
+
+    <div class="favicon-cell">
+      <div class="favicon-art" style="display: flex; align-items: center; gap: var(--space-3);">
+        <svg class="fav fav-xs" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="22" fill="#c4ff3d"/>
+          <text x="64" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="76" font-weight="800" fill="#0a0a0a">ai</text>
+        </svg>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted);">16×16</span>
+      </div>
+      <div class="favicon-label">Tab · 16px</div>
+      <div class="favicon-size">Inverts to solid acid</div>
+    </div>
+
+    <div class="favicon-cell light">
+      <div class="favicon-art">
+        <svg class="fav fav-md" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="22" fill="#0a0a0a"/>
+          <text x="22" y="44" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#c4ff3d" letter-spacing="2">13</text>
+          <rect x="22" y="52" width="84" height="48" rx="4" fill="#c4ff3d"/>
+          <text x="64" y="89" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="30" font-weight="700" fill="#0a0a0a">.ai</text>
+        </svg>
+      </div>
+      <div class="favicon-label">On light · 64px</div>
+      <div class="favicon-size">Same chip, any surface</div>
+    </div>
+
+    <div class="favicon-cell">
+      <div class="favicon-art">
+        <svg class="fav fav-md" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="22" fill="#0a0a0a"/>
+          <rect x="22" y="52" width="84" height="48" rx="4" fill="none" stroke="#c4ff3d" stroke-width="2"/>
+          <text x="64" y="89" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="30" font-weight="700" fill="#c4ff3d">.ai</text>
+        </svg>
+      </div>
+      <div class="favicon-label">Outline · 64px</div>
+      <div class="favicon-size">For dense / busy contexts</div>
+    </div>
+
+  </div>
+
+  <p class="spec" style="margin-top: var(--space-7);">In context · Browser tabs</p>
+  <div style="display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; margin-top: var(--space-3);">
+    <div class="tab-mock" style="margin-top: 0; opacity: 0.55;">
+      <div style="width: 16px; height: 16px; background: #4285f4; border-radius: 3px; flex-shrink: 0;"></div>
+      <div class="tab-title">Gmail</div>
+      <div class="tab-close">×</div>
+    </div>
+    <div class="tab-mock" style="margin-top: 0; opacity: 0.55;">
+      <div style="width: 16px; height: 16px; background: #1d9bf0; border-radius: 50%; flex-shrink: 0;"></div>
+      <div class="tab-title">X / Twitter</div>
+      <div class="tab-close">×</div>
+    </div>
+    <div class="tab-mock" style="margin-top: 0; background: var(--surface-1); border-color: var(--line-strong);">
+      <svg class="fav fav-xs" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+        <rect width="128" height="128" rx="22" fill="#c4ff3d"/>
+        <text x="64" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="76" font-weight="800" fill="#0a0a0a">ai</text>
+      </svg>
+      <div class="tab-title" style="color: var(--ink);">Inside the AI · Attention, visualized</div>
+      <div class="tab-close">×</div>
+    </div>
+    <div class="tab-mock" style="margin-top: 0; opacity: 0.55;">
+      <div style="width: 16px; height: 16px; background: #181717; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--line-strong);"></div>
+      <div class="tab-title">GitHub</div>
+      <div class="tab-close">×</div>
+    </div>
+  </div>
+
+  <p class="spec" style="margin-top: var(--space-6);">Specs · Sizing rules</p>
+  <div style="background: var(--surface-1); border: 1px solid var(--line); padding: var(--space-5); margin-top: var(--space-3); font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); line-height: 1.7;">
+    <span style="color: var(--acid);">128 · 64 →</span> Full token: dark bg, "13" ID label, acid chip with ".ai"<br>
+    <span style="color: var(--acid);">32 →</span> ID label drops; chip grows to fill canvas<br>
+    <span style="color: var(--acid);">16 →</span> Solid acid square with black "ai"; period drops, max contrast<br>
+    <span style="color: var(--acid);">Outline →</span> Use only when placed against busy or noisy backgrounds
+  </div>
+</section>
+
+<!-- ═══════════ 05 · PROMPT INPUT ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">05 · Prompt</div>
+    <div>
+      <h2 class="section-title">Where the user <em>asks something.</em></h2>
+      <p class="section-desc">The input is the entry point to every visualization. It mirrors the wordmark — your sentence becomes tokens, then becomes a forward pass.</p>
+    </div>
+  </div>
+
+  <div class="prompt-stack">
+
+    <div class="prompt-input focused">
+      <div class="prompt-label">
+        <span>Prompt · <span class="acid">live</span></span>
+        <span>shift + ↵ to run</span>
+      </div>
+      <textarea class="prompt-textarea" rows="2">The cat sat on the</textarea>
+      <div class="prompt-controls">
+        <div class="prompt-meta">
+          <span><strong>5</strong> tokens</span>
+          <span><strong>22</strong> chars</span>
+          <span><strong>gpt-2</strong> · 124M</span>
+        </div>
+        <div style="display: flex; gap: var(--space-2);">
+          <button class="btn btn-ghost">Clear</button>
+          <button class="btn btn-primary">Run <span class="arrow">→</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="prompt-output">
+      <div class="prompt-output-header">
+        <span>Output · tokenized + next-token prediction</span>
+        <span class="acid">▸ generating</span>
+      </div>
+      <div class="prompt-tokens">
+        <span class="tok" data-id="464">The</span>
+        <span class="tok" data-id="3797">cat</span>
+        <span class="tok" data-id="3332">sat</span>
+        <span class="tok" data-id="319">on</span>
+        <span class="tok" data-id="262">the</span>
+        <span class="tok next" data-id="2603">mat</span>
+      </div>
+      <div style="margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--line); display: flex; gap: var(--space-6); font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted);">
+        <span><strong style="color: var(--acid);">mat</strong> · 0.42</span>
+        <span style="color: var(--ink-quiet);">floor · 0.18</span>
+        <span style="color: var(--ink-quiet);">chair · 0.09</span>
+        <span style="color: var(--ink-quiet);">bed · 0.07</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ 06 · ATTENTION HEATMAP ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">06 · Heatmap</div>
+    <div>
+      <h2 class="section-title">Where the model is <em>looking.</em></h2>
+      <p class="section-desc">An attention head visualized as a matrix. Each cell shows how much the row token attends to the column token. The acid intensity is the weight.</p>
+    </div>
+  </div>
+
+  <div class="heatmap-wrap">
+    <div class="heatmap">
+      <div class="heatmap-header">
+        <span>Layer 06 · Head 03</span>
+        <span class="acid">attn[i, j]</span>
+      </div>
+      <div class="heatmap-grid" id="heatmap"></div>
+    </div>
+
+    <div class="heatmap-legend">
+      <div class="legend-block">
+        <div class="legend-title">Attention scale</div>
+        <div class="legend-scale"></div>
+        <div class="legend-axis"><span>0.00</span><span>1.00</span></div>
+      </div>
+      <div class="legend-block">
+        <div class="legend-stat">
+          <strong><span class="acid">0.84</span></strong>
+          <span>Peak · "the" → "machine"</span>
+        </div>
+      </div>
+      <div class="legend-block">
+        <div class="legend-stat">
+          <strong>12</strong>
+          <span>Heads in this layer</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 07 · UI PRIMITIVES ═══════════ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">07 · Primitives</div>
+    <div>
+      <h2 class="section-title">The little things <em>that hold it together.</em></h2>
+      <p class="section-desc">Cards, tags, buttons, links, stats — the connective tissue of the site.</p>
+    </div>
+  </div>
+
+  <div class="primitives-grid">
+
+    <div class="primitive">
+      <div class="primitive-label">Card</div>
+      <div class="card-mock">
+        <div class="card-eyebrow">Chapter 02</div>
+        <div class="card-title">How attention learns to point.</div>
+        <div class="card-body">A walkthrough of the query-key-value mechanism, with live examples from a tiny model.</div>
+      </div>
+    </div>
+
+    <div class="primitive">
+      <div class="primitive-label">Tags</div>
+      <div class="tag-row">
+        <span class="tag acid">Live</span>
+        <span class="tag">Layer 06</span>
+        <span class="tag">Head 03</span>
+        <span class="tag">GPT-2</span>
+      </div>
+    </div>
+
+    <div class="primitive">
+      <div class="primitive-label">Buttons</div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start;">
+        <button class="btn btn-primary">Run forward pass <span class="arrow">→</span></button>
+        <button class="btn">Show all heads</button>
+        <button class="btn btn-ghost">Reset</button>
+      </div>
+    </div>
+
+    <div class="primitive">
+      <div class="primitive-label">Stats</div>
+      <div style="display: flex; gap: var(--space-6);">
+        <div class="stat-block">
+          <div class="stat-num">12<em>k</em></div>
+          <div class="stat-label">Tokens / s</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num"><em>96</em></div>
+          <div class="stat-label">Heads total</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="primitive">
+      <div class="primitive-label">Links</div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start;">
+        <a class="link-mock">Read the next chapter →</a>
+        <a class="link-mock muted">Source on GitHub</a>
+      </div>
+    </div>
+
+    <div class="primitive">
+      <div class="primitive-label">Token (atomic)</div>
+      <div class="tok-row size-md">
+        <span class="tok" data-id="464">The</span>
+        <span class="tok tok-accent" data-id="13">.ai</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <em>Style sheet · v01 · Generated for B</em>
+  <span>insidethe.ai · 2026</span>
+</footer>
+
+</main>
+
+<script>
+  // Build the attention heatmap
+  // Tokens for the example: "The cat sat on the mat ." (8 tokens incl. start)
+  const tokens = ['<bos>', 'The', 'cat', 'sat', 'on', 'the', 'mat', '.'];
+  const N = tokens.length;
+
+  // Causal mask + plausible attention pattern
+  // Most weight on diagonal-1 (recent), some on subject ("cat" at idx 2)
+  const matrix = Array.from({length: N}, (_, i) =>
+    Array.from({length: N}, (_, j) => {
+      if (j > i) return null; // causal mask
+      if (i === j) return 0.15 + Math.random() * 0.1;
+      if (j === i - 1) return 0.45 + Math.random() * 0.2;
+      if (j === 2 && i > 2) return 0.55 + Math.random() * 0.25; // subject "cat"
+      if (j === 0) return 0.05 + Math.random() * 0.1; // bos
+      return Math.max(0, 0.1 + (Math.random() - 0.5) * 0.2);
+    })
+  );
+
+  const grid = document.getElementById('heatmap');
+
+  // Top-left corner (empty)
+  const corner = document.createElement('div');
+  corner.className = 'hm-axis-x';
+  corner.style.fontSize = '9px';
+  corner.style.color = 'var(--ink-quiet)';
+  corner.style.letterSpacing = '0.1em';
+  corner.style.textTransform = 'uppercase';
+  corner.textContent = 'i ↓ j →';
+  grid.appendChild(corner);
+
+  // Column headers (j axis)
+  tokens.forEach(t => {
+    const h = document.createElement('div');
+    h.className = 'hm-axis-x';
+    h.textContent = t;
+    grid.appendChild(h);
+  });
+
+  // Rows
+  matrix.forEach((row, i) => {
+    const label = document.createElement('div');
+    label.className = 'hm-axis';
+    label.textContent = tokens[i];
+    grid.appendChild(label);
+
+    row.forEach((v, j) => {
+      const cell = document.createElement('div');
+      if (v === null) {
+        cell.className = 'hm-cell empty';
+      } else {
+        cell.className = 'hm-cell';
+        const alpha = 0.04 + v * 0.96;
+        cell.style.background = `rgba(196, 255, 61, ${alpha})`;
+        cell.title = `attn[${tokens[i]}, ${tokens[j]}] = ${v.toFixed(2)}`;
+        if (v > 0.4) cell.textContent = v.toFixed(2);
+      }
+      grid.appendChild(cell);
+    });
+  });
+</script>
+
+</body>
+</html>
