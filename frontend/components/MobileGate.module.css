@@ -1,0 +1,101 @@
+.gate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .gate {
+    display: flex;
+  }
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Nav ── */
+.nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: 22px 24px 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+/* ── Centered content lives in the event horizon ── */
+.content {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 36px;
+  text-align: center;
+  gap: 18px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(28px, 8vw, 36px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.headline em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--acid);
+}
+
+.body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-muted);
+  max-width: 28ch;
+}
+
+/* ── Footer ── */
+.footer {
+  position: relative;
+  z-index: 10;
+  padding: 10px 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.acid {
+  color: var(--acid);
+}
