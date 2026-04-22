@@ -1,24 +1,24 @@
 import LandingCard from '@/components/LandingCard'
-import PortalAgentCanvas from '@/components/PortalAgentCanvas'
-import PortalAlgoCanvas from '@/components/PortalAlgoCanvas'
-import PortalChipCanvas from '@/components/PortalChipCanvas'
-import PortalFrontierCanvas from '@/components/PortalFrontierCanvas'
-import PortalMemoryCanvas from '@/components/PortalMemoryCanvas'
-import PortalProcessCanvas from '@/components/PortalProcessCanvas'
+import PreviewAgentCanvas from '@/components/PreviewAgentCanvas'
+import PreviewAlgoCanvas from '@/components/PreviewAlgoCanvas'
+import PreviewChipCanvas from '@/components/PreviewChipCanvas'
+import PreviewFrontierCanvas from '@/components/PreviewFrontierCanvas'
+import PreviewMemoryCanvas from '@/components/PreviewMemoryCanvas'
+import PreviewProcessCanvas from '@/components/PreviewProcessCanvas'
 import styles from './page.module.css'
 
 const CARDS = [
   {
     num: '01',
     name: 'Processing',
-    canvas: <PortalProcessCanvas />,
+    canvas: <PreviewProcessCanvas />,
     href: '/processing',
   },
-  { num: '02', name: 'Chip', canvas: <PortalChipCanvas /> },
-  { num: '03', name: 'Algorithms', canvas: <PortalAlgoCanvas /> },
-  { num: '04', name: 'Agent', canvas: <PortalAgentCanvas /> },
-  { num: '05', name: 'Memory', canvas: <PortalMemoryCanvas /> },
-  { num: '06', name: 'Frontier', canvas: <PortalFrontierCanvas /> },
+  { num: '02', name: 'Chip', canvas: <PreviewChipCanvas /> },
+  { num: '03', name: 'Algorithms', canvas: <PreviewAlgoCanvas /> },
+  { num: '04', name: 'Agent', canvas: <PreviewAgentCanvas /> },
+  { num: '05', name: 'Memory', canvas: <PreviewMemoryCanvas /> },
+  { num: '06', name: 'Frontier', canvas: <PreviewFrontierCanvas /> },
 ]
 
 export default function Home() {
