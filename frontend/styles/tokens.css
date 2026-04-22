@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;1,300;1,400&display=swap");
+
+:root {
+  /* — COLOR : SURFACE — */
+  --bg: #0a0a0a;
+  --surface-1: #111111;
+  --surface-2: #1a1a1a;
+  --surface-3: #222222;
+
+  /* — COLOR : INK — */
+  --ink: #f5f5f0;
+  --ink-muted: #888888;
+  --ink-quiet: #555555;
+  --ink-faint: #2a2a2a;
+  --ink-on-acid: #0a0a0a;
+
+  /* — COLOR : ACCENT — */
+  --acid: #c4ff3d;
+  --acid-dim: #8aab2a;
+  --acid-glow: rgba(196, 255, 61, 0.15);
+  --acid-border: rgba(196, 255, 61, 0.3);
+  --acid-border-strong: rgba(196, 255, 61, 0.65);
+
+  /* — COLOR : SEMANTIC (heatmaps / data) — */
+  --warm: #ff6b3d;
+  --cool: #3da9ff;
+  --positive: #7dd87d;
+  --negative: #ff5e6c;
+
+  /* — COLOR : LINES — */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  /* — TYPE — */
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-body: "Newsreader", "Georgia", serif;
+  --font-mono: "JetBrains Mono", "Menlo", monospace;
+
+  /* — SPACING (8pt base) — */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* — RADIUS — */
+  --radius-xs: 3px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  /* — LAYOUT — */
+  --nav-height: 65px;
+
+  /* — MOTION — */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 120ms;
+  --dur-mid: 240ms;
+  --dur-slow: 480ms;
+}
+
+html.light {
+  --bg: #f5f5f0;
+  --surface-1: #ebebea;
+  --surface-2: #e0e0de;
+  --surface-3: #d6d6d4;
+  --ink: #0a0a0a;
+  --ink-muted: #555555;
+  --ink-quiet: #888888;
+  --ink-faint: #ccccca;
+  --ink-on-acid: #0a0a0a;
+  --acid: #8fdc00;
+  --acid-dim: #6aaa00;
+  --acid-glow: rgba(143, 220, 0, 0.14);
+  --acid-border: rgba(143, 220, 0, 0.35);
+  --acid-border-strong: rgba(143, 220, 0, 0.65);
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.14);
+}
