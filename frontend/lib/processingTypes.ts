@@ -33,6 +33,15 @@ export interface OutputToken {
   candidates: Candidate[]
 }
 
+export interface StreamFrame {
+  /** Sequential frame counter — monotonically increasing from 0, used as React key */
+  num: number
+  /** Milliseconds since the run started — used to show relative timing between frames */
+  ms: number
+  /** Raw WebSocket message payload — keys and value types vary by message type */
+  payload: Record<string, unknown>
+}
+
 export interface LayerData {
   /** Mean activation magnitude from LayerNorm 1 (before attention), scalar summary used for visualization */
   ln1: number
