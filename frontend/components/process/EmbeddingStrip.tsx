@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { NEGATIVE, POSITIVE } from '@/lib/canvasTheme'
+import { useTheme } from '@/lib/ThemeContext'
 import { seededRng } from '@/mocks/rng'
 
 interface EmbeddingStripProps {
@@ -30,13 +31,19 @@ function drawEmbedSlot(
   canvasW: number,
   canvasH: number,
   numCells: number,
-  dpr: number
+  dpr: number,
+  isDark: boolean
 ) {
   const stride = (EMBED_CELL_W + EMBED_GAP) * dpr
   const cellW = EMBED_CELL_W * dpr
   const frac = offset % 1
 
-  ctx.clearRect(0, 0, canvasW, canvasH)
+  if (!isDark) {
+    ctx.fillStyle = '#d4d4d4'
+    ctx.fillRect(0, 0, canvasW, canvasH)
+  } else {
+    ctx.clearRect(0, 0, canvasW, canvasH)
+  }
   ctx.save()
   ctx.beginPath()
   ctx.rect(0, 0, canvasW, canvasH)
@@ -67,6 +74,9 @@ export default function EmbeddingStrip({
   const animIdRef = useRef<number | null>(null)
   const lastTsRef = useRef<number | null>(null)
   const vectorRef = useRef<Float32Array>(genEmbedVector(tokenIndex))
+  const { isDark } = useTheme()
+  const isDarkRef = useRef(isDark)
+  isDarkRef.current = isDark
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current
@@ -82,7 +92,8 @@ export default function EmbeddingStrip({
       canvas.width,
       canvas.height,
       numCells,
-      dpr
+      dpr,
+      isDarkRef.current
     )
   }, [width])
 
