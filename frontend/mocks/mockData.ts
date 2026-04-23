@@ -1,4 +1,4 @@
-import type { Candidate, LayerData, Token } from '@/lib/processTypes'
+import type { Candidate, LayerData, Token } from '@/lib/processingTypes'
 import { seededRng } from '@/mocks/rng'
 
 export const INPUT_TOKENS: Token[] = [
@@ -75,25 +75,25 @@ export const MERGE_STAGES: Array<
 
 export const OUTPUT_SEQUENCES: Candidate[][] = [
   [
-    { text: '.', id: 13, prob: 0.38 },
-    { text: '"', id: 1, prob: 0.17 },
-    { text: 'and', id: 290, prob: 0.11 },
-    { text: ',', id: 11, prob: 0.08 },
-    { text: 'with', id: 351, prob: 0.06 },
+    { text: '.', id: 13, probability: 0.38 },
+    { text: '"', id: 1, probability: 0.17 },
+    { text: 'and', id: 290, probability: 0.11 },
+    { text: ',', id: 11, probability: 0.08 },
+    { text: 'with', id: 351, probability: 0.06 },
   ],
   [
-    { text: 'while', id: 981, prob: 0.29 },
-    { text: '.', id: 13, prob: 0.22 },
-    { text: 'as', id: 355, prob: 0.14 },
-    { text: ',', id: 11, prob: 0.09 },
-    { text: 'and', id: 290, prob: 0.07 },
+    { text: 'while', id: 981, probability: 0.29 },
+    { text: '.', id: 13, probability: 0.22 },
+    { text: 'as', id: 355, probability: 0.14 },
+    { text: ',', id: 11, probability: 0.09 },
+    { text: 'and', id: 290, probability: 0.07 },
   ],
   [
-    { text: ',', id: 11, prob: 0.41 },
-    { text: '.', id: 13, prob: 0.19 },
-    { text: 'and', id: 290, prob: 0.12 },
-    { text: 'but', id: 475, prob: 0.08 },
-    { text: 'when', id: 618, prob: 0.05 },
+    { text: ',', id: 11, probability: 0.41 },
+    { text: '.', id: 13, probability: 0.19 },
+    { text: 'and', id: 290, probability: 0.12 },
+    { text: 'but', id: 475, probability: 0.08 },
+    { text: 'when', id: 618, probability: 0.05 },
   ],
 ]
 
