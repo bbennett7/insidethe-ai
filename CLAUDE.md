@@ -16,6 +16,10 @@ Read **AGENTS.md** before doing any work in this repository. It contains the ful
 
 No database currently. Soft-delete any persistent state if introduced later.
 
+## Git
+
+Branch names must follow the pattern `type/description` — e.g. `feat/processing-page`, `fix/canvas-dpr`, `chore/update-deps`. Never create bare branches like `processing` or `init`.
+
 ## Mocks
 
 Before building any new page or major component, check `mocks/` for a reference design. If none exists, build a mock first and get approval before implementing.
