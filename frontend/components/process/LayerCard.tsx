@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { LayerData, LayerState } from '@/lib/processTypes'
+import type { LayerData, LayerState } from '@/lib/processingTypes'
 import LayerCanvas from './LayerCanvas'
 import styles from './LayerCard.module.css'
 
@@ -8,6 +8,7 @@ interface LayerCardProps {
   state: LayerState
   data: LayerData
   tokens?: string[]
+  isDecoding?: boolean
 }
 
 export default memo(function LayerCard({
@@ -15,6 +16,7 @@ export default memo(function LayerCard({
   state,
   data,
   tokens,
+  isDecoding,
 }: LayerCardProps) {
   const num = String(layerIndex).padStart(2, '0')
 
@@ -32,7 +34,7 @@ export default memo(function LayerCard({
         <span className={styles.label}>LAYER {num}</span>
         <span className={styles.dot} />
       </div>
-      <LayerCanvas layerIndex={layerIndex} state={state} data={data} tokens={tokens} />
+      <LayerCanvas layerIndex={layerIndex} state={state} data={data} tokens={tokens} isDecoding={isDecoding} />
     </div>
   )
 })
