@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { ACID_DARK, ACID_LIGHT, COOL } from '@/lib/canvasTheme'
-import type { LayerData, LayerState } from '@/lib/processTypes'
+import type { LayerData, LayerState } from '@/lib/processingTypes'
 import { useTheme } from '@/lib/ThemeContext'
 
 interface LayerCanvasProps {
@@ -10,6 +10,7 @@ interface LayerCanvasProps {
   state: LayerState
   data: LayerData
   tokens?: string[]
+  isDecoding?: boolean
 }
 
 const CARD_W = 219
@@ -32,42 +33,39 @@ const MLP_ROWS = Math.ceil(3072 / MLP_COLS)
 const MLP_DIM = 3072
 const NEURON_CELL = Math.floor((CONTENT_W - (MLP_COLS - 1) * 1) / MLP_COLS)
 const MLP_BLOCK_H = MLP_ROWS * NEURON_CELL + (MLP_ROWS - 1) * 1
-const RESID_H = 18
+const RESID_CHIP_H = 18
+const RESID_CHIP_W = 28
+const RESID_CHIP_GAP = 3
+const RESID_PLACEHOLDER_H = RESID_CHIP_H + 6
+const CHIPS_PER_ROW = Math.floor(CONTENT_W / (RESID_CHIP_W + RESID_CHIP_GAP))
 
-const CANVAS_H = Math.ceil(
-  CARD_PAD +
-    LABEL_H +
-    SEC_GAP / 2 +
-    BAR_H +
-    SEC_GAP +
-    LABEL_H +
-    SEC_GAP / 2 +
-    ATTN_BLOCK_H +
-    SEC_GAP +
-    LABEL_H +
-    SEC_GAP / 2 +
-    RESID_H +
-    SEC_GAP +
-    LABEL_H +
-    SEC_GAP / 2 +
-    BAR_H +
-    SEC_GAP +
-    LABEL_H +
-    SEC_GAP / 2 +
-    MLP_BLOCK_H +
-    SEC_GAP +
-    LABEL_H +
-    SEC_GAP / 2 +
-    RESID_H +
-    CARD_PAD
-)
+function computeResidH(T: number, isActive = false): number {
+  if (!isActive) return RESID_PLACEHOLDER_H
+  const rows = Math.ceil(T / CHIPS_PER_ROW) || 1
+  return rows * RESID_CHIP_H + (rows - 1) * RESID_CHIP_GAP
+}
+
+function computeCanvasH(seqLen: number, isActive = false): number {
+  const residH = computeResidH(seqLen, isActive)
+  return Math.ceil(
+    CARD_PAD +
+      LABEL_H + SEC_GAP / 2 + BAR_H + SEC_GAP +
+      LABEL_H + SEC_GAP / 2 + ATTN_BLOCK_H + SEC_GAP +
+      LABEL_H + SEC_GAP / 2 + residH + SEC_GAP +
+      LABEL_H + SEC_GAP / 2 + BAR_H + SEC_GAP +
+      LABEL_H + SEC_GAP / 2 + MLP_BLOCK_H + SEC_GAP +
+      LABEL_H + SEC_GAP / 2 + residH +
+      CARD_PAD
+  )
+}
 
 function drawLayerCanvas(
   canvas: HTMLCanvasElement,
   state: LayerState,
   data: LayerData,
   isDark: boolean,
-  tokens: string[] = []
+  tokens: string[] = [],
+  isDecoding = false
 ) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
@@ -118,40 +116,56 @@ function drawLayerCanvas(
     y += bh + SEC_GAP * s
   }
 
-  // Per-token write magnitude strip — one labeled chip per token
+  // Per-token write magnitude strip — fixed-width chips that wrap to new rows
   function drawWriteStrip(writes: number[]) {
+    if (!isActive) {
+      const bh = RESID_PLACEHOLDER_H * s
+      c.fillStyle = 'rgba(255,255,255,0.06)'
+      c.fillRect(pad, y, cw, bh)
+      y += bh + SEC_GAP * s
+      return
+    }
+
     const T = writes.length
-    const rh = RESID_H * s
-    const gap = 2 * s
-    const cellW = Math.max(1, (cw - gap * (T - 1)) / T)
+    const rh = RESID_CHIP_H * s
+    const cw_chip = RESID_CHIP_W * s
+    const gap = RESID_CHIP_GAP * s
 
     for (let i = 0; i < T; i++) {
-      const rx = pad + i * (cellW + gap)
+      const col = i % CHIPS_PER_ROW
+      const row = Math.floor(i / CHIPS_PER_ROW)
+      const rx = pad + col * (cw_chip + gap)
+      const ry = y + row * (rh + gap)
       const w = writes[i] ?? 0
 
-      // Background
-      if (!isActive) {
-        c.fillStyle = 'rgba(255,255,255,0.04)'
-      } else {
+      // During decode only the last position (new token) is being written to;
+      // earlier positions are cached and no longer updated.
+      const isCurrent = !isDecoding || i === T - 1
+
+      if (isCurrent) {
         const a = Math.round((0.08 + w * 0.82) * 1000) / 1000
         c.fillStyle = `rgba(${COOL},${a})`
+      } else {
+        c.fillStyle = `rgba(${COOL},0.14)`
       }
-      c.fillRect(rx, y, cellW, rh)
+      c.fillRect(rx, ry, cw_chip, rh)
 
-      // Token label — only when active and token text is available
       const label = tokens[i]
       if (isActive && label) {
         c.font = `${Math.round(6.5 * s)}px "JetBrains Mono", monospace`
         c.textAlign = 'center'
         c.textBaseline = 'middle'
-        c.fillStyle = w > 0.5
-          ? 'rgba(8,8,8,0.85)'
-          : `rgba(${COOL},0.65)`
-        c.fillText(label, rx + cellW / 2, y + rh / 2)
+        if (isCurrent) {
+          c.fillStyle = w > 0.5 ? 'rgba(8,8,8,0.85)' : `rgba(${COOL},0.65)`
+        } else {
+          c.fillStyle = `rgba(${COOL},0.35)`
+        }
+        c.fillText(label, rx + cw_chip / 2, ry + rh / 2)
       }
     }
 
-    y += rh + SEC_GAP * s
+    const rows = Math.ceil(T / CHIPS_PER_ROW) || 1
+    y += (rows * rh + (rows - 1) * gap) + SEC_GAP * s
   }
 
   const acidLabel = state === 'done' ? acidDoneA : state === 'processing' ? acidProcA : labelOff
@@ -171,12 +185,6 @@ function drawLayerCanvas(
     const hy = y + row * (HEAD_H + HEAD_INNER_GAP) * s
     const hw = HEAD_W * s
     const cellSz = hw / SEQ_LEN
-
-    c.fillStyle = isDark ? 'rgba(60,60,60,0.9)' : 'rgba(130,130,130,0.8)'
-    c.font = `${Math.round(5.5 * s)}px "JetBrains Mono", monospace`
-    c.textAlign = 'left'
-    c.textBaseline = 'bottom'
-    c.fillText(String(h).padStart(2, '0'), hx, hy - 1 * s)
 
     for (let i = 0; i < SEQ_LEN; i++) {
       for (let j = 0; j < SEQ_LEN; j++) {
@@ -255,21 +263,24 @@ function drawLayerCanvas(
   drawWriteStrip(data.mlp_write)
 }
 
-export { CANVAS_H, drawLayerCanvas }
+export { computeCanvasH, drawLayerCanvas }
 
 export default function LayerCanvas({
   layerIndex: _layerIndex,
   state,
   data,
   tokens = [],
+  isDecoding = false,
 }: LayerCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef(state)
   const dataRef = useRef(data)
   const tokensRef = useRef(tokens)
+  const isDecodingRef = useRef(isDecoding)
   stateRef.current = state
   dataRef.current = data
   tokensRef.current = tokens
+  isDecodingRef.current = isDecoding
 
   const { isDark } = useTheme()
   const isDarkRef = useRef(isDark)
@@ -282,16 +293,20 @@ export default function LayerCanvas({
     function applySize() {
       if (!canvas) return
       const dpr = window.devicePixelRatio || 1
+      const T = dataRef.current.attn[0]?.length ?? 6
+      const active = stateRef.current === 'done' || stateRef.current === 'processing'
+      const h = computeCanvasH(T, active)
       canvas.width = Math.round(CARD_W * dpr)
-      canvas.height = Math.round(CANVAS_H * dpr)
+      canvas.height = Math.round(h * dpr)
       canvas.style.width = `${CARD_W}px`
-      canvas.style.height = `${CANVAS_H}px`
+      canvas.style.height = `${h}px`
       drawLayerCanvas(
         canvas,
         stateRef.current,
         dataRef.current,
         isDarkRef.current,
-        tokensRef.current
+        tokensRef.current,
+        isDecodingRef.current
       )
     }
 
@@ -314,8 +329,19 @@ export default function LayerCanvas({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    drawLayerCanvas(canvas, state, data, isDark, tokens)
-  }, [state, data, isDark, tokens])
+    const dpr = window.devicePixelRatio || 1
+    const T = data.attn[0]?.length ?? 6
+    const active = state === 'done' || state === 'processing'
+    const h = computeCanvasH(T, active)
+    canvas.width = Math.round(CARD_W * dpr)
+    canvas.height = Math.round(h * dpr)
+    canvas.style.width = `${CARD_W}px`
+    canvas.style.height = `${h}px`
+    drawLayerCanvas(canvas, state, data, isDark, tokens, isDecoding)
+  }, [state, data, isDark, tokens, isDecoding])
+
+  const active = state === 'done' || state === 'processing'
+  const canvasH = computeCanvasH(data.attn[0]?.length ?? 6, active)
 
   return (
     <canvas
@@ -325,7 +351,7 @@ export default function LayerCanvas({
       style={{
         display: 'block',
         width: `${CARD_W}px`,
-        height: `${CANVAS_H}px`,
+        height: `${canvasH}px`,
       }}
     />
   )
