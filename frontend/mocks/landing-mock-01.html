@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>insidethe.ai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+<style>
+
+/* ── DESIGN TOKENS ── */
+:root {
+  --bg:          #0a0a0a;
+  --surface-1:   #111111;
+  --surface-2:   #1a1a1a;
+  --surface-3:   #222222;
+  --ink:         #f5f5f0;
+  --ink-muted:   #888888;
+  --ink-quiet:   #555555;
+  --ink-faint:   #2a2a2a;
+  --acid:        #c4ff3d;
+  --acid-dim:    #8aab2a;
+  --acid-glow:   rgba(196,255,61,0.15);
+  --warm:        #ff6b3d;
+  --cool:        #3da9ff;
+  --line:        rgba(255,255,255,0.08);
+  --line-strong: rgba(255,255,255,0.16);
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-body:    'Newsreader', 'Georgia', serif;
+  --font-mono:    'JetBrains Mono', 'Menlo', monospace;
+  --ease:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-mid: 240ms;
+  --dur-slow: 480ms;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── BACKGROUND CANVAS ── */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── NAV ── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 32px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Wordmark — matches style system size-sm exactly */
+.tok-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 400;
+}
+.tok {
+  position: relative;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.tok::after {
+  content: attr(data-id);
+  position: absolute;
+  top: -13px; left: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.tok.tok-accent {
+  background: var(--acid);
+  color: #0a0a0a;
+  border-color: var(--acid);
+  font-weight: 700;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.nav-right .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--acid);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ── MAIN ── */
+.main {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 68px 40px 16px;
+  gap: 20px;
+  overflow: hidden;
+}
+
+/* ── PAGE TITLE ── */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(28px, 3.6vw, 48px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--ink);
+  text-align: center;
+}
+.page-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--acid);
+}
+
+/* ── PORTAL GRID ── */
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 880px;
+}
+
+/* ── PORTAL CARD ── */
+.portal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: not-allowed;
+  transition: border-color var(--dur-mid) var(--ease),
+              box-shadow var(--dur-mid) var(--ease),
+              transform var(--dur-mid) var(--ease);
+}
+
+.portal--active {
+  cursor: pointer;
+  border-color: rgba(196,255,61,0.3);
+}
+.portal--active:hover {
+  border-color: rgba(196,255,61,0.65);
+  box-shadow: 0 0 0 1px rgba(196,255,61,0.15) inset,
+              0 12px 48px rgba(196,255,61,0.12);
+  transform: translateY(-3px);
+}
+
+/* Staggered float animation for all cards */
+.portal { animation: float-card 5.5s ease-in-out infinite; }
+.portal:nth-child(1) { animation-delay: 0s; }
+.portal:nth-child(2) { animation-delay: 0.7s; }
+.portal:nth-child(3) { animation-delay: 1.4s; }
+.portal:nth-child(4) { animation-delay: 2.1s; }
+.portal:nth-child(5) { animation-delay: 2.8s; }
+.portal:nth-child(6) { animation-delay: 3.5s; }
+
+@keyframes float-card {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+.portal--active:hover { animation-play-state: paused; }
+
+/* Canvas preview area */
+.portal-preview {
+  position: relative;
+  aspect-ratio: 2;
+  width: 100%;
+  overflow: hidden;
+}
+.portal-preview canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Disabled overlay */
+.portal--disabled .portal-preview {
+  opacity: 0.45;
+}
+
+/* Footer area below the preview */
+.portal-footer {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.portal-eyebrow {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+.portal--disabled .portal-eyebrow {
+  color: var(--ink-muted);
+}
+.portal-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+.portal--disabled .portal-name {
+  color: var(--acid-dim);
+  opacity: 0.5;
+}
+
+.portal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.portal-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+}
+.portal--active .portal-num {
+  color: var(--acid-dim);
+}
+
+.portal-status-live {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+.portal-status-live .live-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--acid);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+.portal-badge-soon {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  border: 1px solid var(--ink-faint);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* ── FOOTER ── */
+.footer {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--line);
+}
+.footer span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.footer .acid { color: var(--acid-dim); }
+
+/* ── MOBILE ── */
+@media (max-width: 720px) {
+  .portal-grid { grid-template-columns: repeat(2, 1fr); max-width: 560px; }
+}
+@media (max-width: 520px) {
+  .portal-grid { grid-template-columns: 1fr; max-width: 400px; }
+  .nav { padding: 16px 20px; }
+  .main { padding: 80px 20px 40px; gap: 36px; }
+}
+
+/* ── LIGHT MODE ── */
+.light {
+  --bg:          #f5f5f0;
+  --surface-1:   #ebebea;
+  --surface-2:   #e0e0de;
+  --surface-3:   #d6d6d4;
+  --ink:         #0a0a0a;
+  --ink-muted:   #555555;
+  --ink-quiet:   #888888;
+  --ink-faint:   #ccccca;
+  --acid:        #8fdc00;
+  --acid-dim:    #6aaa00;
+  --acid-glow:   rgba(143,220,0,0.14);
+  --line:        rgba(0,0,0,0.08);
+  --line-strong: rgba(0,0,0,0.14);
+}
+.light .tok {
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.12);
+}
+.light .tok.tok-accent {
+  background: #8fdc00;
+  color: #0a0a0a;
+  border-color: #8fdc00;
+}
+.light .portal--active {
+  border-color: rgba(143,220,0,0.35);
+  box-shadow: 0 0 0 1px rgba(143,220,0,0.08) inset, 0 8px 40px rgba(143,220,0,0.06);
+}
+.light .portal--active:hover {
+  border-color: rgba(143,220,0,0.65);
+  box-shadow: 0 0 0 1px rgba(143,220,0,0.14) inset, 0 12px 48px rgba(143,220,0,0.1);
+}
+.light .portal-preview {
+  background: #2e2e2e;
+}
+.light .portal--disabled {
+  opacity: 0.72;
+}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 7px 13px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 120ms;
+}
+.theme-toggle:hover { color: var(--ink); }
+
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="tok-row">
+    <span class="tok" data-id="2294">in</span>
+    <span class="tok" data-id="3349">side</span>
+    <span class="tok" data-id="1820">the</span>
+    <span class="tok tok-accent" data-id="13 / 1872">.ai</span>
+  </div>
+  <div class="nav-right">
+    <span class="dot"></span>
+    <span>gpt-2 · ready</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <h1 class="page-title">Go <em>inside.</em></h1>
+
+  <div class="portal-grid">
+
+    <!-- 01 · Inside the Processing (ACTIVE) -->
+    <a href="#" class="portal portal--active" id="portal-process">
+      <div class="portal-preview">
+        <canvas id="canvas-process"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Processing</span>
+        <div class="portal-row">
+          <span class="portal-num">01</span>
+          <span class="portal-status-live">
+            <span class="live-dot"></span>
+            Live
+          </span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 02 · Inside the Chip (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-chip"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Chip</span>
+        <div class="portal-row">
+          <span class="portal-num">02</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 · Inside the Algorithms (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-algo"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Algorithms</span>
+        <div class="portal-row">
+          <span class="portal-num">03</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 · Inside the Agent (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-agent"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Agent</span>
+        <div class="portal-row">
+          <span class="portal-num">04</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 · Inside the Memory (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-memory"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Memory</span>
+        <div class="portal-row">
+          <span class="portal-num">05</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 · Inside the Frontier (DISABLED) -->
+    <div class="portal portal--disabled">
+      <div class="portal-preview">
+        <canvas id="canvas-frontier"></canvas>
+      </div>
+      <div class="portal-footer">
+        <span class="portal-eyebrow">inside the</span>
+        <span class="portal-name">Frontier</span>
+        <div class="portal-row">
+          <span class="portal-num">06</span>
+          <span class="portal-badge-soon">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <span>insidethe.ai · v01</span>
+  </footer>
+
+</main>
+
+<button class="theme-toggle" onclick="toggleTheme()">light mode</button>
+
+<script>
+/* ── Theme helpers ── */
+let _dark = true;
+function pal(d, l) { return _dark ? d : l; }
+function _toggleTheme() {
+  _dark = !_dark;
+  document.body.classList.toggle('light', !_dark);
+  document.querySelector('.theme-toggle').textContent = _dark ? 'light mode' : 'dark mode';
+  drawChip(); drawAlgo(); drawAgent(); drawMemory(); drawFrontier();
+}
+
+/* ══════════════════════════════════════════════
+   BACKGROUND — black hole wavy polar grid
+══════════════════════════════════════════════ */
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth * devicePixelRatio;
+  bgCanvas.height = window.innerHeight * devicePixelRatio;
+  bgCanvas.style.width = `${window.innerWidth}px`;
+  bgCanvas.style.height = `${window.innerHeight}px`;
+}
+
+function drawBg(t) {
+  const W = bgCanvas.width, H = bgCanvas.height;
+  const dpr = devicePixelRatio;
+  const cx = W * 0.5, cy = H * 0.5;
+
+  bgCtx.clearRect(0, 0, W, H);
+  bgCtx.fillStyle = pal('#0a0a0a', '#f5f5f0');
+  bgCtx.fillRect(0, 0, W, H);
+
+  // Gravitational lensing: straight grid lines bent toward a central mass
+  const spacing = 46 * dpr;
+  const lensR = Math.min(W, H) * 0.22;
+  const lensStrength = lensR * lensR * 1.1;
+
+  function lensPoint(x, y) {
+    const dx = x - cx, dy = y - cy;
+    const dist2 = dx * dx + dy * dy;
+    if (dist2 < 4) return [cx, cy];
+    // Slow breathing warp on top of the static lens
+    const dist = Math.sqrt(dist2);
+    const wave = 0.04 * Math.sin(dist * 0.009 - t * 0.0005);
+    const pull = (lensStrength / (dist2 + lensR * lensR * 0.12)) * (1 + wave);
+    return [x - dx * pull, y - dy * pull];
+  }
+
+  bgCtx.lineWidth = 0.9 * dpr;
+  const lineAlpha = 0.1;
+
+  // Vertical grid lines
+  for (let gx = (cx % spacing); gx <= W + spacing; gx += spacing) {
+    bgCtx.beginPath();
+    let first = true;
+    for (let gy = -spacing; gy <= H + spacing; gy += 4) {
+      const [px, py] = lensPoint(gx, gy);
+      first ? bgCtx.moveTo(px, py) : bgCtx.lineTo(px, py);
+      first = false;
+    }
+    bgCtx.strokeStyle = pal(`rgba(255,255,255,${lineAlpha})`, `rgba(0,0,0,${lineAlpha})`);
+    bgCtx.stroke();
+  }
+
+  // Horizontal grid lines
+  for (let gy = (cy % spacing); gy <= H + spacing; gy += spacing) {
+    bgCtx.beginPath();
+    let first = true;
+    for (let gx = -spacing; gx <= W + spacing; gx += 4) {
+      const [px, py] = lensPoint(gx, gy);
+      first ? bgCtx.moveTo(px, py) : bgCtx.lineTo(px, py);
+      first = false;
+    }
+    bgCtx.strokeStyle = pal(`rgba(255,255,255,${lineAlpha})`, `rgba(0,0,0,${lineAlpha})`);
+    bgCtx.stroke();
+  }
+
+  // Dark void swallowing the grid at center (event horizon)
+  const voidR = lensR * 0.55;
+  const voidGrd = bgCtx.createRadialGradient(cx, cy, 0, cx, cy, voidR * 2.2);
+  const _vFull = pal('rgba(10,10,10,1)',    'rgba(245,245,240,1)');
+  const _vMid  = pal('rgba(10,10,10,0.55)', 'rgba(245,245,240,0.55)');
+  const _vNone = pal('rgba(10,10,10,0)',    'rgba(245,245,240,0)');
+  voidGrd.addColorStop(0,    _vFull);
+  voidGrd.addColorStop(0.45, _vFull);
+  voidGrd.addColorStop(0.75, _vMid);
+  voidGrd.addColorStop(1,    _vNone);
+  bgCtx.fillStyle = voidGrd;
+  bgCtx.fillRect(0, 0, W, H);
+
+  // Accretion ring — faint acid glow around the horizon
+  const ringR = voidR * 1.15;
+  const ringGrd = bgCtx.createRadialGradient(cx, cy, ringR * 0.8, cx, cy, ringR * 1.6);
+  ringGrd.addColorStop(0,    'rgba(0,0,0,0)');
+  ringGrd.addColorStop(0.35, pal('rgba(196,255,61,0.055)', 'rgba(143,220,0,0.1)'));
+  ringGrd.addColorStop(0.65, pal('rgba(196,255,61,0.025)', 'rgba(143,220,0,0.05)'));
+  ringGrd.addColorStop(1,    'rgba(0,0,0,0)');
+  bgCtx.fillStyle = ringGrd;
+  bgCtx.fillRect(0, 0, W, H);
+}
+
+window.addEventListener('resize', () => { resizeBg(); });
+resizeBg();
+
+let _bgRaf;
+function bgLoop(ts) {
+  drawBg(ts);
+  _bgRaf = requestAnimationFrame(bgLoop);
+}
+requestAnimationFrame(bgLoop);
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 01 — Inside the Processing
+   Live attention weight matrix (7×7, causal)
+══════════════════════════════════════════════ */
+const procCanvas = document.getElementById('canvas-process');
+const procCtx = procCanvas.getContext('2d');
+
+const N = 7;
+const TOKENS = ['the', 'cat', 'sat', 'on', 'the', 'soft', 'mat'];
+
+function makeWeights() {
+  return Array.from({length: N}, (_, i) =>
+    Array.from({length: N}, (_, j) => {
+      if (j > i) return 0;
+      if (j === i) return 0.1 + Math.random() * 0.25;
+      if (j === i - 1) return 0.3 + Math.random() * 0.45;
+      if (i === 6 && j === 1) return 0.5 + Math.random() * 0.4; // mat→cat hero
+      if (i === 6 && j === 5) return 0.3 + Math.random() * 0.3; // mat→soft
+      if (j === 0) return 0.04 + Math.random() * 0.1;
+      return Math.max(0, Math.random() * 0.28 - 0.05);
+    })
+  );
+}
+
+let procWeights = makeWeights();
+let procTarget = makeWeights();
+let procLastSwap = 0;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function lerpWeights(cur, tgt, alpha) {
+  return cur.map((row, i) => row.map((v, j) => lerp(v, tgt[i][j], alpha)));
+}
+
+function sizeProc() {
+  const rect = procCanvas.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  procCanvas.width = rect.width * dpr;
+  procCanvas.height = rect.height * dpr;
+  procCanvas.style.width = `${rect.width}px`;
+  procCanvas.style.height = `${rect.height}px`;
+}
+
+function drawProc(_t) {
+  const W = procCanvas.width, H = procCanvas.height;
+  const dpr = devicePixelRatio;
+  procCtx.clearRect(0, 0, W, H);
+  procCtx.fillStyle = pal('#0e0e0e', '#2a2a2a');
+  procCtx.fillRect(0, 0, W, H);
+
+  const pad = 28 * dpr;
+  const labelW = 32 * dpr;
+  const labelH = 22 * dpr;
+  const gridW = W - pad * 2 - labelW;
+  const gridH = H - pad * 2 - labelH;
+  const cw = gridW / N;
+  const ch = gridH / N;
+  const fontSize = Math.floor(Math.min(cw, ch) * 0.28);
+
+  // Grid cells
+  procWeights.forEach((row, i) => {
+    row.forEach((v, j) => {
+      if (j > i) return;
+      const x = pad + labelW + j * cw;
+      const y = pad + labelH + i * ch;
+      const alpha = 0.03 + v * 0.88;
+      procCtx.fillStyle = pal(`rgba(196,255,61,${alpha})`, `rgba(143,220,0,${alpha})`);
+      procCtx.fillRect(x + 1, y + 1, cw - 2, ch - 2);
+
+      if (v > 0.38) {
+        procCtx.fillStyle = `rgba(10,10,10,${0.6 + v * 0.35})`;
+        procCtx.font = `${fontSize}px "JetBrains Mono", monospace`;
+        procCtx.textAlign = 'center';
+        procCtx.textBaseline = 'middle';
+        procCtx.fillText(v.toFixed(2), x + cw / 2, y + ch / 2);
+      }
+    });
+  });
+
+  // Axis tick lines
+  procCtx.strokeStyle = pal('rgba(255,255,255,0.04)', 'rgba(255,255,255,0.05)');
+  procCtx.lineWidth = 0.5 * dpr;
+  for (let i = 0; i <= N; i++) {
+    const x = pad + labelW + i * cw;
+    const y = pad + labelH + i * ch;
+    procCtx.beginPath();
+    procCtx.moveTo(x, pad + labelH);
+    procCtx.lineTo(x, pad + labelH + gridH);
+    procCtx.stroke();
+    procCtx.beginPath();
+    procCtx.moveTo(pad + labelW, y);
+    procCtx.lineTo(pad + labelW + gridW, y);
+    procCtx.stroke();
+  }
+
+  // Token labels — row (left)
+  procCtx.fillStyle = pal('rgba(136,136,136,0.7)', 'rgba(130,130,130,0.8)');
+  procCtx.font = `${Math.floor(fontSize * 0.9)}px "JetBrains Mono", monospace`;
+  procCtx.textAlign = 'right';
+  procCtx.textBaseline = 'middle';
+  TOKENS.forEach((tok, i) => {
+    procCtx.fillText(tok, pad + labelW - 6 * dpr, pad + labelH + i * ch + ch / 2);
+  });
+
+  // Token labels — column (top)
+  procCtx.textAlign = 'center';
+  procCtx.textBaseline = 'bottom';
+  TOKENS.forEach((tok, j) => {
+    procCtx.fillText(tok, pad + labelW + j * cw + cw / 2, pad + labelH - 5 * dpr);
+  });
+
+  // Header label
+}
+
+let _procRaf;
+function procLoop(ts) {
+  if (ts - procLastSwap > 2200) {
+    procTarget = makeWeights();
+    procLastSwap = ts;
+  }
+  procWeights = lerpWeights(procWeights, procTarget, 0.03);
+  drawProc(ts);
+  _procRaf = requestAnimationFrame(procLoop);
+}
+
+sizeProc();
+requestAnimationFrame(procLoop);
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 02 — Inside the Chip (static)
+   H100-style die shot: HBM panels + compute die
+══════════════════════════════════════════════ */
+function drawChip() {
+  const el = document.getElementById('canvas-chip');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
+
+  // PCB background
+  ctx.fillStyle = '#0c0c0e';
+  ctx.fillRect(0, 0, W, H);
+
+  // PCB dot texture
+  ctx.fillStyle = 'rgba(196,255,61,0.035)';
+  const ds = 6 * dpr;
+  for (let x = ds/2; x < W; x += ds) {
+    for (let y = ds/2; y < H; y += ds) {
+      ctx.beginPath();
+      ctx.arc(x, y, 0.25*dpr, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // PCB border
+  ctx.strokeStyle = 'rgba(196,255,61,0.15)';
+  ctx.lineWidth = 0.6*dpr;
+  ctx.strokeRect(0.05*W, 0.08*H, 0.9*W, 0.84*H);
+
+  // Mounting holes
+  [[0.115,0.18],[0.185,0.18],[0.815,0.18],[0.885,0.18],
+   [0.115,0.82],[0.185,0.82],[0.815,0.82],[0.885,0.82]].forEach(([fx, fy]) => {
+    const hx = fx*W, hy = fy*H, hr = 6*dpr;
+    const g = ctx.createRadialGradient(hx,hy,0,hx,hy,hr);
+    g.addColorStop(0,'#c4ff3d'); g.addColorStop(0.4,'#8faf2b'); g.addColorStop(1,'#4a5a18');
+    ctx.beginPath(); ctx.arc(hx,hy,hr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.arc(hx,hy,hr*0.45,0,Math.PI*2); ctx.fillStyle='#0a0a0c'; ctx.fill();
+  });
+
+  // HBM panels
+  const hbmW=0.135*W, hbmH=0.54*H, hbmY=(H-hbmH)/2;
+  const leftX=0.088*W, rightX=W-0.088*W-hbmW;
+
+  function drawHbm(x,y,w,h) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+    const sw = 3*dpr;
+    for (let sx=x; sx<x+w; sx+=sw) {
+      ctx.fillStyle='#c4ff3d'; ctx.fillRect(sx,y,sw-0.4*dpr,h);
+      ctx.fillStyle='rgba(10,10,10,0.25)';
+      ctx.fillRect(sx,y,0.3*dpr,h);
+      ctx.fillRect(sx+sw-0.6*dpr,y,0.3*dpr,h);
+    }
+    const gloss = ctx.createLinearGradient(x,y,x+w,y+h);
+    gloss.addColorStop(0,'rgba(255,255,255,0.25)');
+    gloss.addColorStop(0.5,'rgba(255,255,255,0)');
+    gloss.addColorStop(1,'rgba(0,0,0,0.15)');
+    ctx.fillStyle=gloss; ctx.fillRect(x,y,w,h);
+    ctx.restore();
+    ctx.strokeStyle='rgba(10,10,10,0.4)'; ctx.lineWidth=0.4*dpr; ctx.strokeRect(x,y,w,h);
+  }
+  drawHbm(leftX,hbmY,hbmW,hbmH);
+  drawHbm(rightX,hbmY,hbmW,hbmH);
+
+  // Connector pins top/bottom of each HBM
+  ctx.fillStyle='rgba(196,255,61,0.6)';
+  const pinW=0.6*dpr, pinH=1.5*dpr, pinStep=3*dpr;
+  [leftX,rightX].forEach(hx => {
+    for (let px=hx+1.5*dpr; px+pinW<hx+hbmW; px+=pinStep) {
+      ctx.fillRect(px, hbmY-pinH-0.5*dpr, pinW, pinH);
+      ctx.fillRect(px, hbmY+hbmH+0.5*dpr, pinW, pinH);
+    }
+  });
+
+  // Compute die substrate
+  const dieX=leftX+hbmW+0.03*W, dieW=rightX-leftX-hbmW*2-0.06*W;
+  const dieH=0.68*H, dieY=(H-dieH)/2;
+  const subG = ctx.createLinearGradient(0,dieY,0,dieY+dieH);
+  subG.addColorStop(0,'#2a3d2a'); subG.addColorStop(1,'#1a2a1a');
+  ctx.fillStyle=subG; ctx.fillRect(dieX,dieY,dieW,dieH);
+  ctx.strokeStyle='rgba(196,255,61,0.35)'; ctx.lineWidth=0.6*dpr;
+  ctx.strokeRect(dieX,dieY,dieW,dieH);
+
+  // Silicon panels
+  const panelG = ctx.createLinearGradient(0,dieY,0,dieY+dieH);
+  panelG.addColorStop(0,'#e8e5dc'); panelG.addColorStop(0.5,'#f4f1ea'); panelG.addColorStop(1,'#c8c5bd');
+  const pd=0.065*dieW, cw=(dieW-4*pd)/3;
+  const c0=dieX+pd, c1=dieX+2*pd+cw, c2=dieX+3*pd+2*cw;
+  [
+    [c0, dieY+0.058*dieH, cw, 0.350*dieH],
+    [c0, dieY+0.450*dieH, cw, 0.295*dieH],
+    [c0, dieY+0.785*dieH, cw, 0.165*dieH],
+    [c1, dieY+0.058*dieH, cw, 0.130*dieH],
+    [c1, dieY+0.208*dieH, cw, 0.180*dieH],
+    [c1, dieY+0.418*dieH, cw, 0.130*dieH],
+    [c1, dieY+0.578*dieH, cw, 0.375*dieH],
+    [c2, dieY+0.058*dieH, cw, 0.350*dieH],
+    [c2, dieY+0.450*dieH, cw, 0.295*dieH],
+    [c2, dieY+0.785*dieH, cw, 0.165*dieH],
+  ].forEach(([px,py,pw,ph]) => {
+    ctx.fillStyle=panelG; ctx.fillRect(px,py,pw,ph);
+    ctx.strokeStyle='rgba(10,10,10,0.3)'; ctx.lineWidth=0.3*dpr; ctx.strokeRect(px,py,pw,ph);
+  });
+
+  // Center mark
+  const cx=dieX+dieW/2, cy=dieY+dieH/2;
+  ctx.beginPath(); ctx.arc(cx,cy,7*dpr,0,Math.PI*2);
+  ctx.strokeStyle='#0a0a0a'; ctx.lineWidth=dpr; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,3.5*dpr,0,Math.PI*2);
+  ctx.fillStyle='#c4ff3d'; ctx.fill();
+
+  // Solder bumps
+  ctx.fillStyle='rgba(196,255,61,0.5)';
+  for (let bx=dieX+1.5*dpr; bx+0.5*dpr<dieX+dieW; bx+=3*dpr) {
+    ctx.fillRect(bx, dieY-dpr, 0.5*dpr, dpr);
+    ctx.fillRect(bx, dieY+dieH, 0.5*dpr, dpr);
+  }
+
+  // Surface highlight
+  const hlG = ctx.createLinearGradient(0,0,W,H);
+  hlG.addColorStop(0,'rgba(255,255,255,0.04)'); hlG.addColorStop(1,'rgba(0,0,0,0.3)');
+  ctx.globalAlpha=0.5; ctx.fillStyle=hlG; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+
+}
+
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 03 — Inside the Algorithms (static)
+   Beautiful Mind: overlapping handwritten equations
+══════════════════════════════════════════════ */
+function drawAlgo() {
+  const el = document.getElementById('canvas-algo');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
+  ctx.fillStyle = '#131313';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle radial background
+  const bgG = ctx.createRadialGradient(W*0.7,H*0.3,0,W*0.7,H*0.3,W*0.6);
+  bgG.addColorStop(0,'rgba(196,255,61,0.04)'); bgG.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bgG; ctx.fillRect(0,0,W,H);
+
+  // Ellipse around central equation
+  ctx.beginPath();
+  ctx.ellipse(W*0.5,H*0.5,W*0.235,H*0.22,0,0,Math.PI*2);
+  ctx.strokeStyle='rgba(196,255,61,0.5)'; ctx.lineWidth=0.8*dpr; ctx.stroke();
+
+  // Pointer arrow to center
+  ctx.beginPath(); ctx.moveTo(W*0.37,H*0.245);
+  ctx.quadraticCurveTo(W*0.39,H*0.36,W*0.415,H*0.435);
+  ctx.strokeStyle='rgba(244,241,234,0.3)'; ctx.lineWidth=0.6*dpr; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(W*0.408,H*0.432); ctx.lineTo(W*0.42,H*0.443); ctx.lineTo(W*0.424,H*0.428);
+  ctx.strokeStyle='rgba(244,241,234,0.3)'; ctx.lineWidth=0.6*dpr; ctx.stroke();
+
+  // Dashed connection between bottom equations
+  ctx.beginPath(); ctx.setLineDash([2*dpr,2*dpr]);
+  ctx.moveTo(W*0.3,H*0.82); ctx.quadraticCurveTo(W*0.45,H*0.78,W*0.6,H*0.825);
+  ctx.strokeStyle='rgba(244,241,234,0.25)'; ctx.lineWidth=0.5*dpr; ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Scribbled underline under central eq
+  ctx.beginPath();
+  ctx.moveTo(W*0.265,H*0.605); ctx.quadraticCurveTo(W*0.425,H*0.625,W*0.5,H*0.6);
+  ctx.quadraticCurveTo(W*0.575,H*0.578,W*0.65,H*0.605);
+  ctx.strokeStyle='rgba(196,255,61,0.6)'; ctx.lineWidth=0.8*dpr; ctx.stroke();
+
+  // Strikethrough on discarded equation
+  ctx.beginPath(); ctx.moveTo(W*0.70,H*0.205); ctx.lineTo(W*0.965,H*0.19);
+  ctx.strokeStyle='rgba(244,241,234,0.3)'; ctx.lineWidth=0.6*dpr; ctx.stroke();
+
+  function eq(text, x, y, size, alpha, deg, accent) {
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.translate(x,y); ctx.rotate(deg*Math.PI/180);
+    ctx.font=`italic 300 ${size}px "Fraunces","Times New Roman",serif`;
+    ctx.fillStyle=accent?'#c4ff3d':'rgba(244,241,234,1)';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText(text,0,0); ctx.restore();
+  }
+
+  eq('∂L/∂w = ∂L/∂y · ∂y/∂w',     W*0.085, H*0.112, 13*dpr, 0.22, -4);
+  eq('y = Wx + b + ε',              W*0.70,  H*0.175, 12*dpr, 0.28,  2);
+  eq('Attn(Q,K,V) = softmax(QKᵀ/√d)V', W*0.135, H*0.272, 15*dpr, 0.45, -2);
+  eq('σ(xᵢ) = eˣⁱ / Σⱼ eˣʲ',      W*0.18,  H*0.425, 22*dpr, 1.0,  -1, true);
+  eq('H(p,q) = −Σ p(x)log q(x)',   W*0.555, H*0.598, 12*dpr, 0.28,  3);
+  eq('θt+1 = θt − η∇L(θt)',        W*0.08,  H*0.735, 14*dpr, 0.45,  1.5);
+  eq('LN(x) = γ(x−μ)/σ + β',       W*0.595, H*0.775, 13*dpr, 0.22, -2.5);
+
+  // Annotation
+  ctx.save(); ctx.globalAlpha=0.65;
+  ctx.translate(W*0.52,H*0.72); ctx.rotate(-5*Math.PI/180);
+  ctx.font=`600 ${14*dpr}px "JetBrains Mono",monospace`;
+  ctx.fillStyle='#c4ff3d'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('→ the core!',0,0); ctx.restore();
+
+}
+
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 04 — Inside the Agent (static)
+   ReAct loop: think / act / observe / reflect
+══════════════════════════════════════════════ */
+function drawAgent() {
+  const el = document.getElementById('canvas-agent');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
+  ctx.fillStyle = '#131313';
+  ctx.fillRect(0, 0, W, H);
+
+  const acid = '#c4ff3d';
+
+  // Node centers
+  const T  = {x: 0.35*W, y: 0.38*H};
+  const A  = {x: 0.725*W, y: 0.48*H};
+  const O  = {x: 0.6125*W, y: 0.80*H};
+  const R  = {x: 0.225*W, y: 0.70*H};
+  const rT = 0.07*W, rO = 0.055*W;
+
+  function arrowHead(x,y,dx,dy) {
+    const len=Math.sqrt(dx*dx+dy*dy), nx=dx/len, ny=dy/len, s=7*dpr;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x-s*(nx+ny*0.55), y-s*(ny-nx*0.55));
+    ctx.lineTo(x-s*(nx-ny*0.55), y-s*(ny+nx*0.55));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function arc(x1,y1,cpx,cpy,x2,y2,alpha,dashed) {
+    ctx.save(); ctx.globalAlpha=alpha;
+    ctx.strokeStyle=acid; ctx.fillStyle=acid;
+    ctx.lineWidth=1.4*dpr; ctx.lineCap='round';
+    if(dashed) ctx.setLineDash([3*dpr,2*dpr]);
+    ctx.beginPath(); ctx.moveTo(x1,y1);
+    ctx.quadraticCurveTo(cpx,cpy,x2,y2); ctx.stroke();
+    ctx.setLineDash([]);
+    arrowHead(x2,y2,x2-cpx,y2-cpy);
+    ctx.restore();
+  }
+
+  arc(0.43*W,0.38*H,  0.575*W,0.352*H, 0.675*W,0.42*H,  1.0);
+  arc(0.7175*W,0.536*H, 0.7125*W,0.70*H, 0.655*W,0.768*H, 0.85);
+  arc(0.57*W,0.82*H,  0.40*W,0.86*H,  0.2775*W,0.752*H, 0.70);
+  arc(0.235*W,0.628*H, 0.25*W,0.44*H,  0.305*W,0.392*H, 0.55, true);
+
+  // THINK — acid fill with glow
+  const glow=ctx.createRadialGradient(T.x,T.y,0,T.x,T.y,rT*1.8);
+  glow.addColorStop(0,'rgba(196,255,61,0.25)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(T.x,T.y,rT*1.8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(T.x,T.y,rT,0,Math.PI*2); ctx.fillStyle=acid; ctx.fill();
+  ctx.font=`italic 400 ${17*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='#0a0a0a'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('think',T.x,T.y+dpr);
+
+  // ACT
+  ctx.beginPath(); ctx.arc(A.x,A.y,rO,0,Math.PI*2);
+  ctx.fillStyle='#131313'; ctx.fill();
+  ctx.strokeStyle=acid; ctx.lineWidth=1.2*dpr; ctx.stroke();
+  ctx.font=`italic 300 ${13*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='#f4f1ea'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('act',A.x,A.y+dpr);
+
+  // OBSERVE
+  ctx.beginPath(); ctx.arc(O.x,O.y,rO,0,Math.PI*2);
+  ctx.fillStyle='#131313'; ctx.fill();
+  ctx.strokeStyle='rgba(196,255,61,0.6)'; ctx.lineWidth=dpr; ctx.stroke();
+  ctx.font=`italic 300 ${12*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='rgba(244,241,234,0.85)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('observe',O.x,O.y+dpr);
+
+  // REFLECT
+  ctx.beginPath(); ctx.arc(R.x,R.y,rO,0,Math.PI*2);
+  ctx.fillStyle='#131313'; ctx.fill();
+  ctx.strokeStyle='rgba(196,255,61,0.4)'; ctx.lineWidth=dpr; ctx.stroke();
+  ctx.font=`italic 300 ${12*dpr}px "Fraunces","Times New Roman",serif`;
+  ctx.fillStyle='rgba(244,241,234,0.70)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('reflect',R.x,R.y+dpr);
+
+  // Arrow labels
+  ctx.font=`${7*dpr}px "JetBrains Mono",monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(196,255,61,0.7)';  ctx.fillText('plan',  W*0.54,  H*0.328);
+  ctx.fillStyle='rgba(196,255,61,0.6)';  ctx.fillText('tool',  W*0.762, H*0.672);
+  ctx.fillStyle='rgba(196,255,61,0.5)';  ctx.fillText('result',W*0.44,  H*0.88);
+  ctx.fillStyle='rgba(196,255,61,0.4)';  ctx.fillText('loop',  W*0.23,  H*0.525);
+
+}
+
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 05 — Inside the Memory (static)
+   Palimpsest: layered text at varying opacity/rotation
+══════════════════════════════════════════════ */
+function drawMemory() {
+  const el = document.getElementById('canvas-memory');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
+  ctx.fillStyle = pal('#0c0c0c', '#2a2a2a');
+  ctx.fillRect(0, 0, W, H);
+
+  const d = dpr;
+
+  function rotText(text, x, y, size, alpha, deg, mono) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(deg * Math.PI / 180);
+    ctx.font = mono
+      ? `400 ${size}px "JetBrains Mono", monospace`
+      : `italic 300 ${size}px "Fraunces", "Times New Roman", serif`;
+    ctx.fillStyle = pal('rgba(244,241,234,1)', 'rgba(244,241,234,1)');
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  rotText('remember when',           -0.05*W, 0.10*H, 62*d, 0.055, -8);
+  rotText('a conversation we had',    0.10*W, 0.40*H, 30*d, 0.10,  -3);
+  rotText('the mind of the model',    0.35*W, 0.24*H, 18*d, 0.15,   4);
+  rotText('system · you are a helpful assistant…', 0.07*W, 0.66*H, 9*d, 0.20, -1, true);
+  rotText('what was said before',     0.22*W, 0.54*H, 22*d, 0.26,   2);
+
+  // Top layer with acid highlight
+  ctx.save();
+  ctx.translate(0.175*W, 0.36*H);
+  ctx.rotate(-0.5 * Math.PI / 180);
+  const topPx = 26*d;
+  ctx.font = `italic 400 ${topPx}px "Fraunces", "Times New Roman", serif`;
+  ctx.fillStyle = 'rgba(244,241,234,0.9)';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('and now, ', 0, 0);
+  const prefixW = ctx.measureText('and now, ').width;
+  const hlPx = topPx * 0.68;
+  ctx.font = `500 ${hlPx}px "JetBrains Mono", monospace`;
+  const hlText = 'current thought';
+  const hlW = ctx.measureText(hlText).width;
+  const hlH = hlPx * 1.3;
+  ctx.fillStyle = pal('#c4ff3d', '#c4ff3d');
+  ctx.fillRect(prefixW, topPx * 0.05, hlW + 8*d, hlH);
+  ctx.fillStyle = '#0a0a0a';
+  ctx.textBaseline = 'top';
+  ctx.fillText(hlText, prefixW + 4*d, topPx * 0.05 + (hlH - hlPx) * 0.45);
+  ctx.restore();
+
+  // Depth annotation
+  const labels = ['depth 6 / recent', 'depth 5', 'depth 4', 'depth 3', 'depth 2', 'depth 1 / oldest'];
+  const markerTop = 14*d, markerStep = 14*d;
+  ctx.font = `${8*d}px "JetBrains Mono", monospace`;
+  ctx.fillStyle = 'rgba(244,241,234,0.32)';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  labels.forEach((label, i) => ctx.fillText(label, W - 8*d, markerTop + i * markerStep));
+
+  // Vertical rule
+  const ruleGrad = ctx.createLinearGradient(0, markerTop, 0, markerTop + labels.length * markerStep);
+  ruleGrad.addColorStop(0, '#c4ff3d');
+  ruleGrad.addColorStop(1, 'rgba(196,255,61,0.04)');
+  ctx.strokeStyle = ruleGrad;
+  ctx.lineWidth = d;
+  ctx.beginPath();
+  ctx.moveTo(W - 3*d, markerTop);
+  ctx.lineTo(W - 3*d, markerTop + labels.length * markerStep);
+  ctx.stroke();
+
+}
+
+
+/* ══════════════════════════════════════════════
+   PORTAL 06 — Inside the Frontier (static)
+   Exponential compute growth curve
+══════════════════════════════════════════════ */
+function drawFrontier() {
+  const el = document.getElementById('canvas-frontier');
+  const rect = el.parentElement.getBoundingClientRect();
+  const dpr = devicePixelRatio;
+  el.width = rect.width * dpr;
+  el.height = rect.height * dpr;
+  el.style.width = `${rect.width}px`;
+  el.style.height = `${rect.height}px`;
+
+  const ctx = el.getContext('2d');
+  const W = el.width, H = el.height;
+  ctx.fillStyle = pal('#0c0c0c', '#2a2a2a');
+  ctx.fillRect(0, 0, W, H);
+
+  const padL = 40*dpr, padR = 20*dpr, padT = 24*dpr, padB = 20*dpr;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 0.6*dpr;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, H - padB);
+  ctx.moveTo(padL, H - padB); ctx.lineTo(W - padR, H - padB);
+  ctx.stroke();
+
+  // Gridlines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5*dpr;
+  [0.25, 0.5, 0.75].forEach(f => {
+    const y = padT + chartH * (1 - f);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+  });
+
+  // Curve points
+  const raw = [[0,0.01],[0.12,0.01],[0.25,0.02],[0.38,0.03],[0.50,0.05],[0.60,0.09],
+               [0.68,0.18],[0.76,0.35],[0.84,0.58],[0.90,0.78],[0.95,0.92],[0.99,0.99]];
+  const pts = raw.map(([fx, fy]) => [padL + fx*chartW, padT + chartH*(1 - fy)]);
+  const last = pts[pts.length - 1];
+
+  // Area fill
+  const fillGrad = ctx.createLinearGradient(0, padT, 0, H - padB);
+  fillGrad.addColorStop(0, 'rgba(196,255,61,0.22)');
+  fillGrad.addColorStop(1, 'rgba(196,255,61,0)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    const [x1,y1] = pts[i-1], [x2,y2] = pts[i];
+    ctx.quadraticCurveTo(x1, y1, (x1+x2)/2, (y1+y2)/2);
+  }
+  ctx.lineTo(last[0], last[1]);
+  ctx.lineTo(last[0], H - padB);
+  ctx.lineTo(pts[0][0], H - padB);
+  ctx.closePath();
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  function buildPath() {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) {
+      const [x1,y1] = pts[i-1], [x2,y2] = pts[i];
+      ctx.quadraticCurveTo(x1, y1, (x1+x2)/2, (y1+y2)/2);
+    }
+    ctx.lineTo(last[0], last[1]);
+  }
+
+  // Glow pass
+  ctx.save();
+  ctx.filter = `blur(${2.5*dpr}px)`;
+  ctx.strokeStyle = 'rgba(196,255,61,0.5)';
+  ctx.lineWidth = 2.5*dpr; ctx.lineCap = 'round';
+  buildPath(); ctx.stroke();
+  ctx.restore();
+
+  // Crisp curve
+  ctx.strokeStyle = '#c4ff3d';
+  ctx.lineWidth = 1.8*dpr; ctx.lineCap = 'round';
+  buildPath(); ctx.stroke();
+
+  // Terminal dot
+  ctx.save();
+  ctx.filter = `blur(${2*dpr}px)`;
+  ctx.beginPath(); ctx.arc(last[0], last[1], 5*dpr, 0, Math.PI*2);
+  ctx.fillStyle = '#c4ff3d'; ctx.fill();
+  ctx.restore();
+  ctx.beginPath(); ctx.arc(last[0], last[1], 4*dpr, 0, Math.PI*2);
+  ctx.fillStyle = '#c4ff3d'; ctx.fill();
+  ctx.beginPath(); ctx.arc(last[0], last[1], 9*dpr, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(196,255,61,0.4)'; ctx.lineWidth = 0.8*dpr; ctx.stroke();
+
+}
+
+
+/* ── Seeded RNG for reproducible chip pattern ── */
+function seededRng(seed) {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+
+/* ── Init disabled canvases on load ── */
+window.addEventListener('load', () => {
+  drawChip();
+  drawAlgo();
+  drawAgent();
+  drawMemory();
+  drawFrontier();
+  document.fonts.ready.then(() => { drawAlgo(); drawAgent(); drawMemory(); });
+});
+
+window.addEventListener('resize', () => {
+  resizeBg();
+  sizeProc();
+  drawChip();
+  drawAlgo();
+  drawAgent();
+  drawMemory();
+  drawFrontier();
+});
+
+</script>
+</body>
+</html>

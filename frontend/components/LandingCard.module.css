@@ -1,0 +1,169 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: not-allowed;
+  transition:
+    border-color var(--dur-mid) var(--ease),
+    box-shadow var(--dur-mid) var(--ease),
+    transform var(--dur-mid) var(--ease);
+  animation: floatCard 5.5s ease-in-out infinite;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:nth-child(1) {
+  animation-delay: 0s;
+}
+.card:nth-child(2) {
+  animation-delay: 0.7s;
+}
+.card:nth-child(3) {
+  animation-delay: 1.4s;
+}
+.card:nth-child(4) {
+  animation-delay: 2.1s;
+}
+.card:nth-child(5) {
+  animation-delay: 2.8s;
+}
+.card:nth-child(6) {
+  animation-delay: 3.5s;
+}
+
+@keyframes floatCard {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.cardActive {
+  cursor: pointer;
+  border-color: var(--acid-border);
+}
+
+.cardActive:hover {
+  border-color: var(--acid-border-strong);
+  box-shadow:
+    0 0 0 1px rgba(196, 255, 61, 0.15) inset,
+    0 12px 48px rgba(196, 255, 61, 0.12);
+  transform: translateY(-3px);
+  animation-play-state: paused;
+}
+
+.preview {
+  position: relative;
+  aspect-ratio: 2;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cardDisabled .preview {
+  opacity: 0.45;
+}
+
+.footer {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+
+.cardDisabled .eyebrow {
+  color: var(--ink-muted);
+}
+
+.name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+
+.cardDisabled .name {
+  color: var(--acid-dim);
+  opacity: 0.5;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+}
+
+.cardActive .num {
+  color: var(--acid-dim);
+}
+
+.statusLive {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+
+.liveDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--acid);
+  animation: pulseDot 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.badgeSoon {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  border: 1px solid var(--ink-faint);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+:global(html.light) .cardActive:hover {
+  box-shadow:
+    0 0 0 1px rgba(143, 220, 0, 0.14) inset,
+    0 12px 48px rgba(143, 220, 0, 0.1);
+}
+
+:global(html.light) .cardDisabled {
+  opacity: 0.72;
+}
+
+:global(html.light) .cardDisabled .preview::after {
+  background: rgba(15, 15, 15, 0.28);
+}

@@ -1,0 +1,79 @@
+.tokRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.tokRow.sm {
+  font-size: 16px;
+  gap: 3px;
+}
+
+.tokRow.md {
+  font-size: clamp(20px, 2.6vw, 30px);
+}
+
+.tokRow.lg {
+  font-size: clamp(28px, 3.6vw, 42px);
+}
+
+.tok {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  padding: 10px 16px;
+}
+
+.tokRow.sm .tok {
+  padding: 6px 10px;
+}
+
+.tokRow.lg .tok {
+  padding: 14px 22px;
+}
+
+.tokId {
+  position: absolute;
+  left: 0;
+  top: -16px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.tokRow.sm .tokId {
+  top: -12px;
+  font-size: 8px;
+}
+
+.tokRow.lg .tokId {
+  top: -20px;
+  font-size: 10px;
+}
+
+.tokAccent {
+  background: var(--acid);
+  color: var(--ink-on-acid);
+  border-color: var(--acid);
+  font-weight: 700;
+}
+
+:global(html.light) .tok {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+:global(html.light) .tokAccent {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink-on-acid);
+}
