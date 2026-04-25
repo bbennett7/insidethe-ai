@@ -27,7 +27,7 @@ pnpm dev
 pnpm backend
 ```
 
-The frontend runs at [http://localhost:3000](http://localhost:3000). The backend runs at [http://localhost:8000](http://localhost:8000) and serves the WebSocket at `ws://localhost:8000/ws`.
+The frontend runs at [http://localhost:3000](http://localhost:3000). The backend runs at [http://localhost:8080](http://localhost:8080) and serves the WebSocket at `ws://localhost:8080/ws`.
 
 See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md) for full setup details.
 

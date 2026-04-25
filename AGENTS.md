@@ -207,7 +207,7 @@ pnpm dev        # http://localhost:3000
 # Backend
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8080
 ```
 
-WebSocket endpoint: `ws://localhost:8000/ws`
+WebSocket endpoint: `ws://localhost:8080/ws`

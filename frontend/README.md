@@ -23,7 +23,7 @@ Open [http://localhost:3000](http://localhost:3000). The processing experience a
 
 | Variable | Default | Description |
 |---|---|---|
-| `NEXT_PUBLIC_WS_URL` | `ws://localhost:8000/ws` | WebSocket URL for the backend |
+| `NEXT_PUBLIC_WS_URL` | `ws://localhost:8080/ws` | WebSocket URL for the backend |
 
 Copy `.env.local.example` to `.env.local` to configure locally.
 

@@ -7,6 +7,6 @@
     "build":      "pnpm --filter frontend build",
     "lint":       "pnpm --filter frontend lint",
     "lint:fix":   "pnpm --filter frontend lint:fix",
-    "backend":    "cd backend && .venv/bin/uvicorn main:app --reload --port 8000"
+    "backend":    "cd backend && .venv/bin/uvicorn main:app --reload --port 8080"
   }
 }
