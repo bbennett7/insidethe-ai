@@ -1,12 +1,10 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  webpack(config) {
-    config.resolve.alias = {
-      ...config.resolve.alias,
+  turbopack: {
+    resolveAlias: {
       'posthog-js': 'posthog-js/dist/module.slim.no-external.js',
-    }
-    return config
+    },
   },
 }
 
