@@ -9,7 +9,7 @@ date: 2026-04-22
 
 ## Overview
 
-Replace the mock-driven `setTimeout` animation chains in `frontend/app/processing/page.tsx` with a real WebSocket client that connects to `ws://localhost:8000/ws`. The mock data currently drives all animation timing and all visual content. After this change, the server drives content while the client retains full control over playback speed and step mode.
+Replace the mock-driven `setTimeout` animation chains in `frontend/app/processing/page.tsx` with a real WebSocket client that connects to `ws://localhost:8080/ws`. The mock data currently drives all animation timing and all visual content. After this change, the server drives content while the client retains full control over playback speed and step mode.
 
 ---
 
@@ -127,7 +127,7 @@ const [isConnected, setIsConnected] = useState(false)
 
 #### Connection lifecycle
 
-- **Mount**: `new WebSocket('ws://localhost:8000/ws')`, set `onopen`/`onmessage`/`onclose`/`onerror`
+- **Mount**: `new WebSocket('ws://localhost:8080/ws')`, set `onopen`/`onmessage`/`onclose`/`onerror`
 - **`onopen`**: set `isConnected = true`
 - **`onmessage`**: `JSON.parse(e.data)` → push to `queueRef.current` → if timer not running, start `processNext()`
 - **`onclose`/`onerror`**: set `isConnected = false`, call `handlers.onError` if provided
@@ -562,7 +562,7 @@ The page continues building `streamFrames` manually in each handler callback (sa
 
 ### Functional
 
-- [ ] Submitting a prompt connects to `ws://localhost:8000/ws` and sends `{"type": "run", "text": "..."}`
+- [ ] Submitting a prompt connects to `ws://localhost:8080/ws` and sends `{"type": "run", "text": "..."}`
 - [ ] Real tokens from server appear in the Input Tokens section (replacing hardcoded `INPUT_TOKENS`)
 - [ ] Layer cards light up sequentially as `layer` messages arrive, 0 → 11
 - [ ] Each layer canvas renders real activation data (attention heatmap, MLP grid, residual strips)

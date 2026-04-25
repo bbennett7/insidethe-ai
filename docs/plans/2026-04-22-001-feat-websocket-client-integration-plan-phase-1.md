@@ -69,7 +69,7 @@ yield json.dumps({
 })
 ```
 
-**Verify:** Run the backend (`uvicorn main:app --reload --port 8000`) and send a test message via wscat or the browser console. Confirm the `mlp` component in a layer message has `data.length === 3072` and all values are in `[0, 1]`.
+**Verify:** Run the backend (`uvicorn main:app --reload --port 8080`) and send a test message via wscat or the browser console. Confirm the `mlp` component in a layer message has `data.length === 3072` and all values are in `[0, 1]`.
 
 ---
 
@@ -165,7 +165,7 @@ import type {
 const LAYER_COMPONENTS: LayerComponent[] = [
   'ln1', 'attn', 'attn_write', 'ln2', 'mlp', 'mlp_write',
 ]
-const WS_URL = 'ws://localhost:8000/ws'
+const WS_URL = 'ws://localhost:8080/ws'
 
 export interface ProcessingSocketHandlers {
   onTokens: (tokens: Token[]) => void
@@ -453,7 +453,7 @@ setStreamLive(socket.isConnected)
 > This wiring is **intentionally redundant** — both mock and real runs fire simultaneously. The mock animation drives the UI; the socket just populates the stream log with real backend messages. Phase 2 removes the mock and promotes the socket handlers to drive everything.
 
 **Verify:**
-1. Start the backend: `cd backend && uvicorn main:app --reload --port 8000`
+1. Start the backend: `cd backend && uvicorn main:app --reload --port 8080`
 2. Start the frontend: `cd frontend && pnpm dev`
 3. Submit a prompt
 4. Switch to the "Response" tab in the right panel
