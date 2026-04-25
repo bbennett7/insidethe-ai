@@ -31,7 +31,7 @@ function layerDelay(speed: number): number {
 
 function stageDelay(speed: number): number {
   if (speed >= 1) return 0
-  return Math.round((1 - speed) * 1100 + 50)
+  return Math.round((1 - speed) * 700 + 25)
 }
 
 
@@ -75,6 +75,10 @@ export default function ProcessPage() {
   const socketRunRef = useRef<(text: string) => void>(() => {})
   // Populated after startMergeAnimation is defined; called from onTokens once all merge_stage frames have arrived.
   const startMergeAnimationRef = useRef<() => void>(() => {})
+  // True once the merge animation has completed (or never started). Gates output token display.
+  const mergeAnimCompleteRef = useRef(true)
+  // Holds the onDone proceed callback if it arrives before the merge animation finishes.
+  const pendingDoneCallbackRef = useRef<(() => void) | null>(null)
   const cancelledRef = useRef(false)
 
   const socket = useProcessingSocket(
@@ -88,6 +92,7 @@ export default function ProcessPage() {
       onTokens: (tokens: Token[]) => {
         if (tokenGenRef.current === 0) {
           setInputTokens(tokens)
+          mergeAnimCompleteRef.current = false
           startMergeAnimationRef.current()
         }
         seqLenRef.current = tokens.length
@@ -117,45 +122,51 @@ export default function ProcessPage() {
         pendingCandidatesRef.current = candidates
       },
       onDone: () => {
-        setLayerStates(Array(NUM_LAYERS).fill('done'))
-        setStreamLive(false)
+        const proceed = () => {
+          setLayerStates(Array(NUM_LAYERS).fill('done'))
+          setStreamLive(false)
 
-        const candidates = pendingCandidatesRef.current
-        if (candidates.length === 0) {
-          setProcessState('done')
-          return
+          const candidates = pendingCandidatesRef.current
+          if (candidates.length === 0) {
+            setProcessState('done')
+            return
+          }
+
+          const top = candidates[0]
+          const newToken: OutputToken = { text: top.text, id: top.id, candidates }
+          setOutputTokens((prev) => [...prev, newToken])
+
+          const count = tokenGenRef.current + 1
+          tokenGenRef.current = count
+          setTokenGenCount(count)
+
+          currentSequenceRef.current += top.text
+          seqLenRef.current += 1
+
+          if (isStepModeRef.current) {
+            setProcessState('done')
+            setAwaitingStep(true)
+            awaitingStepRef.current = true
+          } else if (cancelledRef.current) {
+            setProcessState('done')
+          } else {
+            const d = layerDelay(speedRef.current)
+            nextPassTimeoutRef.current = setTimeout(() => {
+              if (cancelledRef.current) {
+                setProcessState('done')
+                return
+              }
+              setProcessState('computing')
+              setStreamLive(true)
+              socketRunRef.current(currentSequenceRef.current)
+            }, d)
+          }
         }
 
-        const top = candidates[0]
-        const newToken: OutputToken = { text: top.text, id: top.id, candidates }
-        setOutputTokens((prev) => [...prev, newToken])
-
-        const count = tokenGenRef.current + 1
-        tokenGenRef.current = count
-        setTokenGenCount(count)
-
-        currentSequenceRef.current += top.text
-        seqLenRef.current += 1
-
-        if (isStepModeRef.current) {
-          setProcessState('done')
-          setAwaitingStep(true)
-          awaitingStepRef.current = true
-        } else if (cancelledRef.current) {
-          // Cancel arrived while this done message was in-flight — honour the cancel.
-          setProcessState('done')
+        if (!mergeAnimCompleteRef.current) {
+          pendingDoneCallbackRef.current = proceed
         } else {
-          // Stay in non-idle state so Cancel button remains visible during inter-pass delay
-          const d = layerDelay(speedRef.current)
-          nextPassTimeoutRef.current = setTimeout(() => {
-            if (cancelledRef.current) {
-              setProcessState('done')
-              return
-            }
-            setProcessState('computing')
-            setStreamLive(true)
-            socketRunRef.current(currentSequenceRef.current)
-          }, d)
+          proceed()
         }
       },
       onError: () => setStreamLive(false),
@@ -166,6 +177,7 @@ export default function ProcessPage() {
 
   const clearAnim = useCallback(() => {
     animGenRef.current += 1
+    mergeAnimCompleteRef.current = true
     if (animTimeoutRef.current !== null) {
       clearTimeout(animTimeoutRef.current)
       animTimeoutRef.current = null
@@ -194,6 +206,7 @@ export default function ProcessPage() {
     cancelledRef.current = false
     seqLenRef.current = 0
     pendingCandidatesRef.current = []
+    pendingDoneCallbackRef.current = null
     currentSequenceRef.current = ''
     setStreamLive(false)
     setLastPrompt('')
@@ -214,7 +227,13 @@ export default function ProcessPage() {
         animTimeoutRef.current = setTimeout(() => {
           if (animGenRef.current !== myGen) return
           setProcessState('computing')
-        }, speedRef.current >= 1 ? 0 : d + seqLenRef.current * 25 + 80)
+          mergeAnimCompleteRef.current = true
+          const cb = pendingDoneCallbackRef.current
+          if (cb) {
+            pendingDoneCallbackRef.current = null
+            cb()
+          }
+        }, speedRef.current >= 1 ? 0 : d + seqLenRef.current * 15 + 40)
         return
       }
       setMergeStageIndex(stageIdx)
