@@ -101,19 +101,19 @@
   color: var(--ink);
 }
 
-.viewBtn:hover {
+.viewBtn:hover:not(:disabled) {
   background: var(--surface-2);
   color: var(--ink-muted);
 }
 
-.viewBtnActive:hover {
+.viewBtnActive:hover:not(:disabled) {
   background: var(--surface-3);
   color: var(--ink);
 }
 
 .viewBtn:disabled {
   opacity: 0.35;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 /* ── Stream status ── */
