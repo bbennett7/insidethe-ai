@@ -33,6 +33,38 @@ export interface OutputToken {
   candidates: Candidate[]
 }
 
+export type LayerComponent = 'ln1' | 'attn' | 'attn_write' | 'ln2' | 'mlp' | 'mlp_write'
+
+type RawAttnData = { weights: number[][][]; heads: number }
+type RawLNData = number
+type RawMlpData = number[]
+type RawWriteData = number[]
+
+type RawLayerData =
+  | { component: 'ln1';        data: RawLNData }
+  | { component: 'ln2';        data: RawLNData }
+  | { component: 'attn';       data: RawAttnData }
+  | { component: 'attn_write'; data: RawWriteData }
+  | { component: 'mlp';        data: RawMlpData }
+  | { component: 'mlp_write';  data: RawWriteData }
+
+/** Raw output candidate shape from the wire — note 'prob' not 'probability' */
+export interface RawCandidate {
+  text: string
+  id: number
+  prob: number
+}
+
+export type ServerMessage =
+  | { type: 'hello';       protocol_version: number; model: string; num_layers: number; components_per_layer: string[] }
+  | { type: 'merge_stage'; items: MergeItem[] }
+  | { type: 'tokens';      data: Token[] }
+  | { type: 'embed';       token_idx: number; data: number[] }
+  | ({ type: 'layer';      layer: number } & RawLayerData)
+  | { type: 'output';      data: RawCandidate[] }
+  | { type: 'done' }
+  | { type: 'error';       message?: string; detail?: string }
+
 export interface StreamFrame {
   /** Sequential frame counter — monotonically increasing from 0, used as React key */
   num: number
@@ -51,7 +83,7 @@ export interface LayerData {
   attn: number[][][]
   /** L2 norm of attention output per token position, normalized to [0, 1] — how much attention wrote to each residual */
   attn_write: number[]
-  /** Post-GELU MLP hidden activations — shape [mlpDim] (4 × d_model = 3072 for GPT-2), sparse due to GELU zeroing negatives */
+  /** Post-GELU MLP hidden activations — shape [mlpDim] (4 × d_model = 3072 for GPT-2), magnitude normalized to [0, 1] */
   mlp: number[]
   /** L2 norm of MLP output per token position, normalized to [0, 1] — how much MLP wrote to each residual */
   mlp_write: number[]
