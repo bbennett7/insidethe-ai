@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# insidethe.ai
 
-## Getting Started
+Interactive visualizations of what happens inside AI models — in real time, using real activations from real forward passes.
 
-First, run the development server:
+The first experience, **Inside the Processing**, runs GPT-2 locally and streams every internal activation to the browser as the model processes your prompt: BPE tokenization, token embeddings, attention patterns across all 12 layers, MLP activations, and next-token predictions.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Structure
+
+```
+insidethe-ai/
+├── frontend/          ← Next.js app (deployed on Vercel)
+├── backend/           ← FastAPI + WebSocket server (deployed on Fly.io)
+└── docs/
+    ├── plans/         ← implementation plans
+    └── solutions/     ← documented solutions and patterns
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Frontend:**
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Backend:**
+```bash
+pnpm backend
+```
 
-## Learn More
+The frontend runs at [http://localhost:3000](http://localhost:3000). The backend runs at [http://localhost:8000](http://localhost:8000) and serves the WebSocket at `ws://localhost:8000/ws`.
 
-To learn more about Next.js, take a look at the following resources:
+See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md) for full setup details.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Experiences
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Experience | Route | Status |
+|---|---|---|
+| Inside the Processing | `/processing` | Live |
+| Inside the Agent | `/agent` | Coming soon |
+| Inside the Memory | `/memory` | Coming soon |
+| Inside the Algorithms | `/algorithms` | Coming soon |
+| Inside the Frontier | `/frontier` | Coming soon |
 
-## Deploy on Vercel
+## Tech
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Layer | Stack |
+|---|---|
+| Frontend | Next.js 14, TypeScript, CSS Modules |
+| Backend | FastAPI, nnsight, PyTorch, HuggingFace Transformers |
+| Transport | WebSocket with typed frame protocol |
+| Frontend deploy | Vercel |
+| Backend deploy | Fly.io (1 GB RAM, always-on) |
