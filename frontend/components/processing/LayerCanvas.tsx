@@ -20,7 +20,7 @@ const LABEL_H = 13
 const SEC_GAP = 10
 const BAR_H = 5
 const NUM_HEADS = 12
-const HEAD_COLS = 6
+const HEAD_COLS = 4
 const HEAD_ROWS = Math.ceil(NUM_HEADS / HEAD_COLS)
 const HEAD_INNER_GAP = 3
 const HEAD_W = Math.floor(
@@ -34,19 +34,36 @@ const MLP_DIM = 3072
 const NEURON_CELL = Math.floor((CONTENT_W - (MLP_COLS - 1) * 1) / MLP_COLS)
 const MLP_BLOCK_H = MLP_ROWS * NEURON_CELL + (MLP_ROWS - 1) * 1
 const RESID_CHIP_H = 18
-const RESID_CHIP_W = 28
 const RESID_CHIP_GAP = 3
-const RESID_PLACEHOLDER_H = RESID_CHIP_H + 6
-const CHIPS_PER_ROW = Math.floor(CONTENT_W / (RESID_CHIP_W + RESID_CHIP_GAP))
+const RESID_STRIP_PAD = 4
+const RESID_PLACEHOLDER_H = RESID_CHIP_H + RESID_STRIP_PAD * 2
+// Monospace char width approximation for JetBrains Mono at 6.5px (used for height pre-calc)
+const RESID_CHAR_W = 3.9
+const RESID_PAD_X = 5
+const RESID_CHIP_MIN_W = 14
 
-function computeResidH(T: number, isActive = false): number {
-  if (!isActive) return RESID_PLACEHOLDER_H
-  const rows = Math.ceil(T / CHIPS_PER_ROW) || 1
-  return rows * RESID_CHIP_H + (rows - 1) * RESID_CHIP_GAP
+function approxChipW(label: string): number {
+  return Math.max(RESID_CHIP_MIN_W, Math.round(label.length * RESID_CHAR_W + RESID_PAD_X * 2))
 }
 
-function computeCanvasH(seqLen: number, isActive = false): number {
-  const residH = computeResidH(seqLen, isActive)
+function computeResidH(tokens: string[], isActive = false): number {
+  if (!isActive || !Array.isArray(tokens) || tokens.length === 0) return RESID_PLACEHOLDER_H
+  const availW = CONTENT_W - RESID_STRIP_PAD * 2
+  let x = 0, rows = 1
+  for (const label of tokens) {
+    const cw = approxChipW(label)
+    if (x > 0 && x + RESID_CHIP_GAP + cw > availW) {
+      rows++
+      x = cw
+    } else {
+      x = x === 0 ? cw : x + RESID_CHIP_GAP + cw
+    }
+  }
+  return Math.max(RESID_PLACEHOLDER_H, RESID_STRIP_PAD * 2 + rows * RESID_CHIP_H + (rows - 1) * RESID_CHIP_GAP)
+}
+
+function computeCanvasH(tokens: string[], isActive = false): number {
+  const residH = computeResidH(tokens, isActive)
   return Math.ceil(
     CARD_PAD +
       LABEL_H + SEC_GAP / 2 + BAR_H + SEC_GAP +
@@ -116,10 +133,30 @@ function drawLayerCanvas(
     y += bh + SEC_GAP * s
   }
 
-  // Per-token write magnitude strip — fixed-width chips that wrap to new rows
+  // Per-token write magnitude strip — variable-width chips sized to token text
   function drawWriteStrip(writes: number[]) {
-    if (!isActive) {
-      const bh = RESID_PLACEHOLDER_H * s
+    const rh = RESID_CHIP_H * s
+    const gap = RESID_CHIP_GAP * s
+    const padX = RESID_PAD_X * s
+    const minW = RESID_CHIP_MIN_W * s
+
+    const sp = RESID_STRIP_PAD * s
+    const availCW = cw - sp * 2
+
+    if (!isActive || writes.length === 0) {
+      // Draw grey background at the height the active layout would use (if tokens
+      // are known) so the strip never visually shrinks between passes.
+      let bh = RESID_PLACEHOLDER_H * s
+      if (tokens.length > 0) {
+        c.font = `${Math.round(6.5 * s)}px "JetBrains Mono", monospace`
+        let cx = 0, rows = 1
+        for (const label of tokens) {
+          const chipW = Math.max(minW, Math.round(c.measureText(label).width + padX * 2))
+          if (cx > 0 && cx + gap + chipW > availCW) { rows++; cx = chipW }
+          else { cx = cx === 0 ? chipW : cx + gap + chipW }
+        }
+        bh = Math.max(RESID_PLACEHOLDER_H * s, sp * 2 + rows * rh + (rows - 1) * gap)
+      }
       c.fillStyle = 'rgba(255,255,255,0.06)'
       c.fillRect(pad, y, cw, bh)
       y += bh + SEC_GAP * s
@@ -127,20 +164,42 @@ function drawLayerCanvas(
     }
 
     const T = writes.length
-    const rh = RESID_CHIP_H * s
-    const cw_chip = RESID_CHIP_W * s
-    const gap = RESID_CHIP_GAP * s
+    c.font = `${Math.round(6.5 * s)}px "JetBrains Mono", monospace`
 
+    // First pass: measure chip widths and compute total block height
+    const chipWidths: number[] = []
+    let cx = 0, totalRows = 1
     for (let i = 0; i < T; i++) {
-      const col = i % CHIPS_PER_ROW
-      const row = Math.floor(i / CHIPS_PER_ROW)
-      const rx = pad + col * (cw_chip + gap)
-      const ry = y + row * (rh + gap)
-      const w = writes[i] ?? 0
+      const label = tokens[i] ?? ''
+      const chipW = Math.max(minW, Math.round(c.measureText(label).width + padX * 2))
+      chipWidths.push(chipW)
+      if (cx > 0 && cx + gap + chipW > availCW) { totalRows++; cx = chipW }
+      else { cx = cx === 0 ? chipW : cx + gap + chipW }
+    }
+    const blockH = Math.max(RESID_PLACEHOLDER_H * s, sp * 2 + totalRows * rh + (totalRows - 1) * gap)
+
+    // Draw full-width background behind all chips
+    c.fillStyle = 'rgba(255,255,255,0.06)'
+    c.fillRect(pad, y, cw, blockH)
+
+    // Second pass: draw chips on top of background (inset by strip padding)
+    cx = 0
+    let row = 0
+    const chipBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
+    c.lineWidth = 1
+    for (let i = 0; i < T; i++) {
+      const chipW = chipWidths[i]
+      const label = tokens[i] ?? ''
 
       // During decode only the last position (new token) is being written to;
       // earlier positions are cached and no longer updated.
       const isCurrent = !isDecoding || i === T - 1
+
+      if (cx > 0 && cx + gap + chipW > availCW) { row++; cx = 0 }
+
+      const rx = pad + sp + cx
+      const ry = y + sp + row * (rh + gap)
+      const w = writes[i] ?? 0
 
       if (isCurrent) {
         const a = Math.round((0.08 + w * 0.82) * 1000) / 1000
@@ -148,11 +207,12 @@ function drawLayerCanvas(
       } else {
         c.fillStyle = `rgba(${COOL},0.14)`
       }
-      c.fillRect(rx, ry, cw_chip, rh)
+      c.fillRect(rx, ry, chipW, rh)
 
-      const label = tokens[i]
-      if (isActive && label) {
-        c.font = `${Math.round(6.5 * s)}px "JetBrains Mono", monospace`
+      c.strokeStyle = chipBorder
+      c.strokeRect(rx + 0.5, ry + 0.5, chipW - 1, rh - 1)
+
+      if (label) {
         c.textAlign = 'center'
         c.textBaseline = 'middle'
         if (isCurrent) {
@@ -160,12 +220,13 @@ function drawLayerCanvas(
         } else {
           c.fillStyle = `rgba(${COOL},0.35)`
         }
-        c.fillText(label, rx + cw_chip / 2, ry + rh / 2)
+        c.fillText(label, rx + chipW / 2, ry + rh / 2)
       }
+
+      cx += chipW + gap
     }
 
-    const rows = Math.ceil(T / CHIPS_PER_ROW) || 1
-    y += (rows * rh + (rows - 1) * gap) + SEC_GAP * s
+    y += blockH + SEC_GAP * s
   }
 
   const acidLabel = state === 'done' ? acidDoneA : state === 'processing' ? acidProcA : labelOff
@@ -193,17 +254,18 @@ function drawLayerCanvas(
         const sz = cellSz - 1
 
         if (j > i) {
+          // Causal mask — future positions always dark
           c.fillStyle = 'rgba(255,255,255,0.015)'
         } else if (!isActive) {
           c.fillStyle = 'rgba(255,255,255,0.05)'
+        } else if (!data.attn[h]) {
+          // Layer is active but data hasn't arrived yet — all 12 heads compute
+          // in parallel so show a uniform hint across every head, not a partial reveal
+          c.fillStyle = `rgba(${acidActive},0.10)`
         } else {
-          const w = data.attn[h][i][j]
-          if (state === 'processing' && h >= 7) {
-            c.fillStyle = 'rgba(255,255,255,0.05)'
-          } else {
-            const a = Math.round((0.04 + w * 0.94) * 1000) / 1000
-            c.fillStyle = `rgba(${acidActive},${a})`
-          }
+          const w = data.attn[h][i]?.[j] ?? 0
+          const a = Math.round((0.04 + w * 0.94) * 1000) / 1000
+          c.fillStyle = `rgba(${acidActive},${a})`
         }
         c.fillRect(cellX, cellY, sz, sz)
       }
@@ -236,22 +298,16 @@ function drawLayerCanvas(
     if (!isActive) {
       c.fillStyle = mlpOff
     } else {
-      const act = data.mlp[n]
-      if (state === 'processing') {
-        const processedRows = Math.floor(MLP_ROWS * 0.55)
-        if (row < processedRows) {
-          c.fillStyle =
-            act < 0.02
-              ? mlpOff
-              : `rgba(${acidActive},${Math.round((0.06 + act * 0.88) * 1000) / 1000})`
-        } else {
-          c.fillStyle = mlpOff
-        }
+      const act = data.mlp[n] ?? 0
+      if (state === 'processing' && act === 0) {
+        // All 3072 neurons activate simultaneously via matmul — show uniform
+        // dim hint across every neuron while data is in transit
+        c.fillStyle = `rgba(${acidActive},0.07)`
       } else {
         c.fillStyle =
-          act < 0.02
+          act < 0.01
             ? mlpOff
-            : `rgba(${acidActive},${Math.round((0.06 + act * 0.88) * 1000) / 1000})`
+            : `rgba(${acidActive},${(0.22 + Math.pow(act, 0.5) * 0.72).toFixed(3)})`
       }
     }
     c.fillRect(nx, ny, ncell, ncell)
@@ -282,9 +338,49 @@ export default function LayerCanvas({
   tokensRef.current = tokens
   isDecodingRef.current = isDecoding
 
+  // Preserve the last active canvas height so layers don't jump/collapse
+  // when transitioning back to inactive between passes.
+  // INVARIANT: this ref is ONLY mutated inside useEffect (post-commit), never
+  // during render, to avoid React StrictMode double-invoke clobbering it.
+  const lastCanvasHRef = useRef<number>(0)
+
+  // Preserve last computed LayerData so attention heads and residual strips
+  // continue showing their patterns between decode passes (not reset to blank).
+  const lastActiveDataRef = useRef<LayerData | null>(null)
+
   const { isDark } = useTheme()
   const isDarkRef = useRef(isDark)
   isDarkRef.current = isDark
+
+  // Pure read: returns the height to use given the current saved ref value.
+  // Never mutates lastCanvasHRef — safe to call during render.
+  function readStableH(toks: string[], active: boolean): number {
+    if (active && toks.length > 0) {
+      // Active pass: use the computed height directly (ref will be updated in effect).
+      return computeCanvasH(toks, active)
+    }
+    if (toks.length > 0 && lastCanvasHRef.current > 0) {
+      // Inactive but tokens still present: hold the last saved height.
+      return lastCanvasHRef.current
+    }
+    // True reset (tokens empty) or no saved height yet: use placeholder.
+    return computeCanvasH(toks, active)
+  }
+
+  // Mutating update: must only be called from useEffect (after commit).
+  function commitStableH(toks: string[], active: boolean): number {
+    if (active && toks.length > 0) {
+      const h = computeCanvasH(toks, active)
+      lastCanvasHRef.current = h
+      return h
+    }
+    if (toks.length > 0 && lastCanvasHRef.current > 0) {
+      return lastCanvasHRef.current
+    }
+    // True reset.
+    lastCanvasHRef.current = 0
+    return computeCanvasH(toks, active)
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -293,21 +389,17 @@ export default function LayerCanvas({
     function applySize() {
       if (!canvas) return
       const dpr = window.devicePixelRatio || 1
-      const T = dataRef.current.attn[0]?.length ?? 6
-      const active = stateRef.current === 'done' || stateRef.current === 'processing'
-      const h = computeCanvasH(T, active)
+      const st = stateRef.current
+      const active = st === 'done' || st === 'processing'
+      const h = commitStableH(tokensRef.current, active)
       canvas.width = Math.round(CARD_W * dpr)
       canvas.height = Math.round(h * dpr)
       canvas.style.width = `${CARD_W}px`
       canvas.style.height = `${h}px`
-      drawLayerCanvas(
-        canvas,
-        stateRef.current,
-        dataRef.current,
-        isDarkRef.current,
-        tokensRef.current,
-        isDecodingRef.current
-      )
+      const preserved = lastActiveDataRef.current
+      const drawSt = (st === 'inactive' && tokensRef.current.length > 0 && preserved !== null) ? 'done' : st
+      const drawData = drawSt === 'done' && st === 'inactive' && preserved !== null ? preserved : dataRef.current
+      drawLayerCanvas(canvas, drawSt, drawData, isDarkRef.current, tokensRef.current, isDecodingRef.current)
     }
 
     let mql: MediaQueryList
@@ -324,24 +416,31 @@ export default function LayerCanvas({
     subscribe()
 
     return () => mql?.removeEventListener('change', onDprChange)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const dpr = window.devicePixelRatio || 1
-    const T = data.attn[0]?.length ?? 6
     const active = state === 'done' || state === 'processing'
-    const h = computeCanvasH(T, active)
+    const h = commitStableH(tokens, active)
     canvas.width = Math.round(CARD_W * dpr)
     canvas.height = Math.round(h * dpr)
     canvas.style.width = `${CARD_W}px`
     canvas.style.height = `${h}px`
-    drawLayerCanvas(canvas, state, data, isDark, tokens, isDecoding)
-  }, [state, data, isDark, tokens, isDecoding])
+    if (state === 'done' && data.attn.length > 0) {
+      lastActiveDataRef.current = data
+    } else if (tokens.length === 0) {
+      lastActiveDataRef.current = null
+    }
+    const preserved = lastActiveDataRef.current
+    const drawSt = (state === 'inactive' && tokens.length > 0 && preserved !== null) ? 'done' : state
+    const drawData = drawSt === 'done' && state === 'inactive' && preserved !== null ? preserved : data
+    drawLayerCanvas(canvas, drawSt, drawData, isDark, tokens, isDecoding)
+  }, [state, data, isDark, tokens, isDecoding]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const active = state === 'done' || state === 'processing'
-  const canvasH = computeCanvasH(data.attn[0]?.length ?? 6, active)
+  const canvasH = readStableH(tokens, active)
 
   return (
     <canvas
