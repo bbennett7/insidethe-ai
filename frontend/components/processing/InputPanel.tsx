@@ -2,6 +2,7 @@
 
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import ScrollArea from '@/components/ScrollArea'
 import type {
   Candidate,
   MergeItem,
@@ -19,6 +20,7 @@ interface InputPanelProps {
   state: ProcessState
   inputTokens: Token[]
   outputTokens: OutputToken[]
+  embedVectors: Record<number, number[]>
   mergeStageIndex: number
   mergeStages: MergeItem[][]
   isStepMode: boolean
@@ -37,6 +39,7 @@ export default function InputPanel({
   state,
   inputTokens,
   outputTokens,
+  embedVectors,
   mergeStageIndex,
   mergeStages,
   isStepMode,
@@ -69,18 +72,22 @@ export default function InputPanel({
 
   function renderMergeStage(stage: MergeItem[]) {
     return stage.map(({ t, sp, m }, idx) => (
-      <span
-        key={idx}
-        className={[
-          styles.ch,
-          sp ? styles.chSpace : '',
-          m ? styles.chMerged : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-      >
-        {t}
-      </span>
+      <div key={`merge-${idx}`} className={styles.embedTokenWrap}>
+        <span className={styles.tokIdPlaceholder} aria-hidden="true">
+          {sp ? '' : '—'}
+        </span>
+        <span
+          className={[
+            styles.ch,
+            sp ? styles.chSpace : '',
+            m ? styles.chMerged : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {t}
+        </span>
+      </div>
     ))
   }
 
@@ -92,11 +99,6 @@ export default function InputPanel({
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <span className={styles.eyebrow}>Prompt</span>
-          {(state === 'idle' || state === 'done') && outputTokens.length > 0 && (
-            <button type="button" className={styles.btnReset} onClick={onReset}>
-              Reset ×
-            </button>
-          )}
         </div>
         <div className={styles.promptBox}>
           <textarea
@@ -107,12 +109,12 @@ export default function InputPanel({
             maxLength={50}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && (state === 'idle' || state === 'done')) {
+              if (e.key === 'Enter' && !e.shiftKey && state === 'idle' && text.trim()) {
                 e.preventDefault()
-                onRun(text || 'The cat sat on the mat')
+                onRun(text)
               }
             }}
-            disabled={state !== 'idle' && state !== 'done'}
+            disabled={state !== 'idle'}
           />
           <div className={styles.promptControls}>
             <span
@@ -120,13 +122,22 @@ export default function InputPanel({
             >
               {text.length} / 50
             </span>
-            {state === 'idle' || state === 'done' ? (
+            {state === 'idle' ? (
               <button
                 type="button"
                 className={styles.btnPrimary}
-                onClick={() => onRun(text || 'The cat sat on the mat')}
+                onClick={() => onRun(text)}
+                disabled={!text.trim()}
               >
                 Run →
+              </button>
+            ) : state === 'done' ? (
+              <button
+                type="button"
+                className={styles.btnCancel}
+                onClick={() => { setText(''); onReset() }}
+              >
+                Reset
               </button>
             ) : (
               <button
@@ -192,6 +203,14 @@ export default function InputPanel({
         <div className={styles.sectionHeader}>
           <span className={styles.eyebrow}>Input Tokens</span>
         </div>
+        {(state === 'tokenizing' || state === 'embedding' || state === 'computing' || state === 'done') && (
+          <div className={styles.phaseLabelWrap}>
+            {state === 'tokenizing'
+              ? <span className={styles.dotBlink} />
+              : <span className={styles.dotDone} />}
+            <span>{state === 'tokenizing' ? 'merging…' : 'tokenized'}</span>
+          </div>
+        )}
         <div className={styles.tokenChips}>
           {showMerge && mergeStages[mergeStageIndex] && (
             <div className={styles.mergeWrap}>
@@ -203,19 +222,20 @@ export default function InputPanel({
 
           {showEmbeds &&
             inputTokens.map((tok, i) => (
-              <div key={tok.id} className={styles.embedTokenWrap}>
+              <div key={`inp-${i}-${tok.id}`} className={styles.embedTokenWrap}>
+                <span className={styles.tokId}>{tok.id}</span>
                 <span
                   ref={(el) => {
                     chipRefs.current[i] = el
                   }}
                   className={styles.tok}
                 >
-                  <span className={styles.tokId}>{tok.id}</span>
                   {tok.text}
                 </span>
                 {chipWidths[i] !== undefined && (
                   <EmbeddingStrip
                     tokenIndex={i}
+                    vector={embedVectors[i] ?? null}
                     width={chipWidths[i]}
                     animating={state === 'embedding'}
                     speedRef={speedRef}
@@ -223,13 +243,6 @@ export default function InputPanel({
                 )}
               </div>
             ))}
-
-          {state === 'tokenizing' && (
-            <div className={styles.phaseLabelWrap}>
-              <span className={styles.dotBlink} />
-              <span>merging…</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -243,39 +256,32 @@ export default function InputPanel({
             </button>
           )}
         </div>
-        <div className={styles.outputSection}>
-          {(state === 'tokenizing' || state === 'embedding') && (
-            <div className={styles.computingPlaceholder}>
-              <span
-                className={`${styles.dotBlink} ${styles.dotQuiet}`}
-                style={{ animationName: 'none' }}
-              />
-              <span>waiting…</span>
-            </div>
-          )}
-
-          {state === 'computing' && outputTokens.length === 0 && (
-            <div className={styles.computingPlaceholder}>
-              <span className={styles.dotBlink} />
-              <span>computing…</span>
-            </div>
-          )}
-
-          {outputTokens.length > 0 && (
-            <div className={styles.outputTokens}>
-              {outputTokens.map((tok, i) => (
-                <OutputChipWithTooltip key={i} tok={tok} />
-              ))}
-            </div>
-          )}
-
-          {state === 'computing' && outputTokens.length > 0 && (
-            <div className={styles.computingPlaceholder}>
-              <span className={styles.dotBlink} />
-              <span>computing…</span>
-            </div>
-          )}
-        </div>
+        {(state === 'tokenizing' || state === 'embedding') && (
+          <div className={styles.computingPlaceholder}>
+            <span
+              className={`${styles.dotBlink} ${styles.dotQuiet}`}
+              style={{ animationName: 'none' }}
+            />
+            <span>waiting…</span>
+          </div>
+        )}
+        {state === 'computing' && (
+          <div className={styles.computingPlaceholder}>
+            <span className={styles.dotBlink} />
+            <span>computing…</span>
+          </div>
+        )}
+        <ScrollArea className={styles.outputScrollable}>
+          <div className={styles.outputSection}>
+            {outputTokens.length > 0 && (
+              <div className={styles.outputTokens}>
+                {outputTokens.map((tok, i) => (
+                  <OutputChipWithTooltip key={`out-${i}-${tok.id}`} tok={tok} />
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   )
@@ -313,22 +319,23 @@ function OutputChipWithTooltip({ tok }: { tok: OutputToken }) {
   const maxProb = tok.candidates[0]?.probability ?? 1
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: hover-only tooltip trigger — no interactive role needed
-    <span
-      className={styles.outputTok}
-      style={{ opacity: mounted ? 1 : 0, transition: 'opacity 200ms' }}
-      onMouseEnter={handleMouseMove}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className={styles.outputTokWrap} style={{ opacity: mounted ? 1 : 0, transition: 'opacity 200ms' }}>
       <span className={styles.tokId}>{tok.id}</span>
-      {tok.text}
-      <CandidateTooltip
-        ref={tooltipRef}
-        candidates={tok.candidates}
-        maxProb={maxProb}
-      />
-    </span>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only tooltip trigger — no interactive role needed */}
+      <span
+        className={styles.outputTok}
+        onMouseEnter={handleMouseMove}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        {tok.text}
+        <CandidateTooltip
+          ref={tooltipRef}
+          candidates={tok.candidates}
+          maxProb={maxProb}
+        />
+      </span>
+    </div>
   )
 }
 
@@ -350,8 +357,17 @@ const CandidateTooltip = forwardRef<
     <div ref={ref} className={styles.tooltip}>
       <div className={styles.tooltipName}>{candidates[0]?.text}</div>
       <div className={styles.tooltipId}>ID {candidates[0]?.id}</div>
+      <div className={styles.tooltipSection}>
+        <span>top candidates</span>
+        <span className={styles.tooltipSectionHint}>tokens the model considered here</span>
+      </div>
+      <div className={styles.tooltipColHeaders}>
+        <span className={styles.tooltipColToken}>token</span>
+        <span className={styles.tooltipColBar} />
+        <span className={styles.tooltipColPLabel}>p</span>
+      </div>
       {candidates.map((c, i) => (
-        <div key={i} className={styles.tooltipRow}>
+        <div key={`cand-${i}-${c.id}`} className={styles.tooltipRow}>
           <span
             className={`${styles.tooltipToken}${i === 0 ? ` ${styles.tooltipTokenTop}` : ''}`}
           >
