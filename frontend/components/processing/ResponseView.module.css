@@ -1,0 +1,298 @@
+/* ============================================================
+   StreamView — API response inspector
+   ============================================================ */
+
+.panel {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Status row ───────────────────────────────────────────── */
+
+.statusRow {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.statusLive {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acid-dim);
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--acid);
+  box-shadow: 0 0 6px var(--acid);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
+.statusDone {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+}
+
+/* ── Placeholder text (top-left of code box) ──────────────── */
+
+.placeholder {
+  display: block;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-style: italic;
+  color: var(--ink-quiet);
+  font-size: 10px;
+}
+
+/* ── Two-column layout ────────────────────────────────────── */
+
+.columns {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px;
+  overflow: hidden;
+}
+
+.block + .block {
+  border-left: 1px solid var(--line);
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 22px;
+}
+
+.blockHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Format toggle ────────────────────────────────────────── */
+
+.formatToggle {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.formatBtn {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  background: var(--surface-1);
+  border: none;
+  color: var(--ink-quiet);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.formatBtnActive {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.formatBtn:hover:not(.formatBtnActive) {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+.blockLabel {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  flex-shrink: 0;
+}
+
+.copyBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.copyBtn:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.copyBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.copyBtnDone {
+  color: var(--acid);
+  border-color: rgba(196, 255, 61, 0.3);
+}
+
+/* ── Code box (shared) ────────────────────────────────────── */
+
+.codeBox {
+  flex: 1;
+  min-height: 0;
+  background: rgba(14, 18, 12, 0.45);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+/* Code boxes are always dark — only the data area, not the surrounding block */
+:global(html.light) .codeBox {
+  background: rgba(14, 18, 12, 0.78);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global(html.light) .dataPrefix {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+:global(html.light) .streamComment {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+:global(html.light) .waiting {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+:global(html.light) .placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Pretty-printed block (request) ──────────────────────── */
+
+.jsonPre {
+  margin: 0;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── SSE stream log (response) ────────────────────────────── */
+
+.streamLog {
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.streamEntry {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.streamComment {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.18);
+  margin-bottom: 3px;
+}
+
+.streamCommentToken {
+  color: var(--acid-dim);
+}
+
+.dataPrefix {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Blinking cursor ─────────────────────────────────────── */
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: var(--acid);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: blink 800ms step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── Waiting placeholder ──────────────────────────────────── */
+
+.waiting {
+  display: block;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-quiet);
+  font-style: italic;
+}
+
+/* ── Syntax colours ───────────────────────────────────────── */
+
+.jKey   { color: var(--acid); }
+.jStr   { color: #a8d4a8; }
+.jNum   { color: #79c0ff; }
+.jKw    { color: #f8a488; }
+.jPunct { color: rgba(255, 255, 255, 0.28); }
+
+/* Syntax colours stay dark-mode values — code boxes are always dark */
