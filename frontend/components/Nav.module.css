@@ -37,6 +37,18 @@
   flex-shrink: 0;
 }
 
+.githubLink {
+  display: flex;
+  align-items: center;
+  color: var(--ink-quiet);
+  transition: color var(--dur-fast) var(--ease);
+  margin-left: 4px;
+}
+
+.githubLink:hover {
+  color: var(--ink);
+}
+
 .themeToggle {
   font-family: var(--font-mono);
   font-size: 10px;
