@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { NEGATIVE, POSITIVE } from '@/lib/canvasTheme'
 import { useTheme } from '@/lib/ThemeContext'
-import { seededRng } from '@/mocks/rng'
 
 interface EmbeddingStripProps {
   tokenIndex: number
+  vector: number[] | null
   width: number
   animating: boolean
   speedRef: React.MutableRefObject<number>
@@ -15,14 +15,6 @@ interface EmbeddingStripProps {
 const EMBED_CELL_W = 4
 const EMBED_CELL_H = 6
 const EMBED_GAP = 1
-
-function genEmbedVector(tokenIdx: number): Float32Array {
-  const rng = seededRng(tokenIdx * 233 + 91)
-  return Float32Array.from({ length: 768 }, () => {
-    const v = rng() * 2 - 1
-    return v * v * Math.sign(v)
-  })
-}
 
 function drawEmbedSlot(
   ctx: CanvasRenderingContext2D,
@@ -65,6 +57,7 @@ function drawEmbedSlot(
 
 export default function EmbeddingStrip({
   tokenIndex,
+  vector,
   width,
   animating,
   speedRef,
@@ -73,7 +66,7 @@ export default function EmbeddingStrip({
   const offsetRef = useRef<number>(tokenIndex * 47)
   const animIdRef = useRef<number | null>(null)
   const lastTsRef = useRef<number | null>(null)
-  const vectorRef = useRef<Float32Array>(genEmbedVector(tokenIndex))
+  const vectorRef = useRef<Float32Array>(new Float32Array(768))
   const { isDark } = useTheme()
   const isDarkRef = useRef(isDark)
   isDarkRef.current = isDark
@@ -96,6 +89,12 @@ export default function EmbeddingStrip({
       isDarkRef.current
     )
   }, [width])
+
+  useEffect(() => {
+    if (!vector) return
+    vectorRef.current = Float32Array.from(vector)
+    draw()
+  }, [vector, draw])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -138,6 +137,8 @@ export default function EmbeddingStrip({
       lastTsRef.current = null
     }
   }, [animating, draw, speedRef])
+
+  if (!vector) return null
 
   return (
     <canvas
