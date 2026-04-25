@@ -59,6 +59,8 @@ insidethe-ai/
 │   ├── model.py            ← nnsight GPT-2 wrapper + forward pass hooks
 │   ├── streamer.py         ← streams layer activations over WebSocket
 │   └── requirements.txt
+├── docs/
+│   └── solutions/          ← documented solutions (bugs, practices), organized by category with YAML frontmatter (module, tags, problem_type)
 └── public/
 ```
 
@@ -123,29 +125,67 @@ This is the active section. Layout is two-column, full-viewport:
 { "type": "run", "text": "The cat sat on the mat" }
 ```
 
-**Server → Client (streamed):**
+**Server → Client (streamed in order):**
 ```json
-{ "type": "tokens",   "data": [{"text": "The", "id": 464}, ...] }
-{ "type": "layer",    "layer": 0, "component": "ln1",  "data": [...] }
-{ "type": "layer",    "layer": 0, "component": "attn", "data": { "weights": [[...]], "heads": 12 } }
-{ "type": "layer",    "layer": 0, "component": "ln2",  "data": [...] }
-{ "type": "layer",    "layer": 0, "component": "mlp",  "data": [...] }
-{ "type": "output",   "data": [{"text": "mat", "prob": 0.42}, ...] }
+{ "type": "hello",       "protocol_version": 1, "model": "gpt2", "num_layers": 12, "components_per_layer": ["ln1","attn","attn_write","ln2","mlp","mlp_write"] }
+
+// One frame per real BPE merge stage (computed from GPT-2's actual merge rules via slow tokenizer):
+{ "type": "merge_stage", "items": [{"t": "T", "sp": false, "m": false}, {"t": "h", "sp": false, "m": false}, ...] }
+{ "type": "merge_stage", "items": [{"t": "Th", "sp": false, "m": true}, {"t": "e", "sp": false, "m": false}, ...] }
+...
+{ "type": "tokens",      "data": [{"text": "The", "id": 464}, ...] }
+
+// One embed frame per input token (real wte embeddings, normalized to [-1, 1]):
+{ "type": "embed", "token_idx": 0, "data": [float×768] }
+{ "type": "embed", "token_idx": 1, "data": [float×768] }
+...
+
+// Per layer (repeated ×12), six component frames each:
+{ "type": "layer", "layer": 0, "component": "ln1",       "data": 0.42 }
+{ "type": "layer", "layer": 0, "component": "attn",      "data": { "weights": [[[...12×seq×seq...]]], "heads": 12 } }
+{ "type": "layer", "layer": 0, "component": "attn_write","data": [float×seq] }
+{ "type": "layer", "layer": 0, "component": "ln2",       "data": 0.38 }
+{ "type": "layer", "layer": 0, "component": "mlp",       "data": [float×3072] }
+{ "type": "layer", "layer": 0, "component": "mlp_write", "data": [float×seq] }
+
+{ "type": "output", "data": [{"text": "mat", "id": 2087, "prob": 0.42}, ...] }
 { "type": "done" }
+
+// On error:
+{ "type": "error", "message": "..." }
 ```
+
+**Payload shapes:**
+| Frame / Component | Shape | Description |
+|-----------|-------|-------------|
+| `merge_stage` | `{ t, sp?, m? }[]` | One item per visible glyph. `t`=text, `sp`=space separator, `m`=just merged this step |
+| `embed` | `float[768]` | Real token embedding from `wte`, each vector normalized to [-1, 1] by its own max abs value |
+| `ln1` | `float` | Mean activation norm from LayerNorm 1, normalized to [0, 1] |
+| `attn` | `float[heads][seq][seq]` | Attention weight matrix per head, rounded to 4 decimal places |
+| `attn_write` | `float[seq]` | L2 norm of attention output per token, normalized to [0.05, 1] |
+| `ln2` | `float` | Mean activation norm from LayerNorm 2, normalized to [0, 1] |
+| `mlp` | `float[3072]` | Post-GELU MLP activations (last token), abs magnitude normalized to [0, 1] |
+| `mlp_write` | `float[seq]` | L2 norm of MLP output per token, normalized to [0.05, 1] |
+
+### BPE Stages (backend/model.py)
+
+Real merge stages are computed using `GPT2Tokenizer` (slow tokenizer) before the nnsight trace. The slow tokenizer exposes `bpe_ranks` (merge priority table) and `byte_encoder`/`byte_decoder` (byte↔unicode mapping). Stages are computed word-by-word using GPT-2's actual `pat` regex for pre-tokenization and the real BPE algorithm.
 
 ### nnsight Hooks (backend/model.py)
 
 Use nnsight's `Tracer` context to intercept:
+- `model.transformer.wte` — token embedding lookup (input to the transformer)
 - `model.transformer.h[i].ln_1` — LayerNorm 1 output
-- `model.transformer.h[i].attn` — attention weights + outputs  
+- `model.transformer.h[i].attn` — attention weights `[1,heads,seq,seq]` + hidden output `[1,seq,768]`
 - `model.transformer.h[i].ln_2` — LayerNorm 2 output
-- `model.transformer.h[i].mlp` — MLP output
+- `model.transformer.h[i].mlp.act` — post-GELU activations `[1,seq,3072]`
+- `model.transformer.h[i].mlp` — MLP block output `[1,seq,768]`
 
 ---
 
 ## Coding Conventions
 
+- **No fake or mocked data** — every value shown to the user must come from the backend, either from the model's forward pass or nnsight hooks. Seeded RNGs, hardcoded arrays, and placeholder values are not acceptable substitutes for real activations, even for "visual" or "decorative" purposes.
 - **No hard deletes** — soft deletes for any persistent data
 - **No comments** unless the WHY is non-obvious
 - **TypeScript strict mode** — no `any`
