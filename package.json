@@ -3,9 +3,10 @@
   "private": true,
   "author": "Bryn Bennett <bryn.bennett.eng@gmail.com>",
   "scripts": {
-    "dev":   "pnpm --filter frontend dev",
-    "build": "pnpm --filter frontend build",
-    "lint":     "pnpm --filter frontend lint",
-    "lint:fix": "pnpm --filter frontend lint:fix"
+    "dev":        "pnpm --filter frontend dev",
+    "build":      "pnpm --filter frontend build",
+    "lint":       "pnpm --filter frontend lint",
+    "lint:fix":   "pnpm --filter frontend lint:fix",
+    "backend":    "cd backend && .venv/bin/uvicorn main:app --reload --port 8000"
   }
 }

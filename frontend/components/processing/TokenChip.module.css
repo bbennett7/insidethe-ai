@@ -1,0 +1,42 @@
+.tok {
+  position: relative;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  display: inline-block;
+}
+
+.tokId {
+  position: absolute;
+  top: -13px;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.tokAccent {
+  background: var(--acid);
+  color: var(--ink-on-acid);
+  border-color: var(--acid);
+  font-weight: 700;
+}
+
+:global(html.light) .tok {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+:global(html.light) .tokAccent {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink-on-acid);
+}

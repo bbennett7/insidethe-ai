@@ -1,0 +1,43 @@
+.app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100vh;
+  padding-top: 95px;
+}
+
+.leftPanel {
+  width: 294px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  margin-top: -95px;
+  padding-top: 95px;
+}
+
+.rightPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: -95px;
+  padding-top: 95px;
+  overflow: hidden;
+}
+
+.layersScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.layersContent {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 0 20px 20px;
+  align-items: flex-start;
+}

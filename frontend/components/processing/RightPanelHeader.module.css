@@ -1,0 +1,129 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tokenCounter {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+}
+
+.acid {
+  color: var(--acid);
+}
+
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoomBtn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-quiet);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+  padding: 0;
+}
+
+.zoomBtn:hover {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+
+.zoomLevel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+  min-width: 32px;
+  text-align: center;
+}
+
+/* ── View toggle ── */
+.viewToggle {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.viewBtn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  background: var(--surface-1);
+  border: none;
+  color: var(--ink-quiet);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.viewBtnActive {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.viewBtn:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+.viewBtnActive:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.viewBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ── Stream status ── */
+.streamStatus {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-quiet);
+}
+
+.streamStatusLive {
+  color: var(--acid);
+}

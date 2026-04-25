@@ -1,0 +1,659 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.section {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.section:first-child {
+  padding-top: 12px;
+}
+
+.sectionLast {
+  border-bottom: none;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.outputScrollable {
+  flex: 1;
+  padding-bottom: 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+.btnReset {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.btnReset:hover {
+  color: var(--ink);
+}
+
+.btnNextInline {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acid);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.btnNextInline:hover {
+  opacity: 0.7;
+}
+
+/* ── Prompt ── */
+.promptBox {
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition:
+    border-color var(--dur-mid) var(--ease),
+    box-shadow var(--dur-mid) var(--ease);
+}
+
+.promptBox:focus-within {
+  border-color: var(--acid);
+  box-shadow: 0 0 0 4px var(--acid-glow);
+}
+
+.textarea {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  min-height: 54px;
+  background: transparent;
+  border: 0;
+  resize: none;
+  width: 100%;
+  outline: none;
+  padding: 0;
+}
+
+.textarea::placeholder {
+  color: var(--ink-quiet);
+  font-style: italic;
+  font-family: var(--font-body);
+}
+
+.textarea:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.promptControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.charCount {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ink-quiet);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.charCountNear {
+  color: var(--acid);
+}
+
+.promptHint {
+  margin: 6px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-quiet);
+  opacity: 0.7;
+}
+
+.btnPrimary {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 13px;
+  border-radius: 2px;
+  border: 1px solid var(--acid);
+  background: var(--acid);
+  color: var(--ink-on-acid);
+  cursor: pointer;
+  font-weight: 700;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--acid);
+  filter: brightness(1.1);
+}
+.btnPrimary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btnCancel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 13px;
+  border-radius: 2px;
+  border: 1px solid var(--line-strong);
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-weight: 600;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.btnCancel:hover {
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+
+/* ── Playback ── */
+.playback {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.playbackRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.playbackLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.speedSlider {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 3px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.speedSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--acid);
+  cursor: pointer;
+}
+
+.speedSlider::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--acid);
+  border: none;
+  cursor: pointer;
+}
+
+.speedSlider:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.speedValue {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-muted);
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.modeToggle {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.modeBtn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  background: var(--surface-1);
+  border: none;
+  color: var(--ink-quiet);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.modeBtnActive {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.modeBtn:hover:not(.modeBtnActive):not(:disabled) {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+.modeBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ── Token chips ── */
+.tokenChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  min-height: 30px;
+  align-items: flex-start;
+}
+
+.emptyLabel {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-quiet);
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 1.5;
+  padding-top: 3px;
+}
+
+/* ── BPE merge animation ── */
+.mergeWrap {
+  position: relative;
+  min-height: 28px;
+  width: 100%;
+}
+
+.mergeStage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: flex-start;
+  transition: opacity 280ms ease;
+}
+
+.ch {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0 8px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  color: var(--ink-quiet);
+  letter-spacing: 0.02em;
+  transition:
+    background 280ms,
+    border-color 280ms,
+    color 280ms;
+}
+
+.chMerged {
+  background: rgba(196, 255, 61, 0.07);
+  border-color: rgba(196, 255, 61, 0.22);
+  color: var(--ink-muted);
+}
+
+.chSpace {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-quiet);
+  opacity: 0.4;
+  padding: 0 3px;
+}
+
+/* ── Embed token ── */
+.embedTokenWrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: flex-start;
+  margin: 2px 3px 6px 0;
+  vertical-align: top;
+}
+
+.tok {
+  padding: 0 8px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.tokId {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  font-weight: 400;
+  white-space: nowrap;
+  display: block;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.tokIdPlaceholder {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+  display: block;
+  line-height: 1;
+  margin-bottom: 2px;
+  opacity: 0.2;
+  min-height: 1em;
+}
+
+/* ── Phase label ── */
+.phaseLabelWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.dotDone {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--acid);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Output ── */
+.outputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outputEmpty {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-quiet);
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.computingPlaceholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  margin-bottom: 8px;
+}
+
+.dotBlink {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--acid);
+  animation: pulseDot 0.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.dotQuiet {
+  background: var(--ink-quiet);
+}
+
+/* ── Output token chips (hoverable) ── */
+.outputTokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 4px;
+  padding-top: 4px;
+  align-items: flex-start;
+}
+
+.outputTokWrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  vertical-align: top;
+}
+
+.outputTok {
+  position: relative;
+  padding: 0 8px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
+  min-width: 14px;
+  box-sizing: border-box;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+  position: fixed;
+  z-index: 200;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+  min-width: 150px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.04em;
+}
+
+.tooltipName {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.tooltipId {
+  color: var(--ink-quiet);
+  margin-bottom: 10px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.tooltipSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 10px 0 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.tooltipSectionHint {
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--ink-quiet);
+  opacity: 0.6;
+}
+
+.tooltipColHeaders {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+  opacity: 0.5;
+}
+
+.tooltipColToken {
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.tooltipColBar {
+  flex: 1;
+}
+
+.tooltipColPLabel {
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.tooltipToken {
+  color: var(--ink-quiet);
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.tooltipTokenTop {
+  color: var(--acid);
+}
+
+.tooltipBarWrap {
+  flex: 1;
+  height: 2px;
+  background: var(--ink-faint);
+  border-radius: 1px;
+}
+
+.tooltipBar {
+  height: 100%;
+  background: var(--acid);
+  border-radius: 1px;
+}
+
+.tooltipProb {
+  color: var(--ink-quiet);
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Light mode overrides for dark-glass surfaces ── */
+:global(html.light) .ch {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+:global(html.light) .chMerged {
+  background: rgba(143, 220, 0, 0.09);
+  border-color: rgba(143, 220, 0, 0.25);
+}
+
+:global(html.light) .tok {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+:global(html.light) .outputTok {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}

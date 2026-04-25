@@ -1,0 +1,80 @@
+.card {
+  flex-shrink: 0;
+  width: 219px;
+  background: rgba(17, 17, 17, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition:
+    border-color var(--dur-mid) var(--ease),
+    box-shadow var(--dur-mid) var(--ease);
+}
+
+.stateDone {
+  border-color: rgba(196, 255, 61, 0.18);
+}
+
+.stateProcessing {
+  border-color: rgba(196, 255, 61, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(196, 255, 61, 0.08) inset,
+    0 4px 24px rgba(196, 255, 61, 0.1);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+.stateDone .label {
+  color: var(--acid-dim);
+}
+
+.stateProcessing .label {
+  color: var(--acid);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.stateDone .dot {
+  background: var(--acid);
+}
+
+.stateProcessing .dot {
+  background: var(--acid);
+  animation: pulseDot 0.7s ease-in-out infinite;
+  box-shadow: 0 0 4px var(--acid);
+}
+
+:global(html.light) .card {
+  background: #2e2e2e;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global(html.light) .stateDone {
+  border-color: rgba(143, 220, 0, 0.22);
+}
+
+:global(html.light) .stateProcessing {
+  border-color: rgba(143, 220, 0, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(143, 220, 0, 0.08) inset,
+    0 4px 24px rgba(143, 220, 0, 0.08);
+}
