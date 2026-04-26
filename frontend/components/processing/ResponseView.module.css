@@ -42,8 +42,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1;   transform: scale(1);    }
-  50%       { opacity: 0.5; transform: scale(0.75); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.75);
+  }
 }
 
 .statusDone {
@@ -272,8 +279,13 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ── Waiting placeholder ──────────────────────────────────── */
@@ -289,10 +301,20 @@
 
 /* ── Syntax colours ───────────────────────────────────────── */
 
-.jKey   { color: var(--acid); }
-.jStr   { color: #a8d4a8; }
-.jNum   { color: #79c0ff; }
-.jKw    { color: #f8a488; }
-.jPunct { color: rgba(255, 255, 255, 0.28); }
+.jKey {
+  color: var(--acid);
+}
+.jStr {
+  color: #a8d4a8;
+}
+.jNum {
+  color: #79c0ff;
+}
+.jKw {
+  color: #f8a488;
+}
+.jPunct {
+  color: rgba(255, 255, 255, 0.28);
+}
 
 /* Syntax colours stay dark-mode values — code boxes are always dark */

@@ -6,9 +6,7 @@ export default function AlgorithmsPage() {
       <h1 className={styles.heading}>
         Inside the <em>Algorithms</em>
       </h1>
-      <p className={styles.note}>
-        Coming soon.
-      </p>
+      <p className={styles.note}>Coming soon.</p>
     </div>
   )
 }

@@ -1,4 +1,3 @@
-import posthog from 'posthog-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   Candidate,
@@ -158,27 +157,24 @@ export function useProcessingSocket(
 
     dispatch(entry)
 
-    const delay = entry.type === 'layer' ? layerComponentDelay(speedRef.current) : 0
+    const delay =
+      entry.type === 'layer' ? layerComponentDelay(speedRef.current) : 0
     timerRef.current = setTimeout(processNext, delay)
   }, []) // empty deps — all mutable values accessed through refs
 
-  const run = useCallback(
-    (text: string) => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
-      generationRef.current += 1
-      cancelledRef.current = false
-      queueRef.current = []
-      partialLayersRef.current.clear()
-      receivedRef.current.clear()
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
-      posthog.capture('processing_run')
-      wsRef.current.send(JSON.stringify({ type: 'run', text }))
-    },
-    []
-  )
+  const run = useCallback((text: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
+    generationRef.current += 1
+    cancelledRef.current = false
+    queueRef.current = []
+    partialLayersRef.current.clear()
+    receivedRef.current.clear()
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    wsRef.current.send(JSON.stringify({ type: 'run', text }))
+  }, [])
 
   const cancel = useCallback(() => {
     cancelledRef.current = true
@@ -192,7 +188,10 @@ export function useProcessingSocket(
   const notifySpeedChange = useCallback(() => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(processNext, layerComponentDelay(speedRef.current))
+      timerRef.current = setTimeout(
+        processNext,
+        layerComponentDelay(speedRef.current)
+      )
     }
   }, [processNext])
 

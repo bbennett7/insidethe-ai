@@ -42,7 +42,9 @@ function JsonBlock({ value }: { value: unknown }) {
   return (
     <pre className={styles.jsonPre}>
       {segs.map((s, i) => (
-        <span key={i} className={S[s.c]}>{s.t}</span>
+        <span key={i} className={S[s.c]}>
+          {s.t}
+        </span>
       ))}
     </pre>
   )
@@ -55,7 +57,9 @@ function JsonInline({ value }: { value: unknown }) {
   return (
     <>
       {segs.map((s, i) => (
-        <span key={i} className={S[s.c]}>{s.t}</span>
+        <span key={i} className={S[s.c]}>
+          {s.t}
+        </span>
       ))}
     </>
   )
@@ -72,10 +76,11 @@ function buildChunk(
   tok: OutputToken,
   index: number,
   promptLen: number,
-  isLast: boolean,
+  isLast: boolean
 ) {
   const TOP = 3
-  const chosen = tok.candidates.find((c) => c.text === tok.text) ?? tok.candidates[0]
+  const chosen =
+    tok.candidates.find((c) => c.text === tok.text) ?? tok.candidates[0]
   return {
     id,
     object: 'text_completion.chunk',
@@ -94,7 +99,10 @@ function buildChunk(
             Object.fromEntries(
               tok.candidates
                 .slice(0, TOP)
-                .map((c) => [c.text, parseFloat(Math.log(c.probability).toFixed(4))])
+                .map((c) => [
+                  c.text,
+                  parseFloat(Math.log(c.probability).toFixed(4)),
+                ])
             ),
           ],
         },
@@ -135,7 +143,8 @@ export default function ResponseView({
     processState === 'embedding' ||
     processState === 'computing'
 
-  const hasStarted = !isIdle || inputTokens.length > 0 || outputTokens.length > 0
+  const hasStarted =
+    !isIdle || inputTokens.length > 0 || outputTokens.length > 0
 
   const completionId =
     inputTokens.length > 0
@@ -149,9 +158,16 @@ export default function ResponseView({
   )
 
   const chunks = useMemo(
-    () => outputTokens.map((tok, i) =>
-      buildChunk(completionId, tok, i, inputTokens.length, isDone && i === outputTokens.length - 1)
-    ),
+    () =>
+      outputTokens.map((tok, i) =>
+        buildChunk(
+          completionId,
+          tok,
+          i,
+          inputTokens.length,
+          isDone && i === outputTokens.length - 1
+        )
+      ),
     [outputTokens, completionId, inputTokens.length, isDone]
   )
 
@@ -190,48 +206,51 @@ export default function ResponseView({
           </span>
         ) : isDone && outputTokens.length > 0 ? (
           <span className={styles.statusDone}>
-            {outputTokens.length} token{outputTokens.length !== 1 ? 's' : ''} generated
+            {outputTokens.length} token{outputTokens.length !== 1 ? 's' : ''}{' '}
+            generated
           </span>
         ) : null}
       </div>
 
       {/* Content — columns always visible */}
       <div className={styles.columns}>
-          {/* Left: request (static, pretty-printed) */}
-          <div className={styles.block}>
-            <div className={styles.blockHeader}>
-              <div className={styles.blockLabel}>Request</div>
-            </div>
-            <ScrollArea className={styles.codeBox}>
-              {hasStarted ? (
-                <JsonBlock value={requestObj} />
-              ) : (
-                <span className={styles.placeholder}>run a prompt to see the API response</span>
-              )}
-            </ScrollArea>
+        {/* Left: request (static, pretty-printed) */}
+        <div className={styles.block}>
+          <div className={styles.blockHeader}>
+            <div className={styles.blockLabel}>Request</div>
           </div>
+          <ScrollArea className={styles.codeBox}>
+            {hasStarted ? (
+              <JsonBlock value={requestObj} />
+            ) : (
+              <span className={styles.placeholder}>
+                run a prompt to see the API response
+              </span>
+            )}
+          </ScrollArea>
+        </div>
 
-          {/* Right: response stream (SSE chunks accumulating) */}
-          <div className={styles.block}>
-            <div className={styles.blockHeader}>
-              <div className={styles.blockLabel}>Response stream</div>
-              <div className={styles.blockHeaderRight}>
-                <div className={styles.formatToggle}>
-                  <button
-                    type="button"
-                    className={`${styles.formatBtn}${format === 'inline' ? ` ${styles.formatBtnActive}` : ''}`}
-                    onClick={() => setFormat('inline')}
-                  >
-                    inline
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.formatBtn}${format === 'pretty' ? ` ${styles.formatBtnActive}` : ''}`}
-                    onClick={() => setFormat('pretty')}
-                  >
-                    pretty
-                  </button>
-                </div>
+        {/* Right: response stream (SSE chunks accumulating) */}
+        <div className={styles.block}>
+          <div className={styles.blockHeader}>
+            <div className={styles.blockLabel}>Response stream</div>
+            <div className={styles.blockHeaderRight}>
+              <div className={styles.formatToggle}>
+                <button
+                  type="button"
+                  className={`${styles.formatBtn}${format === 'inline' ? ` ${styles.formatBtnActive}` : ''}`}
+                  onClick={() => setFormat('inline')}
+                >
+                  inline
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.formatBtn}${format === 'pretty' ? ` ${styles.formatBtnActive}` : ''}`}
+                  onClick={() => setFormat('pretty')}
+                >
+                  pretty
+                </button>
+              </div>
               <button
                 type="button"
                 className={`${styles.copyBtn}${copied ? ` ${styles.copyBtnDone}` : ''}`}
@@ -240,61 +259,98 @@ export default function ResponseView({
                 aria-label="Copy stream"
               >
                 {copied ? (
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 ) : (
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                    <rect x="4" y="1" width="7" height="8" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-                    <path d="M8 1V1C8 1 8 3 6 3H1.5C1.22 3 1 3.22 1 3.5V10.5C1 10.78 1.22 11 1.5 11H8C8.28 11 8.5 10.78 8.5 10.5V3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="4"
+                      y="1"
+                      width="7"
+                      height="8"
+                      rx="1"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                    />
+                    <path
+                      d="M8 1V1C8 1 8 3 6 3H1.5C1.22 3 1 3.22 1 3.5V10.5C1 10.78 1.22 11 1.5 11H8C8.28 11 8.5 10.78 8.5 10.5V3"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 )}
                 {copied ? 'copied' : 'copy'}
               </button>
-              </div>
             </div>
-            <ScrollArea className={styles.codeBox} ref={responseBoxRef}>
-              {outputTokens.length === 0 && !isRunning ? (
-                <span className={styles.waiting}>waiting…</span>
-              ) : (
-                <div className={styles.streamLog}>
-                  {outputTokens.map((tok, i) => {
-                    const chunk = chunks[i]
-                    return (
-                      <div key={`chunk-${i}-${tok.id}`} className={styles.streamEntry}>
-                        <div className={styles.streamComment}>
-                          res no. {i + 1} <span className={styles.streamCommentToken}>{tok.text}</span>
-                        </div>
-                        {format === 'inline' ? (
-                          <>
-                            <span className={styles.dataPrefix}>data: </span>
-                            <JsonInline value={chunk} />
-                          </>
-                        ) : (
-                          <>
-                            <span className={styles.dataPrefix}>data:</span>
-                            <JsonBlock value={chunk} />
-                          </>
-                        )}
-                      </div>
-                    )
-                  })}
-
-                  {isDone && outputTokens.length > 0 && (
-                    <div className={styles.streamEntry}>
-                      <span className={styles.dataPrefix}>data: </span>
-                      <span className={S.jPunct}>[DONE]</span>
-                    </div>
-                  )}
-
-                  {isRunning && (
-                    <span className={styles.cursor} aria-hidden="true" />
-                  )}
-                </div>
-              )}
-            </ScrollArea>
           </div>
+          <ScrollArea className={styles.codeBox} ref={responseBoxRef}>
+            {outputTokens.length === 0 && !isRunning ? (
+              <span className={styles.waiting}>waiting…</span>
+            ) : (
+              <div className={styles.streamLog}>
+                {outputTokens.map((tok, i) => {
+                  const chunk = chunks[i]
+                  return (
+                    <div
+                      key={`chunk-${i}-${tok.id}`}
+                      className={styles.streamEntry}
+                    >
+                      <div className={styles.streamComment}>
+                        res no. {i + 1}{' '}
+                        <span className={styles.streamCommentToken}>
+                          {tok.text}
+                        </span>
+                      </div>
+                      {format === 'inline' ? (
+                        <>
+                          <span className={styles.dataPrefix}>data: </span>
+                          <JsonInline value={chunk} />
+                        </>
+                      ) : (
+                        <>
+                          <span className={styles.dataPrefix}>data:</span>
+                          <JsonBlock value={chunk} />
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {isDone && outputTokens.length > 0 && (
+                  <div className={styles.streamEntry}>
+                    <span className={styles.dataPrefix}>data: </span>
+                    <span className={S.jPunct}>[DONE]</span>
+                  </div>
+                )}
+
+                {isRunning && (
+                  <span className={styles.cursor} aria-hidden="true" />
+                )}
+              </div>
+            )}
+          </ScrollArea>
         </div>
+      </div>
     </div>
   )
 }

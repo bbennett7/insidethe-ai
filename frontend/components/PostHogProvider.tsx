@@ -1,8 +1,8 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
-import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
 const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
