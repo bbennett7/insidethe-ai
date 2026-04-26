@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import InputPanel from '@/components/processing/InputPanel'
 import LayerCard from '@/components/processing/LayerCard'
 import RightPanelHeader from '@/components/processing/RightPanelHeader'
@@ -314,6 +314,22 @@ export default function ProcessPage() {
     socket.notifySpeedChange()
   }, [socket])
 
+  const allTokenTexts = useMemo(
+    () => [
+      ...inputTokens.map((t) => t.text),
+      ...outputTokens.map((t) => t.text),
+    ],
+    [inputTokens, outputTokens]
+  )
+
+  // Suppress layer highlight during tokenizing/embedding so layers don't
+  // light up before the merge animation finishes (production timing issue:
+  // backend flushes all frames before animation completes).
+  const displayLayerStates: LayerState[] =
+    processState === 'tokenizing' || processState === 'embedding'
+      ? (Array(NUM_LAYERS).fill('inactive') as LayerState[])
+      : layerStates
+
   return (
     <div className={styles.app}>
       <div className={styles.leftPanel}>
@@ -361,12 +377,9 @@ export default function ProcessPage() {
                 <LayerCard
                   key={`layer-${i}`}
                   layerIndex={i}
-                  state={layerStates[i]}
+                  state={displayLayerStates[i]}
                   data={data}
-                  tokens={[
-                    ...inputTokens.map((t) => t.text),
-                    ...outputTokens.map((t) => t.text),
-                  ]}
+                  tokens={allTokenTexts}
                   isDecoding={tokenGenCount > 0}
                 />
               ))}
