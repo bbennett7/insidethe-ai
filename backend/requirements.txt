@@ -4,3 +4,4 @@ nnsight
 transformers
 numpy
 orjson
+ruff
