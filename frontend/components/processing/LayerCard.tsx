@@ -34,7 +34,13 @@ export default memo(function LayerCard({
         <span className={styles.label}>LAYER {num}</span>
         <span className={styles.dot} />
       </div>
-      <LayerCanvas layerIndex={layerIndex} state={state} data={data} tokens={tokens} isDecoding={isDecoding} />
+      <LayerCanvas
+        layerIndex={layerIndex}
+        state={state}
+        data={data}
+        tokens={tokens}
+        isDecoding={isDecoding}
+      />
     </div>
   )
 })

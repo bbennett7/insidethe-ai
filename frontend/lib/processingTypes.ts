@@ -33,7 +33,13 @@ export interface OutputToken {
   candidates: Candidate[]
 }
 
-export type LayerComponent = 'ln1' | 'attn' | 'attn_write' | 'ln2' | 'mlp' | 'mlp_write'
+export type LayerComponent =
+  | 'ln1'
+  | 'attn'
+  | 'attn_write'
+  | 'ln2'
+  | 'mlp'
+  | 'mlp_write'
 
 type RawAttnData = { weights: number[][][]; heads: number }
 type RawLNData = number
@@ -41,12 +47,12 @@ type RawMlpData = number[]
 type RawWriteData = number[]
 
 type RawLayerData =
-  | { component: 'ln1';        data: RawLNData }
-  | { component: 'ln2';        data: RawLNData }
-  | { component: 'attn';       data: RawAttnData }
+  | { component: 'ln1'; data: RawLNData }
+  | { component: 'ln2'; data: RawLNData }
+  | { component: 'attn'; data: RawAttnData }
   | { component: 'attn_write'; data: RawWriteData }
-  | { component: 'mlp';        data: RawMlpData }
-  | { component: 'mlp_write';  data: RawWriteData }
+  | { component: 'mlp'; data: RawMlpData }
+  | { component: 'mlp_write'; data: RawWriteData }
 
 /** Raw output candidate shape from the wire — note 'prob' not 'probability' */
 export interface RawCandidate {
@@ -56,14 +62,20 @@ export interface RawCandidate {
 }
 
 export type ServerMessage =
-  | { type: 'hello';       protocol_version: number; model: string; num_layers: number; components_per_layer: string[] }
+  | {
+      type: 'hello'
+      protocol_version: number
+      model: string
+      num_layers: number
+      components_per_layer: string[]
+    }
   | { type: 'merge_stage'; items: MergeItem[] }
-  | { type: 'tokens';      data: Token[] }
-  | { type: 'embed';       token_idx: number; data: number[] }
-  | ({ type: 'layer';      layer: number } & RawLayerData)
-  | { type: 'output';      data: RawCandidate[] }
+  | { type: 'tokens'; data: Token[] }
+  | { type: 'embed'; token_idx: number; data: number[] }
+  | ({ type: 'layer'; layer: number } & RawLayerData)
+  | { type: 'output'; data: RawCandidate[] }
   | { type: 'done' }
-  | { type: 'error';       message?: string; detail?: string }
+  | { type: 'error'; message?: string; detail?: string }
 
 export interface StreamFrame {
   /** Sequential frame counter — monotonically increasing from 0, used as React key */

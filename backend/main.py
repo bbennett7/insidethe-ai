@@ -130,9 +130,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
                         await current_task
                     except (asyncio.CancelledError, Exception):
                         pass
-                current_task = asyncio.create_task(
-                    stream_to_websocket(ws, runner, text)
-                )
+                current_task = asyncio.create_task(stream_to_websocket(ws, runner, text))
 
     except WebSocketDisconnect:
         if current_task and not current_task.done():

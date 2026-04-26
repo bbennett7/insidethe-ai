@@ -1,10 +1,10 @@
 import LandingCard from '@/components/LandingCard'
 import PreviewAgentCanvas from '@/components/PreviewAgentCanvas'
 import PreviewAlgoCanvas from '@/components/PreviewAlgoCanvas'
-import PreviewTransformerCanvas from '@/components/PreviewTransformerCanvas'
 import PreviewFrontierCanvas from '@/components/PreviewFrontierCanvas'
 import PreviewMemoryCanvas from '@/components/PreviewMemoryCanvas'
 import PreviewProcessCanvas from '@/components/PreviewProcessCanvas'
+import PreviewTransformerCanvas from '@/components/PreviewTransformerCanvas'
 import styles from './page.module.css'
 
 const CARDS = [

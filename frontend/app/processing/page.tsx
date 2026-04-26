@@ -3,8 +3,8 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import InputPanel from '@/components/processing/InputPanel'
 import LayerCard from '@/components/processing/LayerCard'
-import RightPanelHeader from '@/components/processing/RightPanelHeader'
 import ResponseView from '@/components/processing/ResponseView'
+import RightPanelHeader from '@/components/processing/RightPanelHeader'
 import { useProcessingSocket } from '@/hooks/useProcessingSocket'
 import { useZoom } from '@/hooks/useZoom'
 import type {
@@ -21,7 +21,12 @@ import styles from './page.module.css'
 const NUM_LAYERS = 12
 
 const EMPTY_LAYER_DATA: LayerData = {
-  ln1: 0, ln2: 0, attn: [], attn_write: [], mlp: [], mlp_write: [],
+  ln1: 0,
+  ln2: 0,
+  attn: [],
+  attn_write: [],
+  mlp: [],
+  mlp_write: [],
 }
 
 function layerDelay(speed: number): number {
@@ -33,7 +38,6 @@ function stageDelay(speed: number): number {
   if (speed >= 1) return 0
   return Math.round((1 - speed) * 700 + 25)
 }
-
 
 export default function ProcessPage() {
   const [processState, setProcessState] = useState<ProcessState>('idle')
@@ -133,7 +137,11 @@ export default function ProcessPage() {
           }
 
           const top = candidates[0]
-          const newToken: OutputToken = { text: top.text, id: top.id, candidates }
+          const newToken: OutputToken = {
+            text: top.text,
+            id: top.id,
+            candidates,
+          }
           setOutputTokens((prev) => [...prev, newToken])
 
           const count = tokenGenRef.current + 1
@@ -192,7 +200,9 @@ export default function ProcessPage() {
     }
     setProcessState('idle')
     setLayerStates(Array(NUM_LAYERS).fill('inactive'))
-    setLayerData(Array.from({ length: NUM_LAYERS }, () => ({ ...EMPTY_LAYER_DATA })))
+    setLayerData(
+      Array.from({ length: NUM_LAYERS }, () => ({ ...EMPTY_LAYER_DATA }))
+    )
     setInputTokens([])
     setOutputTokens([])
     setEmbedVectors({})
@@ -224,16 +234,19 @@ export default function ProcessPage() {
       if (stageIdx >= mergeStagesRef.current.length) {
         setProcessState('embedding')
         const d = stageDelay(speedRef.current)
-        animTimeoutRef.current = setTimeout(() => {
-          if (animGenRef.current !== myGen) return
-          setProcessState('computing')
-          mergeAnimCompleteRef.current = true
-          const cb = pendingDoneCallbackRef.current
-          if (cb) {
-            pendingDoneCallbackRef.current = null
-            cb()
-          }
-        }, speedRef.current >= 1 ? 0 : d + seqLenRef.current * 15 + 40)
+        animTimeoutRef.current = setTimeout(
+          () => {
+            if (animGenRef.current !== myGen) return
+            setProcessState('computing')
+            mergeAnimCompleteRef.current = true
+            const cb = pendingDoneCallbackRef.current
+            if (cb) {
+              pendingDoneCallbackRef.current = null
+              cb()
+            }
+          },
+          speedRef.current >= 1 ? 0 : d + seqLenRef.current * 15 + 40
+        )
         return
       }
       setMergeStageIndex(stageIdx)
@@ -308,11 +321,14 @@ export default function ProcessPage() {
     isStepModeRef.current = mode === 'step'
   }, [])
 
-  const handleSpeedChange = useCallback((v: number) => {
-    setSpeed(v)
-    speedRef.current = v
-    socket.notifySpeedChange()
-  }, [socket])
+  const handleSpeedChange = useCallback(
+    (v: number) => {
+      setSpeed(v)
+      speedRef.current = v
+      socket.notifySpeedChange()
+    },
+    [socket]
+  )
 
   const allTokenTexts = useMemo(
     () => [
@@ -364,7 +380,11 @@ export default function ProcessPage() {
               processState === 'computing') &&
             socket.isConnected
           }
-          isRunning={processState === 'tokenizing' || processState === 'embedding' || processState === 'computing'}
+          isRunning={
+            processState === 'tokenizing' ||
+            processState === 'embedding' ||
+            processState === 'computing'
+          }
           onZoomIn={zoomIn}
           onZoomOut={zoomOut}
           onViewChange={setView}

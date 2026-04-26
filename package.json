@@ -5,8 +5,8 @@
   "scripts": {
     "dev":        "pnpm --filter frontend dev",
     "build":      "pnpm --filter frontend build",
-    "lint":       "pnpm --filter frontend lint",
-    "lint:fix":   "pnpm --filter frontend lint:fix",
+    "lint":       "pnpm --filter frontend lint && cd backend && .venv/bin/ruff check .",
+    "lint:fix":   "pnpm --filter frontend lint:fix && cd backend && .venv/bin/ruff check --fix . && .venv/bin/ruff format .",
     "backend":    "cd backend && .venv/bin/uvicorn main:app --reload --port 8080"
   }
 }

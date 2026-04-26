@@ -6,9 +6,7 @@ export default function AgentPage() {
       <h1 className={styles.heading}>
         Inside the <em>Agent</em>
       </h1>
-      <p className={styles.note}>
-        Coming soon.
-      </p>
+      <p className={styles.note}>Coming soon.</p>
     </div>
   )
 }
