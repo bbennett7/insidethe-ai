@@ -3,6 +3,7 @@ import './globals.css'
 import BackgroundCanvas from '@/components/BackgroundCanvas'
 import MobileGate from '@/components/MobileGate'
 import Nav from '@/components/Nav'
+import { PostHogProvider } from '@/components/PostHogProvider'
 import { ThemeProvider } from '@/lib/ThemeContext'
 
 export const metadata: Metadata = {
@@ -27,12 +28,14 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <ThemeProvider>
-          <BackgroundCanvas />
-          <Nav />
-          <MobileGate />
-          <main style={{ position: 'relative', zIndex: 1 }}>{children}</main>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider>
+            <BackgroundCanvas />
+            <Nav />
+            <MobileGate />
+            <main style={{ position: 'relative', zIndex: 1 }}>{children}</main>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   )

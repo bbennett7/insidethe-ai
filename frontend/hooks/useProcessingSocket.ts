@@ -1,3 +1,4 @@
+import posthog from 'posthog-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   Candidate,
@@ -173,6 +174,7 @@ export function useProcessingSocket(
         clearTimeout(timerRef.current)
         timerRef.current = null
       }
+      posthog.capture('processing_run')
       wsRef.current.send(JSON.stringify({ type: 'run', text }))
     },
     []
