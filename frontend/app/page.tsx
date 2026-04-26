@@ -1,7 +1,7 @@
 import LandingCard from '@/components/LandingCard'
 import PreviewAgentCanvas from '@/components/PreviewAgentCanvas'
 import PreviewAlgoCanvas from '@/components/PreviewAlgoCanvas'
-import PreviewChipCanvas from '@/components/PreviewChipCanvas'
+import PreviewTransformerCanvas from '@/components/PreviewTransformerCanvas'
 import PreviewFrontierCanvas from '@/components/PreviewFrontierCanvas'
 import PreviewMemoryCanvas from '@/components/PreviewMemoryCanvas'
 import PreviewProcessCanvas from '@/components/PreviewProcessCanvas'
@@ -14,7 +14,7 @@ const CARDS = [
     canvas: <PreviewProcessCanvas />,
     href: '/processing',
   },
-  { num: '02', name: 'Chip', canvas: <PreviewChipCanvas /> },
+  { num: '02', name: 'Transformer', canvas: <PreviewTransformerCanvas /> },
   { num: '03', name: 'Algorithms', canvas: <PreviewAlgoCanvas /> },
   { num: '04', name: 'Agent', canvas: <PreviewAgentCanvas /> },
   { num: '05', name: 'Memory', canvas: <PreviewMemoryCanvas /> },
