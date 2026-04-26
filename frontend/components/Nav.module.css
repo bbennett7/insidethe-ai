@@ -37,7 +37,7 @@
   flex-shrink: 0;
 }
 
-.githubLink {
+.navIconLink {
   display: flex;
   align-items: center;
   color: var(--ink-quiet);
@@ -45,7 +45,7 @@
   margin-left: 4px;
 }
 
-.githubLink:hover {
+.navIconLink:hover {
   color: var(--ink);
 }
 
