@@ -42,6 +42,21 @@ const RESID_CHAR_W = 3.9
 const RESID_PAD_X = 5
 const RESID_CHIP_MIN_W = 14
 
+// Precomputed alpha LUTs — built once at module load, indexed by Math.round(value * 255).
+// Eliminates Math.pow + toFixed + template-literal allocation inside the hot drawing loops.
+const MLP_LUT_DARK = Array.from({ length: 256 }, (_, i) =>
+  `rgba(${ACID_DARK},${(0.06 + Math.sqrt(i / 255) * 0.79).toFixed(3)})`)
+const MLP_LUT_LIGHT = Array.from({ length: 256 }, (_, i) =>
+  `rgba(${ACID_LIGHT},${(0.06 + Math.sqrt(i / 255) * 0.79).toFixed(3)})`)
+const ATTN_LUT_DARK = Array.from({ length: 256 }, (_, i) => {
+  const a = Math.round((0.04 + (i / 255) * 0.94) * 1000) / 1000
+  return `rgba(${ACID_DARK},${a})`
+})
+const ATTN_LUT_LIGHT = Array.from({ length: 256 }, (_, i) => {
+  const a = Math.round((0.04 + (i / 255) * 0.94) * 1000) / 1000
+  return `rgba(${ACID_LIGHT},${a})`
+})
+
 function approxChipW(label: string): number {
   return Math.max(RESID_CHIP_MIN_W, Math.round(label.length * RESID_CHAR_W + RESID_PAD_X * 2))
 }
@@ -108,6 +123,13 @@ function drawLayerCanvas(
   const acidDoneA = isDark ? 'rgba(138,171,42,0.8)' : 'rgba(143,220,0,0.8)'
   const acidProcA = isDark ? 'rgba(196,255,61,0.8)' : 'rgba(143,220,0,0.9)'
   const labelOff = isDark ? 'rgba(85,85,85,0.7)' : 'rgba(130,130,130,0.8)'
+
+  // LUT references for the hot drawing loops — picked once per draw call
+  const mlpLut = isDark ? MLP_LUT_DARK : MLP_LUT_LIGHT
+  const attnLut = isDark ? ATTN_LUT_DARK : ATTN_LUT_LIGHT
+  // Precompute per-theme hint strings so they aren't rebuilt inside loops
+  const attnHint = isDark ? `rgba(${ACID_DARK},0.10)` : `rgba(${ACID_LIGHT},0.10)`
+  const mlpHint = isDark ? `rgba(${ACID_DARK},0.07)` : `rgba(${ACID_LIGHT},0.07)`
 
   // Cool color for LN + RESIDUAL sections (same in dark and light)
   const coolDoneA = `rgba(${COOL},0.75)`
@@ -246,28 +268,53 @@ function drawLayerCanvas(
     const hy = y + row * (HEAD_H + HEAD_INNER_GAP) * s
     const hw = HEAD_W * s
     const cellSz = hw / SEQ_LEN
+    const sz = cellSz - 1
 
-    for (let i = 0; i < SEQ_LEN; i++) {
-      for (let j = 0; j < SEQ_LEN; j++) {
-        const cellX = hx + j * cellSz
-        const cellY = hy + i * cellSz
-        const sz = cellSz - 1
-
-        if (j > i) {
-          // Causal mask — future positions always dark
-          c.fillStyle = 'rgba(255,255,255,0.015)'
-        } else if (!isActive) {
-          c.fillStyle = 'rgba(255,255,255,0.05)'
-        } else if (!data.attn[h]) {
-          // Layer is active but data hasn't arrived yet — all 12 heads compute
-          // in parallel so show a uniform hint across every head, not a partial reveal
-          c.fillStyle = `rgba(${acidActive},0.10)`
-        } else {
-          const w = data.attn[h][i]?.[j] ?? 0
-          const a = Math.round((0.04 + w * 0.94) * 1000) / 1000
-          c.fillStyle = `rgba(${acidActive},${a})`
+    if (!isActive) {
+      // Entire head is one color — single fillStyle + N fillRects
+      c.fillStyle = 'rgba(255,255,255,0.05)'
+      for (let i = 0; i < SEQ_LEN; i++) {
+        for (let j = 0; j <= i; j++) {
+          c.fillRect(hx + j * cellSz, hy + i * cellSz, sz, sz)
         }
-        c.fillRect(cellX, cellY, sz, sz)
+      }
+      // Causal mask (upper triangle)
+      c.fillStyle = 'rgba(255,255,255,0.015)'
+      for (let i = 0; i < SEQ_LEN; i++) {
+        for (let j = i + 1; j < SEQ_LEN; j++) {
+          c.fillRect(hx + j * cellSz, hy + i * cellSz, sz, sz)
+        }
+      }
+    } else if (!data.attn[h]) {
+      // Data not arrived yet — hint across all non-masked cells, mask the upper triangle
+      c.fillStyle = attnHint
+      for (let i = 0; i < SEQ_LEN; i++) {
+        for (let j = 0; j <= i; j++) {
+          c.fillRect(hx + j * cellSz, hy + i * cellSz, sz, sz)
+        }
+      }
+      c.fillStyle = 'rgba(255,255,255,0.015)'
+      for (let i = 0; i < SEQ_LEN; i++) {
+        for (let j = i + 1; j < SEQ_LEN; j++) {
+          c.fillRect(hx + j * cellSz, hy + i * cellSz, sz, sz)
+        }
+      }
+    } else {
+      // Data present — causal mask first (one fillStyle for all masked cells)
+      c.fillStyle = 'rgba(255,255,255,0.015)'
+      for (let i = 0; i < SEQ_LEN; i++) {
+        for (let j = i + 1; j < SEQ_LEN; j++) {
+          c.fillRect(hx + j * cellSz, hy + i * cellSz, sz, sz)
+        }
+      }
+      // Data cells — LUT lookup, no string allocation
+      const headRow = data.attn[h]
+      for (let i = 0; i < SEQ_LEN; i++) {
+        for (let j = 0; j <= i; j++) {
+          const w = headRow[i]?.[j] ?? 0
+          c.fillStyle = attnLut[Math.min(255, Math.round(w * 255))]
+          c.fillRect(hx + j * cellSz, hy + i * cellSz, sz, sz)
+        }
       }
     }
   }
@@ -287,30 +334,29 @@ function drawLayerCanvas(
 
   const ncell = NEURON_CELL * s
   const ngap = 1 * s
+  const stride = ncell + ngap
   const mlpOff = 'rgba(255,255,255,0.04)'
 
-  for (let n = 0; n < MLP_DIM; n++) {
-    const col = n % MLP_COLS
-    const row = Math.floor(n / MLP_COLS)
-    const nx = pad + col * (ncell + ngap)
-    const ny = y + row * (ncell + ngap)
-
-    if (!isActive) {
-      c.fillStyle = mlpOff
-    } else {
-      const act = data.mlp[n] ?? 0
-      if (state === 'processing' && act === 0) {
-        // All 3072 neurons activate simultaneously via matmul — show uniform
-        // dim hint across every neuron while data is in transit
-        c.fillStyle = `rgba(${acidActive},0.07)`
-      } else {
-        c.fillStyle =
-          act < 0.01
-            ? mlpOff
-            : `rgba(${acidActive},${(0.22 + Math.pow(act, 0.5) * 0.72).toFixed(3)})`
-      }
+  if (!isActive) {
+    // All neurons same color — one fillStyle for 3072 fillRects
+    c.fillStyle = mlpOff
+    for (let n = 0; n < MLP_DIM; n++) {
+      c.fillRect(pad + (n % MLP_COLS) * stride, y + Math.floor(n / MLP_COLS) * stride, ncell, ncell)
     }
-    c.fillRect(nx, ny, ncell, ncell)
+  } else if (state === 'processing' && data.mlp.length === 0) {
+    // All 3072 neurons activate simultaneously via matmul — show uniform
+    // dim hint across every neuron while data is in transit
+    c.fillStyle = mlpHint
+    for (let n = 0; n < MLP_DIM; n++) {
+      c.fillRect(pad + (n % MLP_COLS) * stride, y + Math.floor(n / MLP_COLS) * stride, ncell, ncell)
+    }
+  } else {
+    for (let n = 0; n < MLP_DIM; n++) {
+      const act = data.mlp[n] ?? 0
+      const idx = Math.min(255, Math.round(act * 255))
+      c.fillStyle = idx < 13 ? mlpOff : mlpLut[idx]
+      c.fillRect(pad + (n % MLP_COLS) * stride, y + Math.floor(n / MLP_COLS) * stride, ncell, ncell)
+    }
   }
 
   // RESIDUAL POST — how much the MLP wrote to each token's stream this layer

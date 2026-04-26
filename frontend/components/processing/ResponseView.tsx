@@ -148,6 +148,13 @@ export default function ResponseView({
     [promptText, inputTokens.length]
   )
 
+  const chunks = useMemo(
+    () => outputTokens.map((tok, i) =>
+      buildChunk(completionId, tok, i, inputTokens.length, isDone && i === outputTokens.length - 1)
+    ),
+    [outputTokens, completionId, inputTokens.length, isDone]
+  )
+
   // Auto-scroll only when the user is already near the bottom
   const responseBoxRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -163,18 +170,14 @@ export default function ResponseView({
   const [copied, setCopied] = useState(false)
   const copyTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleCopy = useCallback(() => {
-    const lines = outputTokens.map((tok, i) => {
-      const isLast = isDone && i === outputTokens.length - 1
-      const chunk = buildChunk(completionId, tok, i, inputTokens.length, isLast)
-      return `data: ${JSON.stringify(chunk)}`
-    })
+    const lines = chunks.map((chunk) => `data: ${JSON.stringify(chunk)}`)
     if (isDone && outputTokens.length > 0) lines.push('data: [DONE]')
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
       setCopied(true)
       if (copyTimeout.current) clearTimeout(copyTimeout.current)
       copyTimeout.current = setTimeout(() => setCopied(false), 1800)
     })
-  }, [outputTokens, isDone, completionId, inputTokens.length])
+  }, [chunks, isDone, outputTokens.length])
 
   return (
     <div className={styles.panel}>
@@ -256,8 +259,7 @@ export default function ResponseView({
               ) : (
                 <div className={styles.streamLog}>
                   {outputTokens.map((tok, i) => {
-                    const isLast = isDone && i === outputTokens.length - 1
-                    const chunk = buildChunk(completionId, tok, i, inputTokens.length, isLast)
+                    const chunk = chunks[i]
                     return (
                       <div key={`chunk-${i}-${tok.id}`} className={styles.streamEntry}>
                         <div className={styles.streamComment}>
