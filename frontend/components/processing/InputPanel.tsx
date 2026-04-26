@@ -1,5 +1,6 @@
 'use client'
 
+import posthog from 'posthog-js'
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ScrollArea from '@/components/ScrollArea'
@@ -109,7 +110,12 @@ export default function InputPanel({
             maxLength={50}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && state === 'idle' && text.trim()) {
+              if (
+                e.key === 'Enter' &&
+                !e.shiftKey &&
+                state === 'idle' &&
+                text.trim()
+              ) {
                 e.preventDefault()
                 onRun(text)
               }
@@ -126,7 +132,7 @@ export default function InputPanel({
               <button
                 type="button"
                 className={styles.btnPrimary}
-                onClick={() => onRun(text)}
+                onClick={() => { posthog.capture('processing_run'); onRun(text) }}
                 disabled={!text.trim()}
               >
                 Run →
@@ -135,7 +141,10 @@ export default function InputPanel({
               <button
                 type="button"
                 className={styles.btnCancel}
-                onClick={() => { setText(''); onReset() }}
+                onClick={() => {
+                  setText('')
+                  onReset()
+                }}
               >
                 Reset
               </button>
@@ -203,11 +212,16 @@ export default function InputPanel({
         <div className={styles.sectionHeader}>
           <span className={styles.eyebrow}>Input Tokens</span>
         </div>
-        {(state === 'tokenizing' || state === 'embedding' || state === 'computing' || state === 'done') && (
+        {(state === 'tokenizing' ||
+          state === 'embedding' ||
+          state === 'computing' ||
+          state === 'done') && (
           <div className={styles.phaseLabelWrap}>
-            {state === 'tokenizing'
-              ? <span className={styles.dotBlink} />
-              : <span className={styles.dotDone} />}
+            {state === 'tokenizing' ? (
+              <span className={styles.dotBlink} />
+            ) : (
+              <span className={styles.dotDone} />
+            )}
             <span>{state === 'tokenizing' ? 'merging…' : 'tokenized'}</span>
           </div>
         )}
@@ -251,7 +265,11 @@ export default function InputPanel({
         <div className={styles.sectionHeader}>
           <span className={styles.eyebrow}>Output Tokens</span>
           {awaitingStep && (
-            <button type="button" className={styles.btnNextInline} onClick={onStepNext}>
+            <button
+              type="button"
+              className={styles.btnNextInline}
+              onClick={onStepNext}
+            >
               Next token →
             </button>
           )}
@@ -319,7 +337,10 @@ function OutputChipWithTooltip({ tok }: { tok: OutputToken }) {
   const maxProb = tok.candidates[0]?.probability ?? 1
 
   return (
-    <div className={styles.outputTokWrap} style={{ opacity: mounted ? 1 : 0, transition: 'opacity 200ms' }}>
+    <div
+      className={styles.outputTokWrap}
+      style={{ opacity: mounted ? 1 : 0, transition: 'opacity 200ms' }}
+    >
       <span className={styles.tokId}>{tok.id}</span>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only tooltip trigger — no interactive role needed */}
       <span
@@ -359,7 +380,9 @@ const CandidateTooltip = forwardRef<
       <div className={styles.tooltipId}>ID {candidates[0]?.id}</div>
       <div className={styles.tooltipSection}>
         <span>top candidates</span>
-        <span className={styles.tooltipSectionHint}>tokens the model considered here</span>
+        <span className={styles.tooltipSectionHint}>
+          tokens the model considered here
+        </span>
       </div>
       <div className={styles.tooltipColHeaders}>
         <span className={styles.tooltipColToken}>token</span>
@@ -376,7 +399,9 @@ const CandidateTooltip = forwardRef<
           <div className={styles.tooltipBarWrap}>
             <div
               className={styles.tooltipBar}
-              style={{ width: `${Math.round((c.probability / maxProb) * 100)}%` }}
+              style={{
+                width: `${Math.round((c.probability / maxProb) * 100)}%`,
+              }}
             />
           </div>
           <span className={styles.tooltipProb}>{c.probability.toFixed(2)}</span>
