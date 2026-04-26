@@ -21,7 +21,11 @@ async def stream_to_websocket(ws: WebSocket, runner: GPT2Runner, text: str) -> N
                 await ws.send_text(encode_frame(frame))
             except TypeError as exc:
                 log.error("Unencodable frame (type=%r): %s", frame.get("type"), exc)
-                await ws.send_text(encode_frame({"type": "error", "message": "Activation data could not be serialized."}))
+                error_payload = {
+                    "type": "error",
+                    "message": "Activation data could not be serialized.",
+                }
+                await ws.send_text(encode_frame(error_payload))
                 return
     except asyncio.CancelledError:
         raise

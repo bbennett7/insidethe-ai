@@ -1,6 +1,7 @@
 import asyncio
 import re
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 import numpy as np
 import torch
@@ -12,6 +13,7 @@ from transformers.utils import cached_file
 # and whitespace separately so spaces are attached to the following word.
 _GPT2_PAT = re.compile(r"""'s|'t|'re|'ve|'m|'ll|'d| ?\w+| ?\d+| ?[^\s\w\d]+|\s+(?!\S)|\s+""")
 
+
 def _make_byte_maps() -> "tuple[dict, dict]":
     """Build GPT-2's fixed byte↔unicode mapping.
 
@@ -20,9 +22,11 @@ def _make_byte_maps() -> "tuple[dict, dict]":
     (0–255) to a unique printable character so BPE can operate on them as plain
     strings. The reverse map (_BYTE_DEC) translates back for display.
     """
-    bs = (list(range(ord("!"), ord("~") + 1))
-          + list(range(ord("¡"), ord("¬") + 1))
-          + list(range(ord("®"), ord("ÿ") + 1)))
+    bs = (
+        list(range(ord("!"), ord("~") + 1))
+        + list(range(ord("¡"), ord("¬") + 1))
+        + list(range(ord("®"), ord("ÿ") + 1))
+    )
     cs = bs[:]
     n = 0
     for b in range(256):
@@ -32,6 +36,7 @@ def _make_byte_maps() -> "tuple[dict, dict]":
             n += 1
     enc = dict(zip(bs, [chr(c) for c in cs]))
     return enc, {v: k for k, v in enc.items()}
+
 
 _BYTE_ENC, _BYTE_DEC = _make_byte_maps()
 
@@ -43,15 +48,17 @@ class GPT2Runner:
 
     def __init__(self) -> None:
         self._model = LanguageModel("gpt2", device_map="cpu", attn_implementation="eager")
-        # Required so GPT2Attention.forward returns (attn_output, attn_weights) — index [1] is used below
+        # Required so GPT2Attention.forward returns (attn_output, attn_weights)
+        # — index [1] is used below
         self._model.config.output_attentions = True
         # Load BPE merge rules from the cached merges.txt (already on disk from model download)
         merges_path = cached_file("gpt2", "merges.txt")
         with open(merges_path) as fh:
-            lines = [l.strip() for l in fh if l.strip() and not l.startswith("#")]
+            lines = [ln.strip() for ln in fh if ln.strip() and not ln.startswith("#")]
         # _bpe_ranks maps each merge pair to its priority — lower rank = applied first
         self._bpe_ranks: dict[tuple[str, str], int] = {
-            tuple(line.split()): i for i, line in enumerate(lines)  # type: ignore[misc]
+            tuple(line.split()): i
+            for i, line in enumerate(lines)  # type: ignore[misc]
         }
         # Prevents concurrent nnsight traces on the shared model instance
         self._lock = asyncio.Lock()
@@ -75,13 +82,13 @@ class GPT2Runner:
             then repeatedly finds and applies the highest-priority merge until no
             more valid pairs exist. Each state after a merge is saved as a stage.
             """
-            chars = [_BYTE_ENC[b] for b in pre_token.encode('utf-8')]
+            chars = [_BYTE_ENC[b] for b in pre_token.encode("utf-8")]
             stages = [chars.copy()]
             while len(chars) > 1:
                 best_pair = None
-                best_rank = float('inf')
+                best_rank = float("inf")
                 for i in range(len(chars) - 1):
-                    r = bpe_ranks.get((chars[i], chars[i + 1]), float('inf'))
+                    r = bpe_ranks.get((chars[i], chars[i + 1]), float("inf"))
                     if r < best_rank:
                         best_rank = r
                         best_pair = (chars[i], chars[i + 1])
@@ -90,7 +97,11 @@ class GPT2Runner:
                 new_chars: list[str] = []
                 i = 0
                 while i < len(chars):
-                    if i < len(chars) - 1 and chars[i] == best_pair[0] and chars[i + 1] == best_pair[1]:
+                    if (
+                        i < len(chars) - 1
+                        and chars[i] == best_pair[0]
+                        and chars[i + 1] == best_pair[1]
+                    ):  # noqa: E501
                         new_chars.append(chars[i] + chars[i + 1])
                         i += 2
                     else:
@@ -111,12 +122,15 @@ class GPT2Runner:
             ci = pi = 0
             while ci < len(curr) and pi < len(prev):
                 if prev[pi] == curr[ci]:
-                    pi += 1; ci += 1
+                    pi += 1
+                    ci += 1
                 elif pi + 1 < len(prev) and prev[pi] + prev[pi + 1] == curr[ci]:
                     result.add(ci)
-                    pi += 2; ci += 1
+                    pi += 2
+                    ci += 1
                 else:
-                    pi += 1; ci += 1
+                    pi += 1
+                    ci += 1
             return result
 
         def tok_display(tok: str) -> tuple[str, bool]:
@@ -126,8 +140,8 @@ class GPT2Runner:
             stripped from the text and returned separately so the frontend can
             render it as a visible · separator between words.
             """
-            raw = bytes(_BYTE_DEC[c] for c in tok).decode('utf-8', errors='replace')
-            return raw.lstrip(' '), raw.startswith(' ')
+            raw = bytes(_BYTE_DEC[c] for c in tok).decode("utf-8", errors="replace")
+            return raw.lstrip(" "), raw.startswith(" ")
 
         pre_tokens = _GPT2_PAT.findall(text)
         if not pre_tokens:
@@ -144,7 +158,11 @@ class GPT2Runner:
             for ws in all_word_stages:
                 curr = ws[min(si, len(ws) - 1)]
                 prev = ws[min(si - 1, len(ws) - 1)] if si > 0 else None
-                merged = merged_indices(prev, curr) if prev is not None and len(curr) != len(prev) else set()
+                merged = (
+                    merged_indices(prev, curr)
+                    if prev is not None and len(curr) != len(prev)
+                    else set()
+                )
                 for ti, tok in enumerate(curr):
                     display, has_space = tok_display(tok)
                     if ti == 0 and has_space and items:
@@ -171,13 +189,15 @@ class GPT2Runner:
             embed_saved = self._model.transformer.wte.output.save()
             for i in range(self.NUM_LAYERS):
                 h = self._model.transformer.h[i]
-                layer_saves.append({
-                    "ln1":  h.ln_1.output.save(),   # LayerNorm 1 output (before attention)
-                    "attn": h.attn.output.save(),    # (attn_output, attn_weights) tuple
-                    "ln2":  h.ln_2.output.save(),    # LayerNorm 2 output (before MLP)
-                    "act":  h.mlp.act.output.save(), # Post-GELU MLP hidden activations
-                    "mlp":  h.mlp.output.save(),     # MLP output written to residual stream
-                })
+                layer_saves.append(
+                    {
+                        "ln1": h.ln_1.output.save(),  # LayerNorm 1 output (before attention)
+                        "attn": h.attn.output.save(),  # (attn_output, attn_weights) tuple
+                        "ln2": h.ln_2.output.save(),  # LayerNorm 2 output (before MLP)
+                        "act": h.mlp.act.output.save(),  # Post-GELU MLP hidden activations
+                        "mlp": h.mlp.output.save(),  # MLP output written to residual stream
+                    }
+                )
             logits_saved = self._model.lm_head.output.save()
         return embed_saved, layer_saves, logits_saved
 
@@ -241,8 +261,12 @@ class GPT2Runner:
 
             # attn: full per-head weight matrices [num_heads, seq, seq], rounded to save bandwidth
             attn_weights = np.round(s["attn"][1][0].detach().numpy(), 4)
-            yield {"type": "layer", "layer": i, "component": "attn",
-                   "data": {"weights": attn_weights, "heads": self.NUM_HEADS}}
+            yield {
+                "type": "layer",
+                "layer": i,
+                "component": "attn",
+                "data": {"weights": attn_weights, "heads": self.NUM_HEADS},
+            }
             await asyncio.sleep(0)
 
             # attn_write: L2 norm of attention output per token, normalized to [0, 1] —
@@ -274,7 +298,8 @@ class GPT2Runner:
             yield {"type": "layer", "layer": i, "component": "mlp_write", "data": mlp_write}
             await asyncio.sleep(0)
 
-            s.clear()  # release activation tensors as we go to avoid holding all 12 layers in memory
+            # release activation tensors as we go to avoid holding all 12 layers in memory
+            s.clear()
 
         # Top-10 next-token predictions with softmax probabilities
         logits = logits_saved[0, -1]
