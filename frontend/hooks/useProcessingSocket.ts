@@ -141,8 +141,8 @@ export function useProcessingSocket(
       return
     }
 
-    const entry = queueRef.current.shift()!
-    if (entry._gen !== generationRef.current) {
+    const entry = queueRef.current.shift()
+    if (!entry || entry._gen !== generationRef.current) {
       // Stale message from a previous run — skip and keep draining
       timerRef.current = setTimeout(processNext, 0)
       return
