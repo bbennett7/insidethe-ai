@@ -1,8 +1,4 @@
 import LandingCard from '@/components/LandingCard';
-import PreviewAgentCanvas from '@/components/PreviewAgentCanvas';
-import PreviewAlgoCanvas from '@/components/PreviewAlgoCanvas';
-import PreviewFrontierCanvas from '@/components/PreviewFrontierCanvas';
-import PreviewMemoryCanvas from '@/components/PreviewMemoryCanvas';
 import PreviewProcessCanvas from '@/components/PreviewProcessCanvas';
 import PreviewTransformerCanvas from '@/components/PreviewTransformerCanvas';
 import styles from './page.module.css';
@@ -15,10 +11,6 @@ const CARDS = [
     href: '/processing',
   },
   { num: '02', name: 'Transformer', canvas: <PreviewTransformerCanvas /> },
-  { num: '03', name: 'Algorithms', canvas: <PreviewAlgoCanvas /> },
-  { num: '04', name: 'Agent', canvas: <PreviewAgentCanvas /> },
-  { num: '05', name: 'Memory', canvas: <PreviewMemoryCanvas /> },
-  { num: '06', name: 'Frontier', canvas: <PreviewFrontierCanvas /> },
 ];
 
 export default function Home() {
