@@ -33,6 +33,10 @@ Thumbs.db
 # Claude Code session data
 .claude/
 
+# Compound Engineering local config
+.context/
+compound-engineering.local.md
+
 # Internal audit / review notes
 todos/
 
