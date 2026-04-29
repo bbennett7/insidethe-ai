@@ -1,18 +1,20 @@
 'use client'
 
 import posthog from 'posthog-js'
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ScrollArea from '@/components/ScrollArea'
-import type {
-  Candidate,
-  MergeItem,
-  OutputToken,
-  ProcessState,
-  Token,
-} from '@/lib/processingTypes'
+import type { Candidate, MergeItem, OutputToken, ProcessState, Token } from '@/lib/processingTypes'
+import { positionTooltipEl } from '@/lib/tooltipPosition'
 import EmbeddingStrip from './EmbeddingStrip'
+import InfoTooltip from './InfoTooltip'
 import styles from './InputPanel.module.css'
+import {
+  embeddingStripTooltip,
+  inputTokenCountTooltip,
+  outputTokenCountTooltip,
+  tokenIdTooltip,
+} from './tooltipContent'
 
 interface InputPanelProps {
   onRun: (text: string) => void
@@ -55,19 +57,18 @@ export default function InputPanel({
   const [chipWidths, setChipWidths] = useState<number[]>([])
   const chipRefs = useRef<(HTMLSpanElement | null)[]>([])
 
-  const measureChips = useCallback(() => {
-    const widths = chipRefs.current.map((el) => el?.offsetWidth ?? 40)
+  const showEmbeds = state === 'embedding' || state === 'computing' || state === 'done'
+
+  // Measure after chips mount (showEmbeds flips true) — rAF on inputTokens alone fires
+  // while chips aren't mounted yet, giving null refs and wrong fallback widths.
+  useLayoutEffect(() => {
+    if (!showEmbeds || inputTokens.length === 0) return
+    const widths = chipRefs.current
+      .slice(0, inputTokens.length)
+      .map((el) => el?.offsetWidth ?? 40)
     setChipWidths(widths)
-  }, [])
+  }, [inputTokens, showEmbeds])
 
-  useEffect(() => {
-    if (inputTokens.length > 0) {
-      requestAnimationFrame(measureChips)
-    }
-  }, [inputTokens, measureChips])
-
-  const showEmbeds =
-    state === 'embedding' || state === 'computing' || state === 'done'
   const showMerge = state === 'tokenizing'
   const showChips = showEmbeds || showMerge
 
@@ -78,11 +79,7 @@ export default function InputPanel({
           {sp ? '' : '—'}
         </span>
         <span
-          className={[
-            styles.ch,
-            sp ? styles.chSpace : '',
-            m ? styles.chMerged : '',
-          ]
+          className={[styles.ch, sp ? styles.chSpace : '', m ? styles.chMerged : '']
             .filter(Boolean)
             .join(' ')}
         >
@@ -110,12 +107,7 @@ export default function InputPanel({
             maxLength={50}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (
-                e.key === 'Enter' &&
-                !e.shiftKey &&
-                state === 'idle' &&
-                text.trim()
-              ) {
+              if (e.key === 'Enter' && !e.shiftKey && state === 'idle' && text.trim()) {
                 e.preventDefault()
                 onRun(text)
               }
@@ -132,7 +124,10 @@ export default function InputPanel({
               <button
                 type="button"
                 className={styles.btnPrimary}
-                onClick={() => { posthog.capture('processing_run'); onRun(text) }}
+                onClick={() => {
+                  posthog.capture('processing_run')
+                  onRun(text)
+                }}
                 disabled={!text.trim()}
               >
                 Run →
@@ -149,19 +144,13 @@ export default function InputPanel({
                 Reset
               </button>
             ) : (
-              <button
-                type="button"
-                className={styles.btnCancel}
-                onClick={onCancel}
-              >
+              <button type="button" className={styles.btnCancel} onClick={onCancel}>
                 Cancel ×
               </button>
             )}
           </div>
         </div>
-        <p className={styles.promptHint}>
-          50 chars max — short prompts are easier to visualize.
-        </p>
+        <p className={styles.promptHint}>50 chars max — short prompts are easier to visualize.</p>
       </div>
 
       {/* 2. Playback */}
@@ -210,7 +199,9 @@ export default function InputPanel({
       {/* 3. Input tokens */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <span className={styles.eyebrow}>Input Tokens</span>
+          <InfoTooltip content={inputTokenCountTooltip()} labelHint>
+            <span className={styles.eyebrow}>Input Tokens</span>
+          </InfoTooltip>
         </div>
         {(state === 'tokenizing' ||
           state === 'embedding' ||
@@ -237,7 +228,9 @@ export default function InputPanel({
           {showEmbeds &&
             inputTokens.map((tok, i) => (
               <div key={`inp-${i}-${tok.id}`} className={styles.embedTokenWrap}>
-                <span className={styles.tokId}>{tok.id}</span>
+                <InfoTooltip content={tokenIdTooltip()}>
+                  <span className={styles.tokId}>{tok.id}</span>
+                </InfoTooltip>
                 <span
                   ref={(el) => {
                     chipRefs.current[i] = el
@@ -246,30 +239,28 @@ export default function InputPanel({
                 >
                   {tok.text}
                 </span>
-                {chipWidths[i] !== undefined && (
+                <InfoTooltip content={embeddingStripTooltip()}>
                   <EmbeddingStrip
                     tokenIndex={i}
                     vector={embedVectors[i] ?? null}
-                    width={chipWidths[i]}
-                    animating={state === 'embedding'}
+                    width={chipWidths[i] ?? 40}
+                    animating={showEmbeds}
                     speedRef={speedRef}
                   />
-                )}
+                </InfoTooltip>
               </div>
             ))}
         </div>
       </div>
 
       {/* 4. Output tokens */}
-      <div className={`${styles.section} ${styles.sectionLast}`}>
+      <div className={`${styles.section} ${styles.sectionOutput}`}>
         <div className={styles.sectionHeader}>
-          <span className={styles.eyebrow}>Output Tokens</span>
+          <InfoTooltip content={outputTokenCountTooltip()} labelHint>
+            <span className={styles.eyebrow}>Output Tokens</span>
+          </InfoTooltip>
           {awaitingStep && (
-            <button
-              type="button"
-              className={styles.btnNextInline}
-              onClick={onStepNext}
-            >
+            <button type="button" className={styles.btnNextInline} onClick={onStepNext}>
               Next token →
             </button>
           )}
@@ -289,6 +280,12 @@ export default function InputPanel({
             <span>computing…</span>
           </div>
         )}
+        {state === 'done' && awaitingStep && (
+          <div className={styles.computingPlaceholder}>
+            <span className={`${styles.dotBlink} ${styles.dotQuiet}`} style={{ animationName: 'none' }} />
+            <span>idle</span>
+          </div>
+        )}
         <ScrollArea className={styles.outputScrollable}>
           <div className={styles.outputSection}>
             {outputTokens.length > 0 && (
@@ -301,6 +298,7 @@ export default function InputPanel({
           </div>
         </ScrollArea>
       </div>
+
     </div>
   )
 }
@@ -313,19 +311,10 @@ function OutputChipWithTooltip({ tok }: { tok: OutputToken }) {
     requestAnimationFrame(() => requestAnimationFrame(() => setMounted(true)))
   }, [])
 
-  // Position and show tooltip via direct DOM manipulation — zero React renders per mousemove
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const el = tooltipRef.current
     if (!el) return
-    const pad = 14
-    let x = e.clientX + pad
-    let y = e.clientY - pad
-    const tw = el.offsetWidth || 160
-    const th = el.offsetHeight || 120
-    if (x + tw > window.innerWidth - pad) x = e.clientX - tw - pad
-    if (y + th > window.innerHeight - pad) y = e.clientY - th - pad
-    el.style.left = `${x}px`
-    el.style.top = `${y}px`
+    positionTooltipEl(el, e.clientX, e.clientY)
     el.style.opacity = '1'
   }, [])
 
@@ -350,11 +339,7 @@ function OutputChipWithTooltip({ tok }: { tok: OutputToken }) {
         onMouseLeave={handleMouseLeave}
       >
         {tok.text}
-        <CandidateTooltip
-          ref={tooltipRef}
-          candidates={tok.candidates}
-          maxProb={maxProb}
-        />
+        <CandidateTooltip ref={tooltipRef} candidates={tok.candidates} maxProb={maxProb} />
       </span>
     </div>
   )
@@ -380,9 +365,7 @@ const CandidateTooltip = forwardRef<
       <div className={styles.tooltipId}>ID {candidates[0]?.id}</div>
       <div className={styles.tooltipSection}>
         <span>top candidates</span>
-        <span className={styles.tooltipSectionHint}>
-          tokens the model considered here
-        </span>
+        <span className={styles.tooltipSectionHint}>tokens the model considered here</span>
       </div>
       <div className={styles.tooltipColHeaders}>
         <span className={styles.tooltipColToken}>token</span>
@@ -391,9 +374,7 @@ const CandidateTooltip = forwardRef<
       </div>
       {candidates.map((c, i) => (
         <div key={`cand-${i}-${c.id}`} className={styles.tooltipRow}>
-          <span
-            className={`${styles.tooltipToken}${i === 0 ? ` ${styles.tooltipTokenTop}` : ''}`}
-          >
+          <span className={`${styles.tooltipToken}${i === 0 ? ` ${styles.tooltipTokenTop}` : ''}`}>
             {c.text}
           </span>
           <div className={styles.tooltipBarWrap}>

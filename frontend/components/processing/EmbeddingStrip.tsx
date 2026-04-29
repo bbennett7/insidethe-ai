@@ -66,7 +66,7 @@ export default function EmbeddingStrip({
   const offsetRef = useRef<number>(tokenIndex * 47)
   const animIdRef = useRef<number | null>(null)
   const lastTsRef = useRef<number | null>(null)
-  const vectorRef = useRef<Float32Array>(new Float32Array(768))
+  const vectorRef = useRef<Float32Array | null>(null)
   const { isDark } = useTheme()
   const isDarkRef = useRef(isDark)
   isDarkRef.current = isDark
@@ -77,6 +77,14 @@ export default function EmbeddingStrip({
     const dpr = window.devicePixelRatio || 1
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+
+    if (!vectorRef.current) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = isDarkRef.current ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      return
+    }
+
     const numCells = Math.floor(width / (EMBED_CELL_W + EMBED_GAP))
     drawEmbedSlot(
       ctx,
@@ -91,8 +99,7 @@ export default function EmbeddingStrip({
   }, [width])
 
   useEffect(() => {
-    if (!vector) return
-    vectorRef.current = Float32Array.from(vector)
+    vectorRef.current = vector ? Float32Array.from(vector) : null
     draw()
   }, [vector, draw])
 
@@ -137,8 +144,6 @@ export default function EmbeddingStrip({
       lastTsRef.current = null
     }
   }, [animating, draw, speedRef])
-
-  if (!vector) return null
 
   return (
     <canvas
