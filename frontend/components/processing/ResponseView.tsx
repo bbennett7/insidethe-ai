@@ -14,8 +14,8 @@ function tokenizeJson(json: string): Array<{ t: string; c: SegCls }> {
   const re =
     /("(?:[^"\\]|\\.)*")(\s*:)|("(?:[^"\\]|\\.)*")|(true|false|null)|(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)/g
   let pos = 0
-  let m: RegExpExecArray | null
-  while ((m = re.exec(json)) !== null) {
+  let m: RegExpExecArray | null = re.exec(json)
+  while (m !== null) {
     if (m.index > pos) out.push({ t: json.slice(pos, m.index), c: 'jPunct' })
     if (m[1] !== undefined) {
       out.push({ t: m[1], c: 'jKey' })
@@ -28,6 +28,7 @@ function tokenizeJson(json: string): Array<{ t: string; c: SegCls }> {
       out.push({ t: m[5], c: 'jNum' })
     }
     pos = m.index + m[0].length
+    m = re.exec(json)
   }
   if (pos < json.length) out.push({ t: json.slice(pos), c: 'jPunct' })
   return out
