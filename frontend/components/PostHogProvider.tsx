@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { usePathname } from 'next/navigation'
-import posthog from 'posthog-js'
-import { PostHogProvider as PHProvider } from 'posthog-js/react'
-import { useEffect } from 'react'
+import { usePathname } from 'next/navigation';
+import posthog from 'posthog-js';
+import { PostHogProvider as PHProvider } from 'posthog-js/react';
+import { useEffect } from 'react';
 
-const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
+const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 if (typeof window !== 'undefined' && key) {
   posthog.init(key, {
     api_host: 'https://us.i.posthog.com',
@@ -13,15 +13,16 @@ if (typeof window !== 'undefined' && key) {
     // Next.js App Router client-side navigation correctly.
     capture_pageview: false,
     autocapture: false,
-  })
+  });
 }
 
 function PostHogPageView() {
-  const pathname = usePathname()
+  const pathname = usePathname();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger for pageview on route change
   useEffect(() => {
-    posthog.capture('$pageview', { $current_url: window.location.href })
-  }, [pathname])
-  return null
+    posthog.capture('$pageview', { $current_url: window.location.href });
+  }, [pathname]);
+  return null;
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
@@ -30,5 +31,5 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       <PostHogPageView />
       {children}
     </PHProvider>
-  )
+  );
 }

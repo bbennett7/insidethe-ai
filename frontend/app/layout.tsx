@@ -1,10 +1,10 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import BackgroundCanvas from '@/components/BackgroundCanvas'
-import MobileGate from '@/components/MobileGate'
-import Nav from '@/components/Nav'
-import { PostHogProvider } from '@/components/PostHogProvider'
-import { ThemeProvider } from '@/lib/ThemeContext'
+import type { Metadata } from 'next';
+import './globals.css';
+import BackgroundCanvas from '@/components/BackgroundCanvas';
+import MobileGate from '@/components/MobileGate';
+import Nav from '@/components/Nav';
+import { PostHogProvider } from '@/components/PostHogProvider';
+import { ThemeProvider } from '@/lib/ThemeContext';
 
 export const metadata: Metadata = {
   title: 'insidethe.ai',
@@ -12,15 +12,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
   },
-}
+};
 
-const themeScript = `(function(){try{if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')}catch(e){}})()`
+const themeScript = `(function(){try{if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')}catch(e){}})()`;
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -38,5 +34,5 @@ export default function RootLayout({
         </PostHogProvider>
       </body>
     </html>
-  )
+  );
 }

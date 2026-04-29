@@ -1,74 +1,77 @@
-'use client'
+'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import ScrollArea from '@/components/ScrollArea'
-import type { OutputToken, ProcessState, Token } from '@/lib/processingTypes'
-import styles from './ResponseView.module.css'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ScrollArea from '@/components/ScrollArea';
+import type { OutputToken, ProcessState, Token } from '@/lib/processingTypes';
+import styles from './ResponseView.module.css';
 
 // ── Syntax highlighter ────────────────────────────────────────────────────
 
-type SegCls = 'jKey' | 'jStr' | 'jNum' | 'jKw' | 'jPunct'
+type SegCls = 'jKey' | 'jStr' | 'jNum' | 'jKw' | 'jPunct';
 
 function tokenizeJson(json: string): Array<{ t: string; c: SegCls }> {
-  const out: Array<{ t: string; c: SegCls }> = []
+  const out: Array<{ t: string; c: SegCls }> = [];
   const re =
-    /("(?:[^"\\]|\\.)*")(\s*:)|("(?:[^"\\]|\\.)*")|(true|false|null)|(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)/g
-  let pos = 0
-  let m: RegExpExecArray | null
-  while ((m = re.exec(json)) !== null) {
-    if (m.index > pos) out.push({ t: json.slice(pos, m.index), c: 'jPunct' })
+    /("(?:[^"\\]|\\.)*")(\s*:)|("(?:[^"\\]|\\.)*")|(true|false|null)|(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+  let pos = 0;
+  let m: RegExpExecArray | null = re.exec(json);
+  while (m !== null) {
+    if (m.index > pos) out.push({ t: json.slice(pos, m.index), c: 'jPunct' });
     if (m[1] !== undefined) {
-      out.push({ t: m[1], c: 'jKey' })
-      out.push({ t: m[2], c: 'jPunct' })
+      out.push({ t: m[1], c: 'jKey' });
+      out.push({ t: m[2], c: 'jPunct' });
     } else if (m[3] !== undefined) {
-      out.push({ t: m[3], c: 'jStr' })
+      out.push({ t: m[3], c: 'jStr' });
     } else if (m[4] !== undefined) {
-      out.push({ t: m[4], c: 'jKw' })
+      out.push({ t: m[4], c: 'jKw' });
     } else if (m[5] !== undefined) {
-      out.push({ t: m[5], c: 'jNum' })
+      out.push({ t: m[5], c: 'jNum' });
     }
-    pos = m.index + m[0].length
+    pos = m.index + m[0].length;
+    m = re.exec(json);
   }
-  if (pos < json.length) out.push({ t: json.slice(pos), c: 'jPunct' })
-  return out
+  if (pos < json.length) out.push({ t: json.slice(pos), c: 'jPunct' });
+  return out;
 }
 
-const S = styles as Record<string, string>
+const S = styles as Record<string, string>;
 
 // Pretty-printed block (request pane)
 function JsonBlock({ value }: { value: unknown }) {
-  const json = JSON.stringify(value, null, 2)
-  const segs = useMemo(() => tokenizeJson(json), [json])
+  const json = JSON.stringify(value, null, 2);
+  const segs = useMemo(() => tokenizeJson(json), [json]);
   return (
     <pre className={styles.jsonPre}>
       {segs.map((s, i) => (
-        <span key={i} className={S[s.c]}>
+        // biome-ignore lint/suspicious/noArrayIndexKey: segments have no stable id; index is the only discriminator
+        <span key={`block-${i}`} className={S[s.c]}>
           {s.t}
         </span>
       ))}
     </pre>
-  )
+  );
 }
 
 // Compact inline JSON (one SSE chunk)
 function JsonInline({ value }: { value: unknown }) {
-  const json = JSON.stringify(value)
-  const segs = useMemo(() => tokenizeJson(json), [json])
+  const json = JSON.stringify(value);
+  const segs = useMemo(() => tokenizeJson(json), [json]);
   return (
     <>
       {segs.map((s, i) => (
-        <span key={i} className={S[s.c]}>
+        // biome-ignore lint/suspicious/noArrayIndexKey: segments have no stable id; index is the only discriminator
+        <span key={`inline-${i}`} className={S[s.c]}>
           {s.t}
         </span>
       ))}
     </>
-  )
+  );
 }
 
 // ── Data builders ─────────────────────────────────────────────────────────
 
 function buildRequest(text: string) {
-  return { type: 'run', text }
+  return { type: 'run', text };
 }
 
 function buildChunk(
@@ -78,9 +81,8 @@ function buildChunk(
   promptLen: number,
   isLast: boolean
 ) {
-  const TOP = 3
-  const chosen =
-    tok.candidates.find((c) => c.text === tok.text) ?? tok.candidates[0]
+  const TOP = 3;
+  const chosen = tok.candidates.find((c) => c.text === tok.text) ?? tok.candidates[0];
   return {
     id,
     object: 'text_completion.chunk',
@@ -92,17 +94,12 @@ function buildChunk(
         finish_reason: isLast ? 'length' : null,
         logprobs: {
           tokens: [tok.text],
-          token_logprobs: [
-            chosen ? parseFloat(Math.log(chosen.probability).toFixed(4)) : null,
-          ],
+          token_logprobs: [chosen ? parseFloat(Math.log(chosen.probability).toFixed(4)) : null],
           top_logprobs: [
             Object.fromEntries(
               tok.candidates
                 .slice(0, TOP)
-                .map((c) => [
-                  c.text,
-                  parseFloat(Math.log(c.probability).toFixed(4)),
-                ])
+                .map((c) => [c.text, parseFloat(Math.log(c.probability).toFixed(4))])
             ),
           ],
         },
@@ -113,17 +110,17 @@ function buildChunk(
       completion_tokens: index + 1,
       total_tokens: promptLen + index + 1,
     },
-  }
+  };
 }
 
 // ── Props ─────────────────────────────────────────────────────────────────
 
 export interface ResponseViewProps {
-  inputTokens: Token[]
-  outputTokens: OutputToken[]
-  processState: ProcessState
-  streamLive: boolean
-  promptText: string
+  inputTokens: Token[];
+  outputTokens: OutputToken[];
+  processState: ProcessState;
+  streamLive: boolean;
+  promptText: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -135,27 +132,24 @@ export default function ResponseView({
   streamLive,
   promptText,
 }: ResponseViewProps) {
-  const isIdle = processState === 'idle'
-  const isDone = processState === 'done'
+  const isIdle = processState === 'idle';
+  const isDone = processState === 'done';
   const isRunning =
     streamLive ||
     processState === 'tokenizing' ||
     processState === 'embedding' ||
-    processState === 'computing'
+    processState === 'computing';
 
-  const hasStarted =
-    !isIdle || inputTokens.length > 0 || outputTokens.length > 0
+  const hasStarted = !isIdle || inputTokens.length > 0 || outputTokens.length > 0;
 
   const completionId =
-    inputTokens.length > 0
-      ? `cmpl-${inputTokens[0].id}-${inputTokens.length}`
-      : 'cmpl-pending'
+    inputTokens.length > 0 ? `cmpl-${inputTokens[0].id}-${inputTokens.length}` : 'cmpl-pending';
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — length change is the trigger, not full array identity
   const requestObj = useMemo(
     () => buildRequest(promptText || inputTokens.map((t) => t.text).join('')),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [promptText, inputTokens.length]
-  )
+  );
 
   const chunks = useMemo(
     () =>
@@ -169,31 +163,32 @@ export default function ResponseView({
         )
       ),
     [outputTokens, completionId, inputTokens.length, isDone]
-  )
+  );
 
   // Auto-scroll only when the user is already near the bottom
-  const responseBoxRef = useRef<HTMLDivElement>(null)
+  const responseBoxRef = useRef<HTMLDivElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: length/isDone are triggers; body reads ref
   useEffect(() => {
-    const el = responseBoxRef.current
-    if (!el) return
-    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
-    if (distFromBottom < 80) el.scrollTop = el.scrollHeight
-  }, [outputTokens.length, isDone])
+    const el = responseBoxRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (distFromBottom < 80) el.scrollTop = el.scrollHeight;
+  }, [outputTokens.length, isDone]);
 
-  const [format, setFormat] = useState<'inline' | 'pretty'>('inline')
+  const [format, setFormat] = useState<'inline' | 'pretty'>('inline');
 
   // Copy-to-clipboard for the response stream
-  const [copied, setCopied] = useState(false)
-  const copyTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [copied, setCopied] = useState(false);
+  const copyTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleCopy = useCallback(() => {
-    const lines = chunks.map((chunk) => `data: ${JSON.stringify(chunk)}`)
-    if (isDone && outputTokens.length > 0) lines.push('data: [DONE]')
+    const lines = chunks.map((chunk) => `data: ${JSON.stringify(chunk)}`);
+    if (isDone && outputTokens.length > 0) lines.push('data: [DONE]');
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
-      setCopied(true)
-      if (copyTimeout.current) clearTimeout(copyTimeout.current)
-      copyTimeout.current = setTimeout(() => setCopied(false), 1800)
-    })
-  }, [chunks, isDone, outputTokens.length])
+      setCopied(true);
+      if (copyTimeout.current) clearTimeout(copyTimeout.current);
+      copyTimeout.current = setTimeout(() => setCopied(false), 1800);
+    });
+  }, [chunks, isDone, outputTokens.length]);
 
   return (
     <div className={styles.panel}>
@@ -206,8 +201,7 @@ export default function ResponseView({
           </span>
         ) : isDone && outputTokens.length > 0 ? (
           <span className={styles.statusDone}>
-            {outputTokens.length} token{outputTokens.length !== 1 ? 's' : ''}{' '}
-            generated
+            {outputTokens.length} token{outputTokens.length !== 1 ? 's' : ''} generated
           </span>
         ) : null}
       </div>
@@ -223,9 +217,7 @@ export default function ResponseView({
             {hasStarted ? (
               <JsonBlock value={requestObj} />
             ) : (
-              <span className={styles.placeholder}>
-                run a prompt to see the API response
-              </span>
+              <span className={styles.placeholder}>run a prompt to see the API response</span>
             )}
           </ScrollArea>
         </div>
@@ -259,13 +251,7 @@ export default function ResponseView({
                 aria-label="Copy stream"
               >
                 {copied ? (
-                  <svg
-                    width="11"
-                    height="11"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    aria-hidden="true"
-                  >
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path
                       d="M2 6l3 3 5-5"
                       stroke="currentColor"
@@ -275,13 +261,7 @@ export default function ResponseView({
                     />
                   </svg>
                 ) : (
-                  <svg
-                    width="11"
-                    height="11"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    aria-hidden="true"
-                  >
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <rect
                       x="4"
                       y="1"
@@ -309,17 +289,12 @@ export default function ResponseView({
             ) : (
               <div className={styles.streamLog}>
                 {outputTokens.map((tok, i) => {
-                  const chunk = chunks[i]
+                  const chunk = chunks[i];
                   return (
-                    <div
-                      key={`chunk-${i}-${tok.id}`}
-                      className={styles.streamEntry}
-                    >
+                    <div key={`chunk-${tok.id}`} className={styles.streamEntry}>
                       <div className={styles.streamComment}>
                         res no. {i + 1}{' '}
-                        <span className={styles.streamCommentToken}>
-                          {tok.text}
-                        </span>
+                        <span className={styles.streamCommentToken}>{tok.text}</span>
                       </div>
                       {format === 'inline' ? (
                         <>
@@ -333,7 +308,7 @@ export default function ResponseView({
                         </>
                       )}
                     </div>
-                  )
+                  );
                 })}
 
                 {isDone && outputTokens.length > 0 && (
@@ -343,14 +318,12 @@ export default function ResponseView({
                   </div>
                 )}
 
-                {isRunning && (
-                  <span className={styles.cursor} aria-hidden="true" />
-                )}
+                {isRunning && <span className={styles.cursor} aria-hidden="true" />}
               </div>
             )}
           </ScrollArea>
         </div>
       </div>
     </div>
-  )
+  );
 }

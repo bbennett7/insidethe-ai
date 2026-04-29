@@ -204,18 +204,6 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-:global(html.light) .dataPrefix {
-  color: rgba(255, 255, 255, 0.22);
-}
-
-:global(html.light) .streamComment {
-  color: rgba(255, 255, 255, 0.18);
-}
-
-:global(html.light) .waiting {
-  color: rgba(255, 255, 255, 0.3);
-}
-
 :global(html.light) .placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
@@ -257,11 +245,19 @@
   margin-bottom: 3px;
 }
 
+:global(html.light) .streamComment {
+  color: rgba(255, 255, 255, 0.18);
+}
+
 .streamCommentToken {
   color: var(--acid-dim);
 }
 
 .dataPrefix {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+:global(html.light) .dataPrefix {
   color: rgba(255, 255, 255, 0.22);
 }
 
@@ -297,6 +293,10 @@
   font-size: 10px;
   color: var(--ink-quiet);
   font-style: italic;
+}
+
+:global(html.light) .waiting {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ── Syntax colours ───────────────────────────────────────── */

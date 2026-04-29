@@ -1,4 +1,4 @@
-import styles from './page.module.css'
+import styles from './page.module.css';
 
 export default function AgentPage() {
   return (
@@ -8,5 +8,5 @@ export default function AgentPage() {
       </h1>
       <p className={styles.note}>Coming soon.</p>
     </div>
-  )
+  );
 }

@@ -1,17 +1,17 @@
-import { SiHuggingface } from 'react-icons/si'
-import InfoTooltip from './InfoTooltip'
-import styles from './RightPanelHeader.module.css'
-import { mechInterpTooltip } from './tooltipContent'
+import { SiHuggingface } from 'react-icons/si';
+import InfoTooltip from './InfoTooltip';
+import styles from './RightPanelHeader.module.css';
+import { mechInterpTooltip } from './tooltipContent';
 
 interface RightPanelHeaderProps {
-  tokenGenCount: number
-  view: 'layers' | 'stream'
-  zoom: number
-  streamLive: boolean
-  isRunning: boolean
-  onZoomIn: () => void
-  onZoomOut: () => void
-  onViewChange: (v: 'layers' | 'stream') => void
+  tokenGenCount: number;
+  view: 'layers' | 'stream';
+  zoom: number;
+  streamLive: boolean;
+  isRunning: boolean;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onViewChange: (v: 'layers' | 'stream') => void;
 }
 
 export default function RightPanelHeader({
@@ -52,9 +52,7 @@ export default function RightPanelHeader({
           </InfoTooltip>
         </span>
       </div>
-      <span className={styles.eyebrow}>
-        12 layers · 12 heads · 768 dimensions · 3072 neurons
-      </span>
+      <span className={styles.eyebrow}>12 layers · 12 heads · 768 dimensions · 3072 neurons</span>
       <div className={styles.right}>
         {tokenGenCount > 0 && (
           <span className={styles.tokenCounter}>
@@ -107,5 +105,5 @@ export default function RightPanelHeader({
         </span>
       </div>
     </div>
-  )
+  );
 }

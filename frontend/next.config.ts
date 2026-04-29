@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -6,6 +6,6 @@ const nextConfig: NextConfig = {
       'posthog-js': 'posthog-js/dist/module.slim.no-external.js',
     },
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,4 +1,4 @@
-import styles from './InfoTooltip.module.css'
+import styles from './InfoTooltip.module.css';
 
 export const tokenIdTooltip = () => (
   <div>
@@ -12,7 +12,7 @@ export const tokenIdTooltip = () => (
       &quot;tokenization&quot; → [&quot;token&quot;, &quot;ization&quot;].
     </div>
   </div>
-)
+);
 
 export const inputTokenCountTooltip = () => (
   <div>
@@ -26,24 +26,23 @@ export const inputTokenCountTooltip = () => (
       . Longer inputs are truncated.
     </div>
   </div>
-)
+);
 
 export const outputTokenCountTooltip = () => (
   <div>
     <div className={styles.heading}>Output Tokens</div>
-    Each entry is the <span className={styles.accent}>most likely next token</span> from one complete
-    forward pass through all 12 layers. Hover any chip to see the{' '}
+    Each entry is the <span className={styles.accent}>most likely next token</span> from one
+    complete forward pass through all 12 layers. Hover any chip to see the{' '}
     <span className={styles.accent}>top-10 candidates</span> and their relative probabilities.
     <hr className={styles.divider} />
     <div className={styles.note}>
       This visualizer runs one pass at a time — next-token prediction, not open-ended generation.
       Probabilities are shown relative to the top-10 candidates, not the full 50,257-token
-      vocabulary. GPT-2 rarely picks{' '}
-      <span className={styles.accent}>&lt;|endoftext|&gt;</span> naturally; sequences continue until
-      you cancel or reset.
+      vocabulary. GPT-2 rarely picks <span className={styles.accent}>&lt;|endoftext|&gt;</span>{' '}
+      naturally; sequences continue until you cancel or reset.
     </div>
   </div>
-)
+);
 
 export const embeddingStripTooltip = () => (
   <div>
@@ -60,7 +59,7 @@ export const embeddingStripTooltip = () => (
       per vocabulary entry.
     </div>
   </div>
-)
+);
 
 export const mechInterpTooltip = () => (
   <div>
@@ -77,7 +76,7 @@ export const mechInterpTooltip = () => (
       Olah, Neel Nanda, and the Alignment Forum community.
     </div>
   </div>
-)
+);
 
 export const layerHeaderTooltip = (layerIndex: number) => (
   <div>
@@ -91,7 +90,7 @@ export const layerHeaderTooltip = (layerIndex: number) => (
       Earlier layers tend to capture syntax; later layers capture higher-level semantics.
     </div>
   </div>
-)
+);
 
 export const lnTooltip = (which: 1 | 2) => (
   <div>
@@ -108,7 +107,7 @@ export const lnTooltip = (which: 1 | 2) => (
       stacks.
     </div>
   </div>
-)
+);
 
 export const attnTooltip = () => (
   <div>
@@ -127,7 +126,7 @@ export const attnTooltip = () => (
       &quot;garbage collection&quot; sink for attention mass that must sum to 1.
     </div>
   </div>
-)
+);
 
 export const residualTooltip = (position: 'mid' | 'post') => (
   <div>
@@ -146,7 +145,7 @@ export const residualTooltip = (position: 'mid' | 'post') => (
       sub-layer reads from and writes to.
     </div>
   </div>
-)
+);
 
 export const mlpTooltip = () => (
   <div>
@@ -165,4 +164,4 @@ export const mlpTooltip = () => (
       different input patterns learned during training.
     </div>
   </div>
-)
+);

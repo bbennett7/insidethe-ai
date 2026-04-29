@@ -1,38 +1,38 @@
-'use client'
+'use client';
 
-import posthog from 'posthog-js'
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import ScrollArea from '@/components/ScrollArea'
-import type { Candidate, MergeItem, OutputToken, ProcessState, Token } from '@/lib/processingTypes'
-import { positionTooltipEl } from '@/lib/tooltipPosition'
-import EmbeddingStrip from './EmbeddingStrip'
-import InfoTooltip from './InfoTooltip'
-import styles from './InputPanel.module.css'
+import posthog from 'posthog-js';
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import ScrollArea from '@/components/ScrollArea';
+import type { Candidate, MergeItem, OutputToken, ProcessState, Token } from '@/lib/processingTypes';
+import { positionTooltipEl } from '@/lib/tooltipPosition';
+import EmbeddingStrip from './EmbeddingStrip';
+import InfoTooltip from './InfoTooltip';
+import styles from './InputPanel.module.css';
 import {
   embeddingStripTooltip,
   inputTokenCountTooltip,
   outputTokenCountTooltip,
   tokenIdTooltip,
-} from './tooltipContent'
+} from './tooltipContent';
 
 interface InputPanelProps {
-  onRun: (text: string) => void
-  onCancel: () => void
-  onReset: () => void
-  state: ProcessState
-  inputTokens: Token[]
-  outputTokens: OutputToken[]
-  embedVectors: Record<number, number[]>
-  mergeStageIndex: number
-  mergeStages: MergeItem[][]
-  isStepMode: boolean
-  onToggleMode: (mode: 'stream' | 'step') => void
-  speed: number
-  onSpeedChange: (v: number) => void
-  onStepNext: () => void
-  awaitingStep: boolean
-  speedRef: React.MutableRefObject<number>
+  onRun: (text: string) => void;
+  onCancel: () => void;
+  onReset: () => void;
+  state: ProcessState;
+  inputTokens: Token[];
+  outputTokens: OutputToken[];
+  embedVectors: Record<number, number[]>;
+  mergeStageIndex: number;
+  mergeStages: MergeItem[][];
+  isStepMode: boolean;
+  onToggleMode: (mode: 'stream' | 'step') => void;
+  speed: number;
+  onSpeedChange: (v: number) => void;
+  onStepNext: () => void;
+  awaitingStep: boolean;
+  speedRef: React.MutableRefObject<number>;
 }
 
 export default function InputPanel({
@@ -53,27 +53,26 @@ export default function InputPanel({
   awaitingStep,
   speedRef,
 }: InputPanelProps) {
-  const [text, setText] = useState('')
-  const [chipWidths, setChipWidths] = useState<number[]>([])
-  const chipRefs = useRef<(HTMLSpanElement | null)[]>([])
+  const [text, setText] = useState('');
+  const [chipWidths, setChipWidths] = useState<number[]>([]);
+  const chipRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  const showEmbeds = state === 'embedding' || state === 'computing' || state === 'done'
+  const showEmbeds = state === 'embedding' || state === 'computing' || state === 'done';
 
   // Measure after chips mount (showEmbeds flips true) — rAF on inputTokens alone fires
   // while chips aren't mounted yet, giving null refs and wrong fallback widths.
   useLayoutEffect(() => {
-    if (!showEmbeds || inputTokens.length === 0) return
-    const widths = chipRefs.current
-      .slice(0, inputTokens.length)
-      .map((el) => el?.offsetWidth ?? 40)
-    setChipWidths(widths)
-  }, [inputTokens, showEmbeds])
+    if (!showEmbeds || inputTokens.length === 0) return;
+    const widths = chipRefs.current.slice(0, inputTokens.length).map((el) => el?.offsetWidth ?? 40);
+    setChipWidths(widths);
+  }, [inputTokens, showEmbeds]);
 
-  const showMerge = state === 'tokenizing'
-  const showChips = showEmbeds || showMerge
+  const showMerge = state === 'tokenizing';
+  const showChips = showEmbeds || showMerge;
 
   function renderMergeStage(stage: MergeItem[]) {
     return stage.map(({ t, sp, m }, idx) => (
+      // biome-ignore lint/suspicious/noArrayIndexKey: merge items have no stable id
       <div key={`merge-${idx}`} className={styles.embedTokenWrap}>
         <span className={styles.tokIdPlaceholder} aria-hidden="true">
           {sp ? '' : '—'}
@@ -86,10 +85,10 @@ export default function InputPanel({
           {t}
         </span>
       </div>
-    ))
+    ));
   }
 
-  void showChips
+  void showChips;
 
   return (
     <div className={styles.panel}>
@@ -108,8 +107,8 @@ export default function InputPanel({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && state === 'idle' && text.trim()) {
-                e.preventDefault()
-                onRun(text)
+                e.preventDefault();
+                onRun(text);
               }
             }}
             disabled={state !== 'idle'}
@@ -125,8 +124,8 @@ export default function InputPanel({
                 type="button"
                 className={styles.btnPrimary}
                 onClick={() => {
-                  posthog.capture('processing_run')
-                  onRun(text)
+                  posthog.capture('processing_run');
+                  onRun(text);
                 }}
                 disabled={!text.trim()}
               >
@@ -137,8 +136,8 @@ export default function InputPanel({
                 type="button"
                 className={styles.btnCancel}
                 onClick={() => {
-                  setText('')
-                  onReset()
+                  setText('');
+                  onReset();
                 }}
               >
                 Reset
@@ -227,13 +226,13 @@ export default function InputPanel({
 
           {showEmbeds &&
             inputTokens.map((tok, i) => (
-              <div key={`inp-${i}-${tok.id}`} className={styles.embedTokenWrap}>
+              <div key={`inp-${tok.id}`} className={styles.embedTokenWrap}>
                 <InfoTooltip content={tokenIdTooltip()}>
                   <span className={styles.tokId}>{tok.id}</span>
                 </InfoTooltip>
                 <span
                   ref={(el) => {
-                    chipRefs.current[i] = el
+                    chipRefs.current[i] = el;
                   }}
                   className={styles.tok}
                 >
@@ -282,7 +281,10 @@ export default function InputPanel({
         )}
         {state === 'done' && awaitingStep && (
           <div className={styles.computingPlaceholder}>
-            <span className={`${styles.dotBlink} ${styles.dotQuiet}`} style={{ animationName: 'none' }} />
+            <span
+              className={`${styles.dotBlink} ${styles.dotQuiet}`}
+              style={{ animationName: 'none' }}
+            />
             <span>idle</span>
           </div>
         )}
@@ -290,40 +292,39 @@ export default function InputPanel({
           <div className={styles.outputSection}>
             {outputTokens.length > 0 && (
               <div className={styles.outputTokens}>
-                {outputTokens.map((tok, i) => (
-                  <OutputChipWithTooltip key={`out-${i}-${tok.id}`} tok={tok} />
+                {outputTokens.map((tok) => (
+                  <OutputChipWithTooltip key={`out-${tok.id}`} tok={tok} />
                 ))}
               </div>
             )}
           </div>
         </ScrollArea>
       </div>
-
     </div>
-  )
+  );
 }
 
 function OutputChipWithTooltip({ tok }: { tok: OutputToken }) {
-  const [mounted, setMounted] = useState(false)
-  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    requestAnimationFrame(() => requestAnimationFrame(() => setMounted(true)))
-  }, [])
+    requestAnimationFrame(() => requestAnimationFrame(() => setMounted(true)));
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const el = tooltipRef.current
-    if (!el) return
-    positionTooltipEl(el, e.clientX, e.clientY)
-    el.style.opacity = '1'
-  }, [])
+    const el = tooltipRef.current;
+    if (!el) return;
+    positionTooltipEl(el, e.clientX, e.clientY);
+    el.style.opacity = '1';
+  }, []);
 
   const handleMouseLeave = useCallback(() => {
-    const el = tooltipRef.current
-    if (el) el.style.opacity = '0'
-  }, [])
+    const el = tooltipRef.current;
+    if (el) el.style.opacity = '0';
+  }, []);
 
-  const maxProb = tok.candidates[0]?.probability ?? 1
+  const maxProb = tok.candidates[0]?.probability ?? 1;
 
   return (
     <div
@@ -342,22 +343,22 @@ function OutputChipWithTooltip({ tok }: { tok: OutputToken }) {
         <CandidateTooltip ref={tooltipRef} candidates={tok.candidates} maxProb={maxProb} />
       </span>
     </div>
-  )
+  );
 }
 
 const CandidateTooltip = forwardRef<
   HTMLDivElement,
   {
-    candidates: Candidate[]
-    maxProb: number
+    candidates: Candidate[];
+    maxProb: number;
   }
 >(function CandidateTooltip({ candidates, maxProb }, ref) {
-  const [isMounted, setIsMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+  }, []);
 
-  if (!isMounted) return null
+  if (!isMounted) return null;
 
   return createPortal(
     <div ref={ref} className={styles.tooltip}>
@@ -373,7 +374,7 @@ const CandidateTooltip = forwardRef<
         <span className={styles.tooltipColPLabel}>p</span>
       </div>
       {candidates.map((c, i) => (
-        <div key={`cand-${i}-${c.id}`} className={styles.tooltipRow}>
+        <div key={`cand-${c.id}`} className={styles.tooltipRow}>
           <span className={`${styles.tooltipToken}${i === 0 ? ` ${styles.tooltipTokenTop}` : ''}`}>
             {c.text}
           </span>
@@ -390,5 +391,5 @@ const CandidateTooltip = forwardRef<
       ))}
     </div>,
     document.body
-  )
-})
+  );
+});
