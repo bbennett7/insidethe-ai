@@ -1,4 +1,7 @@
+import { SiHuggingface } from 'react-icons/si'
+import InfoTooltip from './InfoTooltip'
 import styles from './RightPanelHeader.module.css'
+import { mechInterpTooltip } from './tooltipContent'
 
 interface RightPanelHeaderProps {
   tokenGenCount: number
@@ -23,6 +26,32 @@ export default function RightPanelHeader({
 }: RightPanelHeaderProps) {
   return (
     <div className={styles.header}>
+      <a
+        href="https://huggingface.co/openai-community/gpt2"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.hfLink}
+        aria-label="View model on Hugging Face"
+      >
+        <SiHuggingface size={12} aria-hidden="true" />
+        <span>gpt-2 ↗</span>
+      </a>
+      <div className={styles.aboutRow}>
+        <a
+          href="https://nnsight.net"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.nnsightLink}
+        >
+          Built with NNsight ↗
+        </a>
+        <span className={styles.mechInterp}>
+          <span className={styles.mechInterpLabel}>What is Mechanistic Interpretability?</span>
+          <InfoTooltip content={mechInterpTooltip()}>
+            <span className={styles.mechInterpIcon}>?</span>
+          </InfoTooltip>
+        </span>
+      </div>
       <span className={styles.eyebrow}>
         12 layers · 12 heads · 768 dimensions · 3072 neurons
       </span>

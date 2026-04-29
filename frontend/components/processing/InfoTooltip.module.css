@@ -1,0 +1,82 @@
+/* ── InfoTooltip — portal-based educational tooltip ── */
+
+/*
+ * The trigger wrapper is `position: relative` so callers can wrap any inline
+ * element without disrupting layout. The actual tooltip panel is rendered via
+ * createPortal into document.body so it escapes any overflow:hidden containers.
+ */
+.trigger {
+  position: relative;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Subtle underline hint on tooltipable labels */
+.triggerLabel {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--ink-quiet);
+  text-underline-offset: 2px;
+  cursor: default;
+}
+
+/* ── Portal panel ── */
+.panel {
+  position: fixed;
+  z-index: 9000;
+  /* Always dark — code/tooltip boxes stay dark in both light and dark mode */
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  padding: 12px 14px;
+  max-width: 260px;
+  min-width: 180px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: #c8c8c0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.panelVisible {
+  opacity: 1;
+}
+
+/* ── Heading / term ── */
+.heading {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f0f0e8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* Acid accent for key data points */
+.accent {
+  color: #c4ff3d;
+  font-weight: 500;
+}
+
+/* Dimmer note / secondary info */
+.note {
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: #666660;
+  line-height: 1.5;
+}
+
+/* Separator line between sections */
+.divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 8px 0;
+}

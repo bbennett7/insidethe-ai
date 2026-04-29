@@ -2,8 +2,86 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px 10px;
+  padding: 28px 20px 10px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.hfLink {
+  position: absolute;
+  top: 0;
+  right: 20px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  color: var(--ink-quiet);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.hfLink:hover {
+  color: var(--ink);
+}
+
+.aboutRow {
+  position: absolute;
+  top: 0;
+  left: 20px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nnsightLink {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  color: var(--acid);
+  text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.nnsightLink:hover {
+  opacity: 0.7;
+}
+
+.mechInterp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mechInterpLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--ink-quiet);
+}
+
+.mechInterpIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--acid);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  color: var(--acid);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.mechInterpIcon:hover {
+  opacity: 1;
+  border-color: var(--acid);
+  color: var(--acid);
 }
 
 .eyebrow {
