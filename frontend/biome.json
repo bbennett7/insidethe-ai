@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!.next", "!node_modules", "!mocks"]
+    "includes": ["**", "!.next", "!node_modules", "!mocks", "!next-env.d.ts"]
   },
   "formatter": {
     "enabled": true,
@@ -30,7 +30,7 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
-      "semicolons": "asNeeded",
+      "semicolons": "always",
       "trailingCommas": "es5"
     }
   },

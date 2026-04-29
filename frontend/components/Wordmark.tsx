@@ -1,9 +1,9 @@
-import styles from './Wordmark.module.css'
+import styles from './Wordmark.module.css';
 
-type Size = 'sm' | 'md' | 'lg'
+type Size = 'sm' | 'md' | 'lg';
 
 interface WordmarkProps {
-  size?: Size
+  size?: Size;
 }
 
 const TOKENS = [
@@ -11,7 +11,7 @@ const TOKENS = [
   { text: 'side', id: '3349', accent: false },
   { text: 'the', id: '1820', accent: false },
   { text: '.ai', id: '13 / 1872', accent: true },
-] as const
+] as const;
 
 export default function Wordmark({ size = 'sm' }: WordmarkProps) {
   return (
@@ -23,5 +23,5 @@ export default function Wordmark({ size = 'sm' }: WordmarkProps) {
         </span>
       ))}
     </div>
-  )
+  );
 }

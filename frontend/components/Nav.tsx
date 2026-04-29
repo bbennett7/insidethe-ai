@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { SiGithub } from 'react-icons/si'
-import { useTheme } from '@/lib/ThemeContext'
-import styles from './Nav.module.css'
-import Wordmark from './Wordmark'
+import Link from 'next/link';
+import { SiGithub } from 'react-icons/si';
+import { useTheme } from '@/lib/ThemeContext';
+import styles from './Nav.module.css';
+import Wordmark from './Wordmark';
 
 export default function Nav() {
-  const { isDark, toggleTheme } = useTheme()
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <nav className={styles.nav}>
@@ -43,5 +43,5 @@ export default function Nav() {
         </button>
       </div>
     </nav>
-  )
+  );
 }

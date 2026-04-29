@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { useCallback, useEffect, useRef } from 'react'
-import { NEGATIVE, POSITIVE } from '@/lib/canvasTheme'
-import { useTheme } from '@/lib/ThemeContext'
+import { useCallback, useEffect, useRef } from 'react';
+import { NEGATIVE, POSITIVE } from '@/lib/canvasTheme';
+import { useTheme } from '@/lib/ThemeContext';
 
 interface EmbeddingStripProps {
-  tokenIndex: number
-  vector: number[] | null
-  width: number
-  animating: boolean
-  speedRef: React.MutableRefObject<number>
+  tokenIndex: number;
+  vector: number[] | null;
+  width: number;
+  animating: boolean;
+  speedRef: React.MutableRefObject<number>;
 }
 
-const EMBED_CELL_W = 4
-const EMBED_CELL_H = 6
-const EMBED_GAP = 1
+const EMBED_CELL_W = 4;
+const EMBED_CELL_H = 6;
+const EMBED_GAP = 1;
 
 function drawEmbedSlot(
   ctx: CanvasRenderingContext2D,
@@ -26,32 +26,32 @@ function drawEmbedSlot(
   dpr: number,
   isDark: boolean
 ) {
-  const stride = (EMBED_CELL_W + EMBED_GAP) * dpr
-  const cellW = EMBED_CELL_W * dpr
-  const frac = offset % 1
+  const stride = (EMBED_CELL_W + EMBED_GAP) * dpr;
+  const cellW = EMBED_CELL_W * dpr;
+  const frac = offset % 1;
 
   if (!isDark) {
-    ctx.fillStyle = '#d4d4d4'
-    ctx.fillRect(0, 0, canvasW, canvasH)
+    ctx.fillStyle = '#d4d4d4';
+    ctx.fillRect(0, 0, canvasW, canvasH);
   } else {
-    ctx.clearRect(0, 0, canvasW, canvasH)
+    ctx.clearRect(0, 0, canvasW, canvasH);
   }
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(0, 0, canvasW, canvasH)
-  ctx.clip()
-  ctx.translate(-frac * stride, 0)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, canvasW, canvasH);
+  ctx.clip();
+  ctx.translate(-frac * stride, 0);
 
-  const startDim = Math.floor(offset)
+  const startDim = Math.floor(offset);
   for (let c = 0; c <= numCells + 1; c++) {
-    const dim = (startDim + c) % 768
-    const v = vector[dim]
-    const abs = Math.abs(v)
-    const alpha = (0.1 + abs * 0.85).toFixed(3)
-    ctx.fillStyle = v >= 0 ? `rgba(${POSITIVE},${alpha})` : `rgba(${NEGATIVE},${alpha})`
-    ctx.fillRect(c * stride, 0, cellW, canvasH)
+    const dim = (startDim + c) % 768;
+    const v = vector[dim];
+    const abs = Math.abs(v);
+    const alpha = (0.1 + abs * 0.85).toFixed(3);
+    ctx.fillStyle = v >= 0 ? `rgba(${POSITIVE},${alpha})` : `rgba(${NEGATIVE},${alpha})`;
+    ctx.fillRect(c * stride, 0, cellW, canvasH);
   }
-  ctx.restore()
+  ctx.restore();
 }
 
 export default function EmbeddingStrip({
@@ -61,30 +61,30 @@ export default function EmbeddingStrip({
   animating,
   speedRef,
 }: EmbeddingStripProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const offsetRef = useRef<number>(tokenIndex * 47)
-  const animIdRef = useRef<number | null>(null)
-  const lastTsRef = useRef<number | null>(null)
-  const vectorRef = useRef<Float32Array | null>(null)
-  const { isDark } = useTheme()
-  const isDarkRef = useRef(isDark)
-  isDarkRef.current = isDark
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const offsetRef = useRef<number>(tokenIndex * 47);
+  const animIdRef = useRef<number | null>(null);
+  const lastTsRef = useRef<number | null>(null);
+  const vectorRef = useRef<Float32Array | null>(null);
+  const { isDark } = useTheme();
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
 
   const draw = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const dpr = window.devicePixelRatio || 1
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     if (!vectorRef.current) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = isDarkRef.current ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      return
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = isDarkRef.current ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return;
     }
 
-    const numCells = Math.floor(width / (EMBED_CELL_W + EMBED_GAP))
+    const numCells = Math.floor(width / (EMBED_CELL_W + EMBED_GAP));
     drawEmbedSlot(
       ctx,
       vectorRef.current,
@@ -94,55 +94,55 @@ export default function EmbeddingStrip({
       numCells,
       dpr,
       isDarkRef.current
-    )
-  }, [width])
+    );
+  }, [width]);
 
   useEffect(() => {
-    vectorRef.current = vector ? Float32Array.from(vector) : null
-    draw()
-  }, [vector, draw])
+    vectorRef.current = vector ? Float32Array.from(vector) : null;
+    draw();
+  }, [vector, draw]);
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = Math.round(width * dpr)
-    canvas.height = Math.round(EMBED_CELL_H * dpr)
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${EMBED_CELL_H}px`
-    draw()
-  }, [width, draw])
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(EMBED_CELL_H * dpr);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${EMBED_CELL_H}px`;
+    draw();
+  }, [width, draw]);
 
   useEffect(() => {
     if (!animating) {
       if (animIdRef.current !== null) {
-        cancelAnimationFrame(animIdRef.current)
-        animIdRef.current = null
+        cancelAnimationFrame(animIdRef.current);
+        animIdRef.current = null;
       }
-      lastTsRef.current = null
-      return
+      lastTsRef.current = null;
+      return;
     }
 
     function loop(ts: number) {
-      const dt = Math.min(lastTsRef.current ? ts - lastTsRef.current : 16, 50)
-      lastTsRef.current = ts
-      const speed = speedRef.current
-      const scroll = (speed * 0.007 + 0.0008) * dt
-      offsetRef.current = (offsetRef.current + scroll) % 768
-      draw()
-      animIdRef.current = requestAnimationFrame(loop)
+      const dt = Math.min(lastTsRef.current ? ts - lastTsRef.current : 16, 50);
+      lastTsRef.current = ts;
+      const speed = speedRef.current;
+      const scroll = (speed * 0.007 + 0.0008) * dt;
+      offsetRef.current = (offsetRef.current + scroll) % 768;
+      draw();
+      animIdRef.current = requestAnimationFrame(loop);
     }
 
-    animIdRef.current = requestAnimationFrame(loop)
+    animIdRef.current = requestAnimationFrame(loop);
 
     return () => {
       if (animIdRef.current !== null) {
-        cancelAnimationFrame(animIdRef.current)
-        animIdRef.current = null
+        cancelAnimationFrame(animIdRef.current);
+        animIdRef.current = null;
       }
-      lastTsRef.current = null
-    }
-  }, [animating, draw, speedRef])
+      lastTsRef.current = null;
+    };
+  }, [animating, draw, speedRef]);
 
   return (
     <canvas
@@ -156,5 +156,5 @@ export default function EmbeddingStrip({
         borderRadius: '1px',
       }}
     />
-  )
+  );
 }
