@@ -386,11 +386,11 @@ export default function ProcessPage() {
         {view === 'layers' && (
           <div className={styles.layersScroll}>
             <div className={styles.layersContent} style={{ zoom }}>
-              {layerData.map((data, i) => (
+              {[...layerData.entries()].map(([layerIdx, data]) => (
                 <LayerCard
-                  key={`layer-${i}`}
-                  layerIndex={i}
-                  state={displayLayerStates[i]}
+                  key={`layer-${layerIdx}`}
+                  layerIndex={layerIdx}
+                  state={displayLayerStates[layerIdx]}
                   data={data}
                   tokens={allTokenTexts}
                   isDecoding={tokenGenCount > 0}
