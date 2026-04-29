@@ -142,7 +142,6 @@ function drawLayerCanvas(
   const SEQ_LEN = data.attn[0]?.length ?? 6
 
   // Acid color for ATTN + MLP sections
-  const acidActive = isDark ? ACID_DARK : ACID_LIGHT
   const acidDoneA = isDark ? 'rgba(138,171,42,0.8)' : 'rgba(143,220,0,0.8)'
   const acidProcA = isDark ? 'rgba(196,255,61,0.8)' : 'rgba(143,220,0,0.9)'
   const labelOff = isDark ? 'rgba(85,85,85,0.7)' : 'rgba(130,130,130,0.8)'

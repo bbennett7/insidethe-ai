@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { acidRgba, canvasBg } from '@/lib/canvasTheme'
+import { canvasBg } from '@/lib/canvasTheme'
 import { useTheme } from '@/lib/ThemeContext'
 
 export default function PreviewMemoryCanvas() {
