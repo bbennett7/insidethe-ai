@@ -96,22 +96,23 @@ export default function PreviewAlgoCanvas() {
         deg: number,
         accent = false
       ) {
-        ctx!.save()
-        ctx!.globalAlpha = alpha
-        ctx!.translate(x, y)
-        ctx!.rotate((deg * Math.PI) / 180)
-        ctx!.font = `italic 300 ${size}px "Fraunces", "Times New Roman", serif`
-        ctx!.fillStyle = accent
+        if (!ctx) return
+        ctx.save()
+        ctx.globalAlpha = alpha
+        ctx.translate(x, y)
+        ctx.rotate((deg * Math.PI) / 180)
+        ctx.font = `italic 300 ${size}px "Fraunces", "Times New Roman", serif`
+        ctx.fillStyle = accent
           ? isDark
             ? '#c4ff3d'
             : '#8fdc00'
           : isDark
             ? 'rgba(244,241,234,1)'
             : 'rgba(10,10,10,1)'
-        ctx!.textAlign = 'left'
-        ctx!.textBaseline = 'top'
-        ctx!.fillText(text, 0, 0)
-        ctx!.restore()
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'top'
+        ctx.fillText(text, 0, 0)
+        ctx.restore()
       }
 
       // Top-left: chain rule (ghost)

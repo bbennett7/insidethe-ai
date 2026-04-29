@@ -38,18 +38,19 @@ export default function PreviewMemoryCanvas() {
         deg: number,
         mono?: boolean
       ) {
-        ctx!.save()
-        ctx!.globalAlpha = alpha
-        ctx!.translate(x, y)
-        ctx!.rotate((deg * Math.PI) / 180)
-        ctx!.font = mono
+        if (!ctx) return
+        ctx.save()
+        ctx.globalAlpha = alpha
+        ctx.translate(x, y)
+        ctx.rotate((deg * Math.PI) / 180)
+        ctx.font = mono
           ? `400 ${size}px "JetBrains Mono", monospace`
           : `italic 300 ${size}px "Fraunces", "Times New Roman", serif`
-        ctx!.fillStyle = isDark ? 'rgba(244,241,234,1)' : 'rgba(10,10,10,1)'
-        ctx!.textAlign = 'left'
-        ctx!.textBaseline = 'top'
-        ctx!.fillText(text, 0, 0)
-        ctx!.restore()
+        ctx.fillStyle = isDark ? 'rgba(244,241,234,1)' : 'rgba(10,10,10,1)'
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'top'
+        ctx.fillText(text, 0, 0)
+        ctx.restore()
       }
 
       const d = dpr

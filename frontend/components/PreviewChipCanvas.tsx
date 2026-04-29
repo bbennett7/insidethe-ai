@@ -81,28 +81,29 @@ export default function PreviewChipCanvas() {
       const rightX = W - 0.088 * W - hbmW
 
       function drawHbm(x: number, y: number, w: number, h: number) {
-        ctx!.save()
-        ctx!.beginPath()
-        ctx!.rect(x, y, w, h)
-        ctx!.clip()
+        if (!ctx) return
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(x, y, w, h)
+        ctx.clip()
         const stripeW = 3 * dpr
         for (let sx = x; sx < x + w; sx += stripeW) {
-          ctx!.fillStyle = isDark ? '#c4ff3d' : '#8fdc00'
-          ctx!.fillRect(sx, y, stripeW - 0.4 * dpr, h)
-          ctx!.fillStyle = 'rgba(10,10,10,0.25)'
-          ctx!.fillRect(sx, y, 0.3 * dpr, h)
-          ctx!.fillRect(sx + stripeW - 0.6 * dpr, y, 0.3 * dpr, h)
+          ctx.fillStyle = isDark ? '#c4ff3d' : '#8fdc00'
+          ctx.fillRect(sx, y, stripeW - 0.4 * dpr, h)
+          ctx.fillStyle = 'rgba(10,10,10,0.25)'
+          ctx.fillRect(sx, y, 0.3 * dpr, h)
+          ctx.fillRect(sx + stripeW - 0.6 * dpr, y, 0.3 * dpr, h)
         }
-        const gloss = ctx!.createLinearGradient(x, y, x + w, y + h)
+        const gloss = ctx.createLinearGradient(x, y, x + w, y + h)
         gloss.addColorStop(0, 'rgba(255,255,255,0.25)')
         gloss.addColorStop(0.5, 'rgba(255,255,255,0)')
         gloss.addColorStop(1, 'rgba(0,0,0,0.15)')
-        ctx!.fillStyle = gloss
-        ctx!.fillRect(x, y, w, h)
-        ctx!.restore()
-        ctx!.strokeStyle = 'rgba(10,10,10,0.4)'
-        ctx!.lineWidth = 0.4 * dpr
-        ctx!.strokeRect(x, y, w, h)
+        ctx.fillStyle = gloss
+        ctx.fillRect(x, y, w, h)
+        ctx.restore()
+        ctx.strokeStyle = 'rgba(10,10,10,0.4)'
+        ctx.lineWidth = 0.4 * dpr
+        ctx.strokeRect(x, y, w, h)
       }
 
       drawHbm(leftX, hbmY, hbmW, hbmH)

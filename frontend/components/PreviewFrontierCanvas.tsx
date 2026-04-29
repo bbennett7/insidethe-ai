@@ -97,14 +97,15 @@ export default function PreviewFrontierCanvas() {
       ctx.fill()
 
       function buildPath() {
-        ctx!.beginPath()
-        ctx!.moveTo(pts[0][0], pts[0][1])
+        if (!ctx) return
+        ctx.beginPath()
+        ctx.moveTo(pts[0][0], pts[0][1])
         for (let i = 1; i < pts.length; i++) {
           const [x1, y1] = pts[i - 1]
           const [x2, y2] = pts[i]
-          ctx!.quadraticCurveTo(x1, y1, (x1 + x2) / 2, (y1 + y2) / 2)
+          ctx.quadraticCurveTo(x1, y1, (x1 + x2) / 2, (y1 + y2) / 2)
         }
-        ctx!.lineTo(last[0], last[1])
+        ctx.lineTo(last[0], last[1])
       }
 
       // Glow pass

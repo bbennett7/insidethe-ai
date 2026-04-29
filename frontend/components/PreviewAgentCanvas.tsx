@@ -43,16 +43,17 @@ export default function PreviewAgentCanvas() {
 
       // Arrowhead helper (filled triangle at curve endpoint)
       function arrowHead(x: number, y: number, dirX: number, dirY: number) {
+        if (!ctx) return
         const len = Math.sqrt(dirX ** 2 + dirY ** 2)
         const nx = dirX / len
         const ny = dirY / len
         const s = 7 * dpr
-        ctx!.beginPath()
-        ctx!.moveTo(x, y)
-        ctx!.lineTo(x - s * (nx + ny * 0.55), y - s * (ny - nx * 0.55))
-        ctx!.lineTo(x - s * (nx - ny * 0.55), y - s * (ny + nx * 0.55))
-        ctx!.closePath()
-        ctx!.fill()
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x - s * (nx + ny * 0.55), y - s * (ny - nx * 0.55))
+        ctx.lineTo(x - s * (nx - ny * 0.55), y - s * (ny + nx * 0.55))
+        ctx.closePath()
+        ctx.fill()
       }
 
       function drawArc(
@@ -65,21 +66,22 @@ export default function PreviewAgentCanvas() {
         alpha: number,
         dashed = false
       ) {
-        ctx!.save()
-        ctx!.globalAlpha = alpha
-        ctx!.strokeStyle = acid
-        ctx!.fillStyle = acid
-        ctx!.lineWidth = 1.4 * dpr
-        ctx!.lineCap = 'round'
-        if (dashed) ctx!.setLineDash([3 * dpr, 2 * dpr])
-        ctx!.beginPath()
-        ctx!.moveTo(x1, y1)
-        ctx!.quadraticCurveTo(cpx, cpy, x2, y2)
-        ctx!.stroke()
-        ctx!.setLineDash([])
+        if (!ctx) return
+        ctx.save()
+        ctx.globalAlpha = alpha
+        ctx.strokeStyle = acid
+        ctx.fillStyle = acid
+        ctx.lineWidth = 1.4 * dpr
+        ctx.lineCap = 'round'
+        if (dashed) ctx.setLineDash([3 * dpr, 2 * dpr])
+        ctx.beginPath()
+        ctx.moveTo(x1, y1)
+        ctx.quadraticCurveTo(cpx, cpy, x2, y2)
+        ctx.stroke()
+        ctx.setLineDash([])
         // Arrowhead tangent = direction from control to endpoint
         arrowHead(x2, y2, x2 - cpx, y2 - cpy)
-        ctx!.restore()
+        ctx.restore()
       }
 
       // Arrows — positions from SVG path data (normalized to 400×250)
