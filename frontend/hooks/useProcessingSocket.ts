@@ -9,14 +9,7 @@ import type {
   Token,
 } from '@/lib/processingTypes'
 
-const LAYER_COMPONENTS: LayerComponent[] = [
-  'ln1',
-  'attn',
-  'attn_write',
-  'ln2',
-  'mlp',
-  'mlp_write',
-]
+const LAYER_COMPONENTS: LayerComponent[] = ['ln1', 'attn', 'attn_write', 'ln2', 'mlp', 'mlp_write']
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8080/ws'
 
@@ -157,8 +150,7 @@ export function useProcessingSocket(
 
     dispatch(entry)
 
-    const delay =
-      entry.type === 'layer' ? layerComponentDelay(speedRef.current) : 0
+    const delay = entry.type === 'layer' ? layerComponentDelay(speedRef.current) : 0
     timerRef.current = setTimeout(processNext, delay)
   }, []) // empty deps — all mutable values accessed through refs
 
@@ -188,10 +180,7 @@ export function useProcessingSocket(
   const notifySpeedChange = useCallback(() => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(
-        processNext,
-        layerComponentDelay(speedRef.current)
-      )
+      timerRef.current = setTimeout(processNext, layerComponentDelay(speedRef.current))
     }
   }, [processNext])
 

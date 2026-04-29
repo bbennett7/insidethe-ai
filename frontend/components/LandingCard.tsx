@@ -8,12 +8,7 @@ interface LandingCardProps {
   href?: string
 }
 
-export default function LandingCard({
-  num,
-  name,
-  canvas,
-  href,
-}: LandingCardProps) {
+export default function LandingCard({ num, name, canvas, href }: LandingCardProps) {
   const footer = (
     <>
       <div className={styles.preview}>{canvas}</div>

@@ -51,10 +51,8 @@ export default function MobileGate() {
         if (dist2 < 4) return [cx, cy]
         const dist = Math.sqrt(dist2)
         const ripple =
-          0.13 * Math.sin(dist * 0.014 - t * 0.0018) +
-          0.06 * Math.sin(dist * 0.022 + t * 0.0009)
-        const pull =
-          (lensStrength / (dist2 + lensR * lensR * 0.12)) * (1 + ripple)
+          0.13 * Math.sin(dist * 0.014 - t * 0.0018) + 0.06 * Math.sin(dist * 0.022 + t * 0.0009)
+        const pull = (lensStrength / (dist2 + lensR * lensR * 0.12)) * (1 + ripple)
         return [x - dx * pull, y - dy * pull]
       }
 
@@ -102,14 +100,7 @@ export default function MobileGate() {
       ctx.fillRect(0, 0, W, H)
 
       const ringR = voidR * 1.15
-      const rg = ctx.createRadialGradient(
-        cx,
-        cy,
-        ringR * 0.8,
-        cx,
-        cy,
-        ringR * 1.6
-      )
+      const rg = ctx.createRadialGradient(cx, cy, ringR * 0.8, cx, cy, ringR * 1.6)
       rg.addColorStop(0, 'rgba(0,0,0,0)')
       if (dark) {
         rg.addColorStop(0.35, 'rgba(196,255,61,0.055)')
@@ -155,9 +146,9 @@ export default function MobileGate() {
           space <em>to think.</em>
         </h1>
         <p className={styles.body}>
-          <span className={styles.acid}>insidethe.ai</span> is built for a wider
-          screen - designed to be explored, not scrolled. Come back on a laptop
-          or desktop to watch a language model run.
+          <span className={styles.acid}>insidethe.ai</span> is built for a wider screen - designed
+          to be explored, not scrolled. Come back on a laptop or desktop to watch a language model
+          run.
         </p>
       </div>
 

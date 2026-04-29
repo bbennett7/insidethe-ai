@@ -41,9 +41,7 @@ function stageDelay(speed: number): number {
 
 export default function ProcessPage() {
   const [processState, setProcessState] = useState<ProcessState>('idle')
-  const [layerStates, setLayerStates] = useState<LayerState[]>(
-    Array(NUM_LAYERS).fill('inactive')
-  )
+  const [layerStates, setLayerStates] = useState<LayerState[]>(Array(NUM_LAYERS).fill('inactive'))
   const [layerData, setLayerData] = useState<LayerData[]>(
     Array.from({ length: NUM_LAYERS }, () => ({ ...EMPTY_LAYER_DATA }))
   )
@@ -200,9 +198,7 @@ export default function ProcessPage() {
     }
     setProcessState('idle')
     setLayerStates(Array(NUM_LAYERS).fill('inactive'))
-    setLayerData(
-      Array.from({ length: NUM_LAYERS }, () => ({ ...EMPTY_LAYER_DATA }))
-    )
+    setLayerData(Array.from({ length: NUM_LAYERS }, () => ({ ...EMPTY_LAYER_DATA })))
     setInputTokens([])
     setOutputTokens([])
     setEmbedVectors({})
@@ -331,10 +327,7 @@ export default function ProcessPage() {
   )
 
   const allTokenTexts = useMemo(
-    () => [
-      ...inputTokens.map((t) => t.text),
-      ...outputTokens.map((t) => t.text),
-    ],
+    () => [...inputTokens.map((t) => t.text), ...outputTokens.map((t) => t.text)],
     [inputTokens, outputTokens]
   )
 

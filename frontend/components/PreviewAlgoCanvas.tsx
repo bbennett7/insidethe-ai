@@ -30,18 +30,8 @@ export default function PreviewAlgoCanvas() {
       ctx.fillRect(0, 0, W, H)
 
       // Subtle radial glow in top-right
-      const bgGrad = ctx.createRadialGradient(
-        W * 0.7,
-        H * 0.3,
-        0,
-        W * 0.7,
-        H * 0.3,
-        W * 0.6
-      )
-      bgGrad.addColorStop(
-        0,
-        isDark ? 'rgba(196,255,61,0.04)' : 'rgba(143,220,0,0.06)'
-      )
+      const bgGrad = ctx.createRadialGradient(W * 0.7, H * 0.3, 0, W * 0.7, H * 0.3, W * 0.6)
+      bgGrad.addColorStop(0, isDark ? 'rgba(196,255,61,0.04)' : 'rgba(143,220,0,0.06)')
       bgGrad.addColorStop(1, 'rgba(0,0,0,0)')
       ctx.fillStyle = bgGrad
       ctx.fillRect(0, 0, W, H)
@@ -74,9 +64,7 @@ export default function PreviewAlgoCanvas() {
       ctx.setLineDash([2 * dpr, 2 * dpr])
       ctx.moveTo(W * 0.3, H * 0.82)
       ctx.quadraticCurveTo(W * 0.45, H * 0.78, W * 0.6, H * 0.825)
-      ctx.strokeStyle = isDark
-        ? 'rgba(244,241,234,0.25)'
-        : 'rgba(10,10,10,0.25)'
+      ctx.strokeStyle = isDark ? 'rgba(244,241,234,0.25)' : 'rgba(10,10,10,0.25)'
       ctx.lineWidth = 0.5 * dpr
       ctx.stroke()
       ctx.setLineDash([])
@@ -133,14 +121,7 @@ export default function PreviewAlgoCanvas() {
       eq('y = Wx + b + ε', W * 0.7, H * 0.175, 12 * dpr, 0.28, 2)
 
       // Upper-middle: attention formula (medium weight)
-      eq(
-        'Attn(Q,K,V) = softmax(QKᵀ/√d)V',
-        W * 0.135,
-        H * 0.272,
-        15 * dpr,
-        0.45,
-        -2
-      )
+      eq('Attn(Q,K,V) = softmax(QKᵀ/√d)V', W * 0.135, H * 0.272, 15 * dpr, 0.45, -2)
 
       // CENTER: softmax — hero, acid, largest
       eq('σ(xᵢ) = eˣⁱ / Σⱼ eˣʲ', W * 0.18, H * 0.425, 22 * dpr, 1.0, -1, true)
@@ -173,10 +154,5 @@ export default function PreviewAlgoCanvas() {
     return () => window.removeEventListener('resize', draw)
   }, [isDark])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
 }

@@ -7,18 +7,15 @@ interface ScrollAreaProps {
   style?: React.CSSProperties
 }
 
-const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
-  function ScrollArea({ children, className, style }, ref) {
-    return (
-      <div
-        ref={ref}
-        className={`${styles.root}${className ? ` ${className}` : ''}`}
-        style={style}
-      >
-        {children}
-      </div>
-    )
-  }
-)
+const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function ScrollArea(
+  { children, className, style },
+  ref
+) {
+  return (
+    <div ref={ref} className={`${styles.root}${className ? ` ${className}` : ''}`} style={style}>
+      {children}
+    </div>
+  )
+})
 
 export default ScrollArea

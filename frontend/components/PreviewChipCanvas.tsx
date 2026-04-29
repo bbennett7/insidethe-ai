@@ -31,9 +31,7 @@ export default function PreviewChipCanvas() {
       ctx.fillRect(0, 0, W, H)
 
       // PCB dot grid texture
-      ctx.fillStyle = isDark
-        ? 'rgba(196,255,61,0.035)'
-        : 'rgba(255,255,255,0.05)'
+      ctx.fillStyle = isDark ? 'rgba(196,255,61,0.035)' : 'rgba(255,255,255,0.05)'
       const ds = 6 * dpr
       for (let x = ds / 2; x < W; x += ds) {
         for (let y = ds / 2; y < H; y += ds) {
@@ -190,11 +188,7 @@ export default function PreviewChipCanvas() {
       // Solder bumps along die top/bottom edges
       ctx.fillStyle = isDark ? 'rgba(196,255,61,0.5)' : 'rgba(143,220,0,0.5)'
       const bStep = 3 * dpr
-      for (
-        let bx = dieX + 1.5 * dpr;
-        bx + 0.5 * dpr < dieX + dieW;
-        bx += bStep
-      ) {
+      for (let bx = dieX + 1.5 * dpr; bx + 0.5 * dpr < dieX + dieW; bx += bStep) {
         ctx.fillRect(bx, dieY - dpr, 0.5 * dpr, dpr)
         ctx.fillRect(bx, dieY + dieH, 0.5 * dpr, dpr)
       }
@@ -214,10 +208,5 @@ export default function PreviewChipCanvas() {
     return () => window.removeEventListener('resize', draw)
   }, [isDark])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
 }

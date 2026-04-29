@@ -29,11 +29,7 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-function lerpWeights(
-  cur: number[][],
-  tgt: number[][],
-  alpha: number
-): number[][] {
+function lerpWeights(cur: number[][], tgt: number[][], alpha: number): number[][] {
   return cur.map((row, i) => row.map((v, j) => lerp(v, tgt[i][j], alpha)))
 }
 
@@ -125,21 +121,13 @@ export default function PreviewProcessCanvas() {
       ctx.textAlign = 'right'
       ctx.textBaseline = 'middle'
       TOKENS.forEach((tok, i) => {
-        ctx.fillText(
-          tok,
-          pad + labelW - 6 * dpr,
-          pad + labelH + i * ch + ch / 2
-        )
+        ctx.fillText(tok, pad + labelW - 6 * dpr, pad + labelH + i * ch + ch / 2)
       })
 
       ctx.textAlign = 'center'
       ctx.textBaseline = 'bottom'
       TOKENS.forEach((tok, j) => {
-        ctx.fillText(
-          tok,
-          pad + labelW + j * cw + cw / 2,
-          pad + labelH - 5 * dpr
-        )
+        ctx.fillText(tok, pad + labelW + j * cw + cw / 2, pad + labelH - 5 * dpr)
       })
     }
 
@@ -150,11 +138,7 @@ export default function PreviewProcessCanvas() {
         targetRef.current = makeWeights()
         lastSwapRef.current = ts
       }
-      weightsRef.current = lerpWeights(
-        weightsRef.current,
-        targetRef.current,
-        0.03
-      )
+      weightsRef.current = lerpWeights(weightsRef.current, targetRef.current, 0.03)
       draw()
       rafId = requestAnimationFrame(loop)
     }

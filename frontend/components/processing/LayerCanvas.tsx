@@ -23,9 +23,7 @@ const NUM_HEADS = 12
 const HEAD_COLS = 4
 const HEAD_ROWS = Math.ceil(NUM_HEADS / HEAD_COLS)
 const HEAD_INNER_GAP = 3
-const HEAD_W = Math.floor(
-  (CONTENT_W - HEAD_INNER_GAP * (HEAD_COLS - 1)) / HEAD_COLS
-)
+const HEAD_W = Math.floor((CONTENT_W - HEAD_INNER_GAP * (HEAD_COLS - 1)) / HEAD_COLS)
 const HEAD_H = HEAD_W
 const ATTN_BLOCK_H = HEAD_ROWS * HEAD_H + (HEAD_ROWS - 1) * HEAD_INNER_GAP
 const MLP_COLS = 32
@@ -46,13 +44,11 @@ const RESID_CHIP_MIN_W = 14
 // Eliminates Math.pow + toFixed + template-literal allocation inside the hot drawing loops.
 const MLP_LUT_DARK = Array.from(
   { length: 256 },
-  (_, i) =>
-    `rgba(${ACID_DARK},${(0.06 + Math.sqrt(i / 255) * 0.79).toFixed(3)})`
+  (_, i) => `rgba(${ACID_DARK},${(0.06 + Math.sqrt(i / 255) * 0.79).toFixed(3)})`
 )
 const MLP_LUT_LIGHT = Array.from(
   { length: 256 },
-  (_, i) =>
-    `rgba(${ACID_LIGHT},${(0.06 + Math.sqrt(i / 255) * 0.79).toFixed(3)})`
+  (_, i) => `rgba(${ACID_LIGHT},${(0.06 + Math.sqrt(i / 255) * 0.79).toFixed(3)})`
 )
 const ATTN_LUT_DARK = Array.from({ length: 256 }, (_, i) => {
   const a = Math.round((0.04 + (i / 255) * 0.94) * 1000) / 1000
@@ -64,15 +60,11 @@ const ATTN_LUT_LIGHT = Array.from({ length: 256 }, (_, i) => {
 })
 
 function approxChipW(label: string): number {
-  return Math.max(
-    RESID_CHIP_MIN_W,
-    Math.round(label.length * RESID_CHAR_W + RESID_PAD_X * 2)
-  )
+  return Math.max(RESID_CHIP_MIN_W, Math.round(label.length * RESID_CHAR_W + RESID_PAD_X * 2))
 }
 
 function computeResidH(tokens: string[], isActive = false): number {
-  if (!isActive || !Array.isArray(tokens) || tokens.length === 0)
-    return RESID_PLACEHOLDER_H
+  if (!isActive || !Array.isArray(tokens) || tokens.length === 0) return RESID_PLACEHOLDER_H
   const availW = CONTENT_W - RESID_STRIP_PAD * 2
   let x = 0,
     rows = 1
@@ -159,12 +151,8 @@ function drawLayerCanvas(
   const mlpLut = isDark ? MLP_LUT_DARK : MLP_LUT_LIGHT
   const attnLut = isDark ? ATTN_LUT_DARK : ATTN_LUT_LIGHT
   // Precompute per-theme hint strings so they aren't rebuilt inside loops
-  const attnHint = isDark
-    ? `rgba(${ACID_DARK},0.10)`
-    : `rgba(${ACID_LIGHT},0.10)`
-  const mlpHint = isDark
-    ? `rgba(${ACID_DARK},0.07)`
-    : `rgba(${ACID_LIGHT},0.07)`
+  const attnHint = isDark ? `rgba(${ACID_DARK},0.10)` : `rgba(${ACID_LIGHT},0.10)`
+  const mlpHint = isDark ? `rgba(${ACID_DARK},0.07)` : `rgba(${ACID_LIGHT},0.07)`
 
   // Cool color for LN + RESIDUAL sections (same in dark and light)
   const coolDoneA = `rgba(${COOL},0.75)`
@@ -209,10 +197,7 @@ function drawLayerCanvas(
         let cx = 0,
           rows = 1
         for (const label of tokens) {
-          const chipW = Math.max(
-            minW,
-            Math.round(c.measureText(label).width + padX * 2)
-          )
+          const chipW = Math.max(minW, Math.round(c.measureText(label).width + padX * 2))
           if (cx > 0 && cx + gap + chipW > availCW) {
             rows++
             cx = chipW
@@ -220,10 +205,7 @@ function drawLayerCanvas(
             cx = cx === 0 ? chipW : cx + gap + chipW
           }
         }
-        bh = Math.max(
-          RESID_PLACEHOLDER_H * s,
-          sp * 2 + rows * rh + (rows - 1) * gap
-        )
+        bh = Math.max(RESID_PLACEHOLDER_H * s, sp * 2 + rows * rh + (rows - 1) * gap)
       }
       c.fillStyle = 'rgba(255,255,255,0.06)'
       c.fillRect(pad, y, cw, bh)
@@ -240,10 +222,7 @@ function drawLayerCanvas(
       totalRows = 1
     for (let i = 0; i < T; i++) {
       const label = tokens[i] ?? ''
-      const chipW = Math.max(
-        minW,
-        Math.round(c.measureText(label).width + padX * 2)
-      )
+      const chipW = Math.max(minW, Math.round(c.measureText(label).width + padX * 2))
       chipWidths.push(chipW)
       if (cx > 0 && cx + gap + chipW > availCW) {
         totalRows++
@@ -311,10 +290,8 @@ function drawLayerCanvas(
     y += blockH + SEC_GAP * s
   }
 
-  const acidLabel =
-    state === 'done' ? acidDoneA : state === 'processing' ? acidProcA : labelOff
-  const coolLabel =
-    state === 'done' ? coolDoneA : state === 'processing' ? coolProcA : labelOff
+  const acidLabel = state === 'done' ? acidDoneA : state === 'processing' ? acidProcA : labelOff
+  const coolLabel = state === 'done' ? coolDoneA : state === 'processing' ? coolProcA : labelOff
 
   // LN 1
   drawLabel('LN 1', coolLabel)
@@ -403,36 +380,21 @@ function drawLayerCanvas(
     // All neurons same color — one fillStyle for 3072 fillRects
     c.fillStyle = mlpOff
     for (let n = 0; n < MLP_DIM; n++) {
-      c.fillRect(
-        pad + (n % MLP_COLS) * stride,
-        y + Math.floor(n / MLP_COLS) * stride,
-        ncell,
-        ncell
-      )
+      c.fillRect(pad + (n % MLP_COLS) * stride, y + Math.floor(n / MLP_COLS) * stride, ncell, ncell)
     }
   } else if (state === 'processing' && data.mlp.length === 0) {
     // All 3072 neurons activate simultaneously via matmul — show uniform
     // dim hint across every neuron while data is in transit
     c.fillStyle = mlpHint
     for (let n = 0; n < MLP_DIM; n++) {
-      c.fillRect(
-        pad + (n % MLP_COLS) * stride,
-        y + Math.floor(n / MLP_COLS) * stride,
-        ncell,
-        ncell
-      )
+      c.fillRect(pad + (n % MLP_COLS) * stride, y + Math.floor(n / MLP_COLS) * stride, ncell, ncell)
     }
   } else {
     for (let n = 0; n < MLP_DIM; n++) {
       const act = data.mlp[n] ?? 0
       const idx = Math.min(255, Math.round(act * 255))
       c.fillStyle = idx < 13 ? mlpOff : mlpLut[idx]
-      c.fillRect(
-        pad + (n % MLP_COLS) * stride,
-        y + Math.floor(n / MLP_COLS) * stride,
-        ncell,
-        ncell
-      )
+      c.fillRect(pad + (n % MLP_COLS) * stride, y + Math.floor(n / MLP_COLS) * stride, ncell, ncell)
     }
   }
 
@@ -442,13 +404,7 @@ function drawLayerCanvas(
   drawWriteStrip(data.mlp_write)
 }
 
-export type LayerRegion =
-  | 'ln1'
-  | 'attn'
-  | 'residual_mid'
-  | 'ln2'
-  | 'mlp'
-  | 'residual_post'
+export type LayerRegion = 'ln1' | 'attn' | 'residual_mid' | 'ln2' | 'mlp' | 'residual_post'
 
 interface HitRegion {
   region: LayerRegion
@@ -469,10 +425,7 @@ interface HitRegion {
  *   drawWriteStrip → y += residH + SEC_GAP
  *   (repeat for LN2, MLP, RESIDUAL POST)
  */
-function computeLayerHitRegions(
-  tokens: string[],
-  isActive = false
-): HitRegion[] {
+function computeLayerHitRegions(tokens: string[], isActive = false): HitRegion[] {
   let y = CARD_PAD
 
   const residH = computeResidH(tokens, isActive)
@@ -591,13 +544,9 @@ export default function LayerCanvas({
       canvas.style.height = `${h}px`
       const preserved = lastActiveDataRef.current
       const drawSt =
-        st === 'inactive' && tokensRef.current.length > 0 && preserved !== null
-          ? 'done'
-          : st
+        st === 'inactive' && tokensRef.current.length > 0 && preserved !== null ? 'done' : st
       const drawData =
-        drawSt === 'done' && st === 'inactive' && preserved !== null
-          ? preserved
-          : dataRef.current
+        drawSt === 'done' && st === 'inactive' && preserved !== null ? preserved : dataRef.current
       drawLayerCanvas(
         canvas,
         drawSt,
@@ -640,14 +589,9 @@ export default function LayerCanvas({
       lastActiveDataRef.current = null
     }
     const preserved = lastActiveDataRef.current
-    const drawSt =
-      state === 'inactive' && tokens.length > 0 && preserved !== null
-        ? 'done'
-        : state
+    const drawSt = state === 'inactive' && tokens.length > 0 && preserved !== null ? 'done' : state
     const drawData =
-      drawSt === 'done' && state === 'inactive' && preserved !== null
-        ? preserved
-        : data
+      drawSt === 'done' && state === 'inactive' && preserved !== null ? preserved : data
     drawLayerCanvas(canvas, drawSt, drawData, isDark, tokens, isDecoding)
   }, [state, data, isDark, tokens, isDecoding]) // eslint-disable-line react-hooks/exhaustive-deps
 

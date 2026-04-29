@@ -36,10 +36,7 @@ export default function Home() {
 
       <footer className={styles.footer}>
         <span>insidethe.ai · v01</span>
-        <a
-          href="mailto:bryn.bennett.eng@gmail.com"
-          className={styles.footerContact}
-        >
+        <a href="mailto:bryn.bennett.eng@gmail.com" className={styles.footerContact}>
           contact
         </a>
       </footer>

@@ -23,13 +23,7 @@ export default function BackgroundCanvas() {
     let voidGrd: CanvasGradient | null = null
     let ringGrd: CanvasGradient | null = null
 
-    function buildGradients(
-      W: number,
-      H: number,
-      cx: number,
-      cy: number,
-      dark: boolean
-    ) {
+    function buildGradients(W: number, H: number, cx: number, cy: number, dark: boolean) {
       if (!ctx) return
       const lensR = Math.min(W, H) * 0.22
       const voidR = lensR * 0.55
@@ -48,14 +42,7 @@ export default function BackgroundCanvas() {
         voidGrd.addColorStop(1, 'rgba(245,245,240,0)')
       }
 
-      ringGrd = ctx.createRadialGradient(
-        cx,
-        cy,
-        ringR * 0.8,
-        cx,
-        cy,
-        ringR * 1.6
-      )
+      ringGrd = ctx.createRadialGradient(cx, cy, ringR * 0.8, cx, cy, ringR * 1.6)
       ringGrd.addColorStop(0, 'rgba(0,0,0,0)')
       if (dark) {
         ringGrd.addColorStop(0.35, 'rgba(196,255,61,0.055)')
@@ -102,16 +89,13 @@ export default function BackgroundCanvas() {
         if (dist2 < 4) return [cx, cy]
         const dist = Math.sqrt(dist2)
         const wave = 0.04 * Math.sin(dist * 0.009 - t * 0.0005)
-        const pull =
-          (lensStrength / (dist2 + lensR * lensR * 0.12)) * (1 + wave)
+        const pull = (lensStrength / (dist2 + lensR * lensR * 0.12)) * (1 + wave)
         return [x - dx * pull, y - dy * pull]
       }
 
       ctx.lineWidth = 0.9 * dpr
       const lineAlpha = 0.1
-      const lineColor = dark
-        ? `rgba(255,255,255,${lineAlpha})`
-        : `rgba(0,0,0,${lineAlpha})`
+      const lineColor = dark ? `rgba(255,255,255,${lineAlpha})` : `rgba(0,0,0,${lineAlpha})`
 
       for (let gx = cx % spacing; gx <= W + spacing; gx += spacing) {
         ctx.beginPath()

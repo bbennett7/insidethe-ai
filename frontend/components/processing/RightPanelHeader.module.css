@@ -17,7 +17,7 @@
   gap: 5px;
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   color: var(--ink-quiet);
   text-decoration: none;
   transition: color var(--dur-fast) var(--ease);
@@ -40,7 +40,7 @@
 .nnsightLink {
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   color: var(--acid);
   text-decoration: none;
   transition: opacity var(--dur-fast) var(--ease);

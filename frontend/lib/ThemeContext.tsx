@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 interface ThemeContextValue {
   isDark: boolean
@@ -47,9 +41,5 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={{ isDark, toggleTheme }}>{children}</ThemeContext.Provider>
 }

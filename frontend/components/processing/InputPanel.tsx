@@ -63,9 +63,7 @@ export default function InputPanel({
   // while chips aren't mounted yet, giving null refs and wrong fallback widths.
   useLayoutEffect(() => {
     if (!showEmbeds || inputTokens.length === 0) return
-    const widths = chipRefs.current
-      .slice(0, inputTokens.length)
-      .map((el) => el?.offsetWidth ?? 40)
+    const widths = chipRefs.current.slice(0, inputTokens.length).map((el) => el?.offsetWidth ?? 40)
     setChipWidths(widths)
   }, [inputTokens, showEmbeds])
 
@@ -282,7 +280,10 @@ export default function InputPanel({
         )}
         {state === 'done' && awaitingStep && (
           <div className={styles.computingPlaceholder}>
-            <span className={`${styles.dotBlink} ${styles.dotQuiet}`} style={{ animationName: 'none' }} />
+            <span
+              className={`${styles.dotBlink} ${styles.dotQuiet}`}
+              style={{ animationName: 'none' }}
+            />
             <span>idle</span>
           </div>
         )}
@@ -298,7 +299,6 @@ export default function InputPanel({
           </div>
         </ScrollArea>
       </div>
-
     </div>
   )
 }

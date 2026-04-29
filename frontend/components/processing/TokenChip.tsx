@@ -9,10 +9,7 @@ interface TokenChipProps {
 
 export default function TokenChip({ text, id, accent, style }: TokenChipProps) {
   return (
-    <span
-      className={`${styles.tok}${accent ? ` ${styles.tokAccent}` : ''}`}
-      style={style}
-    >
+    <span className={`${styles.tok}${accent ? ` ${styles.tokAccent}` : ''}`} style={style}>
       <span className={styles.tokId}>{String(id)}</span>
       {text}
     </span>

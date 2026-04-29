@@ -52,9 +52,7 @@ export default function RightPanelHeader({
           </InfoTooltip>
         </span>
       </div>
-      <span className={styles.eyebrow}>
-        12 layers · 12 heads · 768 dimensions · 3072 neurons
-      </span>
+      <span className={styles.eyebrow}>12 layers · 12 heads · 768 dimensions · 3072 neurons</span>
       <div className={styles.right}>
         {tokenGenCount > 0 && (
           <span className={styles.tokenCounter}>

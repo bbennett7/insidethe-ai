@@ -48,8 +48,7 @@ function drawEmbedSlot(
     const v = vector[dim]
     const abs = Math.abs(v)
     const alpha = (0.1 + abs * 0.85).toFixed(3)
-    ctx.fillStyle =
-      v >= 0 ? `rgba(${POSITIVE},${alpha})` : `rgba(${NEGATIVE},${alpha})`
+    ctx.fillStyle = v >= 0 ? `rgba(${POSITIVE},${alpha})` : `rgba(${NEGATIVE},${alpha})`
     ctx.fillRect(c * stride, 0, cellW, canvasH)
   }
   ctx.restore()

@@ -58,15 +58,7 @@ export default function PreviewMemoryCanvas() {
       rotText('remember when', -0.05 * W, 0.1 * H, 62 * d, 0.055, -8)
       rotText('a conversation we had', 0.1 * W, 0.4 * H, 30 * d, 0.1, -3)
       rotText('the mind of the model', 0.35 * W, 0.24 * H, 18 * d, 0.15, 4)
-      rotText(
-        'system · you are a helpful assistant…',
-        0.07 * W,
-        0.66 * H,
-        9 * d,
-        0.2,
-        -1,
-        true
-      )
+      rotText('system · you are a helpful assistant…', 0.07 * W, 0.66 * H, 9 * d, 0.2, -1, true)
       rotText('what was said before', 0.22 * W, 0.54 * H, 22 * d, 0.26, 2)
 
       // Top layer: crisp text with acid-highlighted phrase
@@ -136,10 +128,5 @@ export default function PreviewMemoryCanvas() {
     return () => window.removeEventListener('resize', draw)
   }, [isDark])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
 }

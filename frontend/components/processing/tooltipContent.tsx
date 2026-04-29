@@ -31,16 +31,15 @@ export const inputTokenCountTooltip = () => (
 export const outputTokenCountTooltip = () => (
   <div>
     <div className={styles.heading}>Output Tokens</div>
-    Each entry is the <span className={styles.accent}>most likely next token</span> from one complete
-    forward pass through all 12 layers. Hover any chip to see the{' '}
+    Each entry is the <span className={styles.accent}>most likely next token</span> from one
+    complete forward pass through all 12 layers. Hover any chip to see the{' '}
     <span className={styles.accent}>top-10 candidates</span> and their relative probabilities.
     <hr className={styles.divider} />
     <div className={styles.note}>
       This visualizer runs one pass at a time — next-token prediction, not open-ended generation.
       Probabilities are shown relative to the top-10 candidates, not the full 50,257-token
-      vocabulary. GPT-2 rarely picks{' '}
-      <span className={styles.accent}>&lt;|endoftext|&gt;</span> naturally; sequences continue until
-      you cancel or reset.
+      vocabulary. GPT-2 rarely picks <span className={styles.accent}>&lt;|endoftext|&gt;</span>{' '}
+      naturally; sequences continue until you cancel or reset.
     </div>
   </div>
 )

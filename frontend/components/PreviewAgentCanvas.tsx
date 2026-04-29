@@ -84,48 +84,16 @@ export default function PreviewAgentCanvas() {
 
       // Arrows — positions from SVG path data (normalized to 400×250)
       // THINK → ACT: M(172,95) Q(230,88) (270,105)
-      drawArc(
-        0.43 * W,
-        0.38 * H,
-        0.575 * W,
-        0.352 * H,
-        0.675 * W,
-        0.42 * H,
-        1.0
-      )
+      drawArc(0.43 * W, 0.38 * H, 0.575 * W, 0.352 * H, 0.675 * W, 0.42 * H, 1.0)
       // ACT → OBSERVE: M(287,134) Q(285,175) (262,192)
-      drawArc(
-        0.7175 * W,
-        0.536 * H,
-        0.7125 * W,
-        0.7 * H,
-        0.655 * W,
-        0.768 * H,
-        0.85
-      )
+      drawArc(0.7175 * W, 0.536 * H, 0.7125 * W, 0.7 * H, 0.655 * W, 0.768 * H, 0.85)
       // OBSERVE → REFLECT: M(228,205) Q(160,215) (111,188)
       drawArc(0.57 * W, 0.82 * H, 0.4 * W, 0.86 * H, 0.2775 * W, 0.752 * H, 0.7)
       // REFLECT → THINK: M(94,157) Q(100,110) (122,98) — dashed loop closure
-      drawArc(
-        0.235 * W,
-        0.628 * H,
-        0.25 * W,
-        0.44 * H,
-        0.305 * W,
-        0.392 * H,
-        0.55,
-        true
-      )
+      drawArc(0.235 * W, 0.628 * H, 0.25 * W, 0.44 * H, 0.305 * W, 0.392 * H, 0.55, true)
 
       // THINK node — large, acid-filled, with radial glow
-      const glowGrad = ctx.createRadialGradient(
-        T.x,
-        T.y,
-        0,
-        T.x,
-        T.y,
-        rThink * 1.8
-      )
+      const glowGrad = ctx.createRadialGradient(T.x, T.y, 0, T.x, T.y, rThink * 1.8)
       glowGrad.addColorStop(0, `rgba(${acidRgb},0.25)`)
       glowGrad.addColorStop(1, 'rgba(0,0,0,0)')
       ctx.fillStyle = glowGrad
@@ -206,10 +174,5 @@ export default function PreviewAgentCanvas() {
     return () => window.removeEventListener('resize', draw)
   }, [isDark])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
 }

@@ -79,26 +79,14 @@ export default function PreviewTransformerCanvas() {
         // Block background
         ctx.fillStyle = `rgba(${acid},0.06)`
         ctx.beginPath()
-        ctx.roundRect(
-          padX + 14 * dpr,
-          blockY,
-          innerW - 28 * dpr,
-          blockH,
-          3 * dpr
-        )
+        ctx.roundRect(padX + 14 * dpr, blockY, innerW - 28 * dpr, blockH, 3 * dpr)
         ctx.fill()
 
         // Block border
         ctx.strokeStyle = `rgba(${acid},0.18)`
         ctx.lineWidth = 0.7 * dpr
         ctx.beginPath()
-        ctx.roundRect(
-          padX + 14 * dpr,
-          blockY,
-          innerW - 28 * dpr,
-          blockH,
-          3 * dpr
-        )
+        ctx.roundRect(padX + 14 * dpr, blockY, innerW - 28 * dpr, blockH, 3 * dpr)
         ctx.stroke()
 
         const mhaH = blockH * 0.52
@@ -129,9 +117,7 @@ export default function PreviewTransformerCanvas() {
             ctx.lineWidth = 0.6 * dpr
             ctx.beginPath()
             ctx.moveTo(x1, headY)
-            const cpY =
-              headY -
-              headDotR * 2.5 * (1 + Math.abs(x2 - x1) / (headAreaW * 0.5))
+            const cpY = headY - headDotR * 2.5 * (1 + Math.abs(x2 - x1) / (headAreaW * 0.5))
             ctx.quadraticCurveTo((x1 + x2) / 2, cpY, x2, headY)
             ctx.stroke()
           }
@@ -161,11 +147,7 @@ export default function PreviewTransformerCanvas() {
         // Layer number badge
         ctx.fillStyle = `rgba(${acid},0.38)`
         ctx.textAlign = 'right'
-        ctx.fillText(
-          `L${layerIdx + 1}`,
-          padX + innerW - 18 * dpr,
-          blockY + 3.5 * dpr
-        )
+        ctx.fillText(`L${layerIdx + 1}`, padX + innerW - 18 * dpr, blockY + 3.5 * dpr)
       }
 
       // Residual connection arrows between layers
@@ -215,10 +197,5 @@ export default function PreviewTransformerCanvas() {
     return () => window.removeEventListener('resize', resize)
   }, [isDark])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
 }

@@ -148,10 +148,5 @@ export default function PreviewFrontierCanvas() {
     return () => window.removeEventListener('resize', draw)
   }, [isDark])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
 }

@@ -1,9 +1,4 @@
-export type ProcessState =
-  | 'idle'
-  | 'tokenizing'
-  | 'embedding'
-  | 'computing'
-  | 'done'
+export type ProcessState = 'idle' | 'tokenizing' | 'embedding' | 'computing' | 'done'
 
 export type LayerState = 'inactive' | 'processing' | 'done'
 
@@ -33,13 +28,7 @@ export interface OutputToken {
   candidates: Candidate[]
 }
 
-export type LayerComponent =
-  | 'ln1'
-  | 'attn'
-  | 'attn_write'
-  | 'ln2'
-  | 'mlp'
-  | 'mlp_write'
+export type LayerComponent = 'ln1' | 'attn' | 'attn_write' | 'ln2' | 'mlp' | 'mlp_write'
 
 type RawAttnData = { weights: number[][][]; heads: number }
 type RawLNData = number

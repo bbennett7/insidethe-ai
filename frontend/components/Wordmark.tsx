@@ -17,10 +17,7 @@ export default function Wordmark({ size = 'sm' }: WordmarkProps) {
   return (
     <div className={`${styles.tokRow} ${styles[size]}`}>
       {TOKENS.map((tok) => (
-        <span
-          key={tok.text}
-          className={`${styles.tok}${tok.accent ? ` ${styles.tokAccent}` : ''}`}
-        >
+        <span key={tok.text} className={`${styles.tok}${tok.accent ? ` ${styles.tokAccent}` : ''}`}>
           <span className={styles.tokId}>{tok.id}</span>
           {tok.text}
         </span>
