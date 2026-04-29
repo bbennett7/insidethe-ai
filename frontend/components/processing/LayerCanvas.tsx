@@ -442,7 +442,77 @@ function drawLayerCanvas(
   drawWriteStrip(data.mlp_write)
 }
 
-export { computeCanvasH, drawLayerCanvas }
+export type LayerRegion =
+  | 'ln1'
+  | 'attn'
+  | 'residual_mid'
+  | 'ln2'
+  | 'mlp'
+  | 'residual_post'
+
+interface HitRegion {
+  region: LayerRegion
+  yStart: number
+  yEnd: number
+}
+
+/**
+ * Returns the logical-pixel Y ranges (before DPR scaling) for each named region
+ * in the canvas. Mirrors the draw order in drawLayerCanvas exactly so that
+ * mouse hit-testing in LayerCard maps correctly to tooltip content.
+ *
+ * Drawing order:
+ *   y starts at CARD_PAD
+ *   drawLabel → y += LABEL_H
+ *   drawBar   → y += BAR_H + SEC_GAP
+ *   (attn grid drawn at y, then) y += ATTN_BLOCK_H + SEC_GAP
+ *   drawWriteStrip → y += residH + SEC_GAP
+ *   (repeat for LN2, MLP, RESIDUAL POST)
+ */
+function computeLayerHitRegions(
+  tokens: string[],
+  isActive = false
+): HitRegion[] {
+  let y = CARD_PAD
+
+  const residH = computeResidH(tokens, isActive)
+
+  const regions: HitRegion[] = []
+
+  // LN 1: label + bar (drawLabel then drawBar)
+  const ln1Start = y
+  y += LABEL_H + BAR_H + SEC_GAP
+  regions.push({ region: 'ln1', yStart: ln1Start, yEnd: y })
+
+  // ATTN: label + grid block
+  const attnStart = y
+  y += LABEL_H + ATTN_BLOCK_H + SEC_GAP
+  regions.push({ region: 'attn', yStart: attnStart, yEnd: y })
+
+  // RESIDUAL MID: label + write strip
+  const residMidStart = y
+  y += LABEL_H + residH + SEC_GAP
+  regions.push({ region: 'residual_mid', yStart: residMidStart, yEnd: y })
+
+  // LN 2: label + bar
+  const ln2Start = y
+  y += LABEL_H + BAR_H + SEC_GAP
+  regions.push({ region: 'ln2', yStart: ln2Start, yEnd: y })
+
+  // MLP: label + neuron grid
+  const mlpStart = y
+  y += LABEL_H + MLP_BLOCK_H + SEC_GAP
+  regions.push({ region: 'mlp', yStart: mlpStart, yEnd: y })
+
+  // RESIDUAL POST: label + write strip
+  const residPostStart = y
+  y += LABEL_H + residH + CARD_PAD
+  regions.push({ region: 'residual_post', yStart: residPostStart, yEnd: y })
+
+  return regions
+}
+
+export { computeCanvasH, computeLayerHitRegions, drawLayerCanvas }
 
 export default function LayerCanvas({
   layerIndex: _layerIndex,

@@ -63,6 +63,12 @@
   box-shadow: 0 0 4px var(--acid);
 }
 
+/* Transparent wrapper over the canvas body — captures mouse events for region tooltips */
+.canvasOverlay {
+  position: relative;
+  cursor: default;
+}
+
 :global(html.light) .card {
   background: #2e2e2e;
   border-color: rgba(255, 255, 255, 0.1);
