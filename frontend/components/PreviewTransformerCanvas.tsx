@@ -22,6 +22,7 @@ export default function PreviewTransformerCanvas() {
   const isDarkRef = useRef(isDark)
   isDarkRef.current = isDark
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: isDark is a trigger; draw() reads isDarkRef.current
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return

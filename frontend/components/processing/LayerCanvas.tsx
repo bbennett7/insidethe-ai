@@ -527,6 +527,7 @@ export default function LayerCanvas({
     return computeCanvasH(toks, active)
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-once DPR listener; all values accessed via refs
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -570,8 +571,9 @@ export default function LayerCanvas({
     subscribe()
 
     return () => mql?.removeEventListener('change', onDprChange)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: commitStableH is a local function, not a dep
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -592,7 +594,7 @@ export default function LayerCanvas({
     const drawData =
       drawSt === 'done' && state === 'inactive' && preserved !== null ? preserved : data
     drawLayerCanvas(canvas, drawSt, drawData, isDark, tokens, isDecoding)
-  }, [state, data, isDark, tokens, isDecoding]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, data, isDark, tokens, isDecoding])
 
   const active = state === 'done' || state === 'processing'
   const canvasH = readStableH(tokens, active)

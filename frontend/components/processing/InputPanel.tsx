@@ -72,6 +72,7 @@ export default function InputPanel({
 
   function renderMergeStage(stage: MergeItem[]) {
     return stage.map(({ t, sp, m }, idx) => (
+      // biome-ignore lint/suspicious/noArrayIndexKey: merge items have no stable id
       <div key={`merge-${idx}`} className={styles.embedTokenWrap}>
         <span className={styles.tokIdPlaceholder} aria-hidden="true">
           {sp ? '' : '—'}
@@ -225,7 +226,7 @@ export default function InputPanel({
 
           {showEmbeds &&
             inputTokens.map((tok, i) => (
-              <div key={`inp-${i}-${tok.id}`} className={styles.embedTokenWrap}>
+              <div key={`inp-${tok.id}`} className={styles.embedTokenWrap}>
                 <InfoTooltip content={tokenIdTooltip()}>
                   <span className={styles.tokId}>{tok.id}</span>
                 </InfoTooltip>
@@ -291,8 +292,8 @@ export default function InputPanel({
           <div className={styles.outputSection}>
             {outputTokens.length > 0 && (
               <div className={styles.outputTokens}>
-                {outputTokens.map((tok, i) => (
-                  <OutputChipWithTooltip key={`out-${i}-${tok.id}`} tok={tok} />
+                {outputTokens.map((tok) => (
+                  <OutputChipWithTooltip key={`out-${tok.id}`} tok={tok} />
                 ))}
               </div>
             )}
@@ -373,7 +374,7 @@ const CandidateTooltip = forwardRef<
         <span className={styles.tooltipColPLabel}>p</span>
       </div>
       {candidates.map((c, i) => (
-        <div key={`cand-${i}-${c.id}`} className={styles.tooltipRow}>
+        <div key={`cand-${c.id}`} className={styles.tooltipRow}>
           <span className={`${styles.tooltipToken}${i === 0 ? ` ${styles.tooltipTokenTop}` : ''}`}>
             {c.text}
           </span>

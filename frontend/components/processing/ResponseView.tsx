@@ -43,7 +43,8 @@ function JsonBlock({ value }: { value: unknown }) {
   return (
     <pre className={styles.jsonPre}>
       {segs.map((s, i) => (
-        <span key={i} className={S[s.c]}>
+        // biome-ignore lint/suspicious/noArrayIndexKey: segments have no stable id; index is the only discriminator
+        <span key={`block-${i}`} className={S[s.c]}>
           {s.t}
         </span>
       ))}
@@ -58,7 +59,8 @@ function JsonInline({ value }: { value: unknown }) {
   return (
     <>
       {segs.map((s, i) => (
-        <span key={i} className={S[s.c]}>
+        // biome-ignore lint/suspicious/noArrayIndexKey: segments have no stable id; index is the only discriminator
+        <span key={`inline-${i}`} className={S[s.c]}>
           {s.t}
         </span>
       ))}
@@ -143,9 +145,9 @@ export default function ResponseView({
   const completionId =
     inputTokens.length > 0 ? `cmpl-${inputTokens[0].id}-${inputTokens.length}` : 'cmpl-pending'
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — length change is the trigger, not full array identity
   const requestObj = useMemo(
     () => buildRequest(promptText || inputTokens.map((t) => t.text).join('')),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [promptText, inputTokens.length]
   )
 
@@ -165,6 +167,7 @@ export default function ResponseView({
 
   // Auto-scroll only when the user is already near the bottom
   const responseBoxRef = useRef<HTMLDivElement>(null)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: length/isDone are triggers; body reads ref
   useEffect(() => {
     const el = responseBoxRef.current
     if (!el) return
@@ -288,7 +291,7 @@ export default function ResponseView({
                 {outputTokens.map((tok, i) => {
                   const chunk = chunks[i]
                   return (
-                    <div key={`chunk-${i}-${tok.id}`} className={styles.streamEntry}>
+                    <div key={`chunk-${tok.id}`} className={styles.streamEntry}>
                       <div className={styles.streamComment}>
                         res no. {i + 1}{' '}
                         <span className={styles.streamCommentToken}>{tok.text}</span>

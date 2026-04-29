@@ -135,6 +135,7 @@ export function useProcessingSocket(
     // hello and error are handled at the transport level; nothing to dispatch
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: empty deps intentional — all values accessed via refs
   const processNext = useCallback(() => {
     if (cancelledRef.current || queueRef.current.length === 0) {
       timerRef.current = null
@@ -152,7 +153,7 @@ export function useProcessingSocket(
 
     const delay = entry.type === 'layer' ? layerComponentDelay(speedRef.current) : 0
     timerRef.current = setTimeout(processNext, delay)
-  }, []) // empty deps — all mutable values accessed through refs
+  }, [])
 
   const run = useCallback((text: string) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
@@ -177,6 +178,7 @@ export function useProcessingSocket(
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: speedRef.current is a ref, not a dep
   const notifySpeedChange = useCallback(() => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current)

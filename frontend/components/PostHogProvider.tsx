@@ -18,6 +18,7 @@ if (typeof window !== 'undefined' && key) {
 
 function PostHogPageView() {
   const pathname = usePathname()
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger for pageview on route change
   useEffect(() => {
     posthog.capture('$pageview', { $current_url: window.location.href })
   }, [pathname])
