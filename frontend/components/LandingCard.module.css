@@ -6,7 +6,7 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
-  cursor: not-allowed;
+  cursor: default;
   transition:
     border-color var(--dur-mid) var(--ease),
     box-shadow var(--dur-mid) var(--ease),
