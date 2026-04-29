@@ -4,7 +4,7 @@ import logging
 import orjson
 from fastapi import WebSocket
 
-from model import GPT2Runner
+from experiences.processing.runner import GPT2Runner
 
 log = logging.getLogger(__name__)
 
