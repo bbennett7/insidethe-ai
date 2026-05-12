@@ -19,9 +19,7 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 GPT2Tokenizer.from_pretrained('gpt2')
 GPT2LMHeadModel.from_pretrained('gpt2')
 from nnsight import LanguageModel
-m = LanguageModel('gpt2', device_map='cpu', attn_implementation='eager')
-with m.trace('hello'):
-    pass
+LanguageModel('gpt2', device_map='cpu', attn_implementation='eager')
 EOF
 
 # Block all runtime HuggingFace downloads — if something is missing the container
