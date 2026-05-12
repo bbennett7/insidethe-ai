@@ -1,7 +1,30 @@
-fastapi
-uvicorn[standard]
-nnsight
-transformers
-numpy
-orjson
-ruff
+# Pinned lockfile — do not edit directly.
+# Source of truth: requirements.in
+# To update a dep: change requirements.in, test in a fresh venv, then run:
+#   pip freeze | grep -v torch > requirements.txt  (torch is pinned in Dockerfile)
+anyio==4.13.0
+certifi==2026.4.22
+charset-normalizer==3.4.7
+click==8.3.3
+fastapi==0.136.0
+filelock==3.29.0
+h11==0.16.0
+httptools==0.7.1
+huggingface-hub==1.11.0
+idna==3.13
+nnsight==0.6.3
+numpy==2.4.4
+orjson==3.11.8
+packaging==26.1
+pydantic==2.13.3
+regex==2026.4.4
+requests==2.33.1
+safetensors==0.7.0
+starlette==1.0.0
+tokenizers==0.22.2
+tqdm==4.67.3
+transformers==5.6.0
+urllib3==2.6.3
+uvicorn==0.45.0
+watchfiles==1.1.1
+websockets==16.0
