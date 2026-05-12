@@ -23,7 +23,8 @@ async function loadFonts() {
         b.includes(`font-weight: ${weight}`) &&
         (!italic || b.includes('font-style: italic'))
     );
-    if (!block) throw new Error(`No @font-face block for ${family} ${weight}${italic ? ' italic' : ''}`);
+    if (!block)
+      throw new Error(`No @font-face block for ${family} ${weight}${italic ? ' italic' : ''}`);
     const match = block.match(/url\(([^)]+)\)\s*format\('(?:truetype|opentype)'\)/);
     if (!match) throw new Error(`No TTF URL in block for ${family} ${weight}`);
     return match[1];
@@ -94,147 +95,145 @@ export default async function OGImage() {
   const gridPath = buildLensGrid(W, H);
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: W,
+        height: H,
+        display: 'flex',
+        background: '#0a0a0a',
+        position: 'relative',
+      }}
+    >
+      {/* Lensed grid */}
+      <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: W, height: H }}>
+        <svg width={W} height={H} aria-hidden="true">
+          <path d={gridPath} stroke="rgba(255,255,255,0.13)" strokeWidth="0.9" fill="none" />
+        </svg>
+      </div>
+
+      {/* Void overlay — matches mobile mock: voidR=lensR*0.56, outer=voidR*2.6 */}
       <div
         style={{
+          display: 'flex',
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: W,
           height: H,
+          background:
+            'radial-gradient(circle 202px at 50% 50%, rgba(10,10,10,1) 0%, rgba(10,10,10,1) 38%, rgba(10,10,10,0.55) 72%, rgba(10,10,10,0) 100%)',
+        }}
+      />
+
+      {/* Acid ring glow — matches mobile mock: inner=voidR*0.78, outer=voidR*1.9 */}
+      <div
+        style={{
           display: 'flex',
-          background: '#0a0a0a',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: W,
+          height: H,
+          background:
+            'radial-gradient(circle 147px at 50% 50%, transparent 0%, transparent 41%, rgba(196,255,61,0.06) 62%, rgba(196,255,61,0.025) 79%, transparent 100%)',
+        }}
+      />
+
+      {/* Centred content */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 1,
           position: 'relative',
         }}
       >
-        {/* Lensed grid */}
-        <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: W, height: H }}>
-          <svg width={W} height={H}>
-            <path d={gridPath} stroke="rgba(255,255,255,0.13)" strokeWidth="0.9" fill="none" />
-          </svg>
-        </div>
-
-        {/* Void overlay — matches mobile mock: voidR=lensR*0.56, outer=voidR*2.6 */}
+        {/* Inner column — paddingTop leaves room for floating token IDs */}
         <div
           style={{
             display: 'flex',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: W,
-            height: H,
-            background:
-              'radial-gradient(circle 202px at 50% 50%, rgba(10,10,10,1) 0%, rgba(10,10,10,1) 38%, rgba(10,10,10,0.55) 72%, rgba(10,10,10,0) 100%)',
-          }}
-        />
-
-        {/* Acid ring glow — matches mobile mock: inner=voidR*0.78, outer=voidR*1.9 */}
-        <div
-          style={{
-            display: 'flex',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: W,
-            height: H,
-            background:
-              'radial-gradient(circle 147px at 50% 50%, transparent 0%, transparent 41%, rgba(196,255,61,0.06) 62%, rgba(196,255,61,0.025) 79%, transparent 100%)',
-          }}
-        />
-
-        {/* Centred content */}
-        <div
-          style={{
-            display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            flex: 1,
-            position: 'relative',
+            paddingTop: 48,
           }}
         >
-          {/* Inner column — paddingTop leaves room for floating token IDs */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              paddingTop: 48,
-            }}
-          >
-            {/* Token row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {TOKENS.map(({ text, id, accent }) => (
-                <div key={text} style={{ display: 'flex', position: 'relative' }}>
-                  {/* Token ID floating above */}
-                  <div
+          {/* Token row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {TOKENS.map(({ text, id, accent }) => (
+              <div key={text} style={{ display: 'flex', position: 'relative' }}>
+                {/* Token ID floating above */}
+                <div
+                  style={{
+                    display: 'flex',
+                    position: 'absolute',
+                    top: -38,
+                    left: 0,
+                  }}
+                >
+                  <span
                     style={{
-                      display: 'flex',
-                      position: 'absolute',
-                      top: -38,
-                      left: 0,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'JetBrains Mono',
-                        fontWeight: 400,
-                        fontSize: 21,
-                        color: '#c4ff3d',
-                        letterSpacing: '0.1em',
-                      }}
-                    >
-                      {id}
-                    </span>
-                  </div>
-                  {/* Token chip */}
-                  <div
-                    style={{
-                      display: 'flex',
                       fontFamily: 'JetBrains Mono',
-                      fontWeight: accent ? 700 : 400,
-                      fontSize: 104,
-                      color: accent ? '#0a0a0a' : '#f5f5f0',
-                      background: accent ? '#c4ff3d' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${accent ? '#c4ff3d' : 'rgba(255,255,255,0.12)'}`,
-                      borderRadius: 3,
-                      padding: '22px 36px',
-                      letterSpacing: '0.02em',
+                      fontWeight: 400,
+                      fontSize: 21,
+                      color: '#c4ff3d',
+                      letterSpacing: '0.1em',
                     }}
                   >
-                    {text}
-                  </div>
+                    {id}
+                  </span>
                 </div>
-              ))}
-            </div>
+                {/* Token chip */}
+                <div
+                  style={{
+                    display: 'flex',
+                    fontFamily: 'JetBrains Mono',
+                    fontWeight: accent ? 700 : 400,
+                    fontSize: 104,
+                    color: accent ? '#0a0a0a' : '#f5f5f0',
+                    background: accent ? '#c4ff3d' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${accent ? '#c4ff3d' : 'rgba(255,255,255,0.12)'}`,
+                    borderRadius: 3,
+                    padding: '22px 36px',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {text}
+                </div>
+              </div>
+            ))}
+          </div>
 
-            {/* Subtitle */}
-            <div style={{ display: 'flex', marginTop: 28, gap: 8 }}>
-              <span
-                style={{
-                  fontFamily: 'Newsreader',
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  fontSize: 42,
-                  color: '#f5f5f0',
-                  letterSpacing: '0.03em',
-                }}
-              >
-                Interactive
-              </span>
-              <span
-                style={{
-                  fontFamily: 'Newsreader',
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  fontSize: 42,
-                  color: '#c4ff3d',
-                  letterSpacing: '0.03em',
-                }}
-              >
-                AI Visualization
-              </span>
-            </div>
+          {/* Subtitle */}
+          <div style={{ display: 'flex', marginTop: 28, gap: 8 }}>
+            <span
+              style={{
+                fontFamily: 'Newsreader',
+                fontStyle: 'italic',
+                fontWeight: 300,
+                fontSize: 42,
+                color: '#f5f5f0',
+                letterSpacing: '0.03em',
+              }}
+            >
+              Interactive
+            </span>
+            <span
+              style={{
+                fontFamily: 'Newsreader',
+                fontStyle: 'italic',
+                fontWeight: 300,
+                fontSize: 42,
+                color: '#c4ff3d',
+                letterSpacing: '0.03em',
+              }}
+            >
+              AI Visualization
+            </span>
           </div>
         </div>
       </div>
-    ),
+    </div>,
     {
       ...size,
       fonts: [

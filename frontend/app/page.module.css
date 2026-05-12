@@ -62,7 +62,6 @@
   color: var(--acid);
 }
 
-
 @media (max-width: 520px) {
   .portalGrid {
     grid-template-columns: 1fr;
