@@ -197,6 +197,18 @@ Use nnsight's `Tracer` context to intercept:
 
 ---
 
+## Git Workflow
+
+Always use the `/commit-review` skill when committing — never commit directly to `develop` or `main`. The flow is:
+
+1. Do all work on a `type/description` feature branch (e.g. `fix/canvas-dpr`, `feat/processing-page`)
+2. Run `/commit-review` to stage and commit interactively
+3. Open a PR from the feature branch → `main`
+
+Branch names must follow `type/description`. Never create bare branches or commit directly to integration branches.
+
+---
+
 ## Running Locally
 
 ```bash
