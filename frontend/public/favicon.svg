@@ -3,11 +3,11 @@
   <rect width="128" height="128" rx="20" fill="#0a0a0a"/>
 
   <!-- Token ID floating above chip, in the black space -->
-  <text x="11" y="30" font-family="JetBrains Mono, monospace" font-size="11" font-weight="400" letter-spacing="0.08em" fill="#c4ff3d" fill-opacity="0.55">13 / 1872</text>
+  <text x="11" y="30" font-family="JetBrains Mono, monospace" font-size="13" font-weight="400" letter-spacing="0.08em" fill="#c4ff3d" fill-opacity="0.55">13 / 1872</text>
 
   <!-- Acid chip — thin 10px margin left/right/bottom, more black on top -->
-  <rect x="10" y="40" width="108" height="78" rx="8" fill="#c4ff3d"/>
+  <rect x="4" y="40" width="120" height="78" rx="8" fill="#c4ff3d"/>
 
   <!-- .ai text centered in chip -->
-  <text x="64" y="79" font-family="JetBrains Mono, monospace" font-size="52" font-weight="700" letter-spacing="0.02em" fill="#0a0a0a" text-anchor="middle" dominant-baseline="middle">.ai</text>
+  <text x="64" y="84" font-family="JetBrains Mono, monospace" font-size="66" font-weight="700" letter-spacing="-0.04em" fill="#0a0a0a" text-anchor="middle" dominant-baseline="middle">.ai</text>
 </svg>
