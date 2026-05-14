@@ -26,58 +26,77 @@ The brand premise: the wordmark *is* the lesson. `in | side | the | .ai` — fou
 insidethe-ai/
 ├── AGENTS.md               ← you are here
 ├── CLAUDE.md
-├── mocks/                  ← HTML design mocks (source of truth for UI)
-│   ├── insidethe-ai-style-system.html
-│   ├── landing-mock-01.html   ← finalized landing page design
-│   └── ...
-├── app/                    ← Next.js app (App Router)
-│   ├── layout.tsx          ← shared layout: nav + bg canvas
-│   ├── page.tsx            ← landing page (4 portals)
-│   ├── processing/
-│   │   └── page.tsx        ← Inside the Processing
-│   ├── chip/
-│   │   └── page.tsx        ← Inside the Chip (coming soon)
-│   ├── algorithms/
-│   │   └── page.tsx        ← Inside the Algorithms (coming soon)
-│   └── agent/
-│       └── page.tsx        ← Inside the Agent (coming soon)
-├── components/
-│   ├── Wordmark.tsx        ← token-row wordmark component
-│   ├── BgCanvas.tsx        ← gravitational lensing grid canvas
-│   ├── Nav.tsx             ← top nav bar
-│   └── processing/
-│       ├── InputPanel.tsx
-│       ├── LayerStack.tsx
-│       └── LayerCard.tsx
-├── lib/
-│   ├── websocket.ts        ← WebSocket client hook
-│   └── tokens.ts           ← tokenization utilities (client-side display)
-├── styles/
-│   └── tokens.css          ← design system CSS variables (extracted from style system)
-├── backend/
-│   ├── main.py             ← FastAPI app + WebSocket endpoint
-│   ├── model.py            ← nnsight GPT-2 wrapper + forward pass hooks
-│   ├── streamer.py         ← streams layer activations over WebSocket
-│   └── requirements.txt
+├── todos/                  ← issue tracking (numbered, prioritized, YAML frontmatter)
 ├── docs/
-│   └── solutions/          ← documented solutions (bugs, practices), organized by category with YAML frontmatter (module, tags, problem_type)
-└── public/
+│   ├── plans/              ← implementation plans
+│   └── solutions/          ← documented solutions organized by category with YAML frontmatter (module, tags, problem_type)
+├── frontend/               ← Next.js app
+│   ├── app/                ← App Router pages
+│   │   ├── layout.tsx      ← shared layout: nav + bg canvas
+│   │   ├── page.tsx        ← landing page (portals)
+│   │   ├── processing/
+│   │   │   └── page.tsx    ← Inside the Processing (active)
+│   │   └── transformer/
+│   │       └── page.tsx    ← Inside the Transformer (coming soon)
+│   ├── components/
+│   │   ├── Wordmark.tsx          ← token-row wordmark component
+│   │   ├── BackgroundCanvas.tsx  ← gravitational lensing grid canvas
+│   │   ├── Nav.tsx               ← top nav bar
+│   │   └── processing/
+│   │       ├── InputPanel.tsx
+│   │       ├── LayerCard.tsx
+│   │       └── ...
+│   ├── hooks/
+│   │   └── useProcessingSocket.ts  ← WebSocket client hook
+│   ├── lib/
+│   │   ├── processingTypes.ts    ← shared TypeScript types
+│   │   └── canvasTheme.ts        ← canvas color/theme utilities
+│   ├── styles/
+│   │   └── tokens.css            ← design system CSS variables (extracted from style system)
+│   ├── mocks/              ← HTML design mocks (source of truth for UI)
+│   │   ├── insidethe-ai-style-system.html
+│   │   ├── landing-mock-01.html  ← finalized landing page design
+│   │   └── ...
+│   └── public/
+└── backend/
+    ├── main.py             ← FastAPI app entry point
+    ├── routers/
+    │   └── processing.py   ← WebSocket route handler
+    ├── experiences/
+    │   └── processing/
+    │       ├── runner.py   ← nnsight GPT-2 wrapper + forward pass hooks
+    │       └── streamer.py ← streams layer activations over WebSocket
+    └── requirements.txt
 ```
 
 ---
 
 ## Design System
 
-Always refer to `mocks/insidethe-ai-style-system.html` for the source of truth. Key tokens:
+Always refer to `frontend/mocks/insidethe-ai-style-system.html` for the source of truth. The full token set is in `frontend/styles/tokens.css` — it includes light mode overrides (`html.light`) with different values for `--bg`, `--acid`, and all surface/ink tokens. Key tokens:
 
 ```css
+/* Surfaces */
 --bg:           #0a0a0a   /* page background */
 --surface-1:    #111111   /* cards, panels */
---acid:         #c4ff3d   /* THE brand color — use sparingly */
+--surface-2:    #1a1a1a
+--surface-3:    #222222
+
+/* Ink */
 --ink:          #f5f5f0   /* primary text */
 --ink-muted:    #888888
 --ink-quiet:    #555555
 
+/* Accent */
+--acid:         #c4ff3d   /* THE brand color — use sparingly */
+
+/* Semantic / data visualization */
+--warm:         #ff6b3d   /* high-activation heatmap */
+--cool:         #3da9ff   /* low-activation heatmap */
+--positive:     #7dd87d
+--negative:     #ff5e6c
+
+/* Type */
 --font-display: 'Fraunces'      /* headlines */
 --font-body:    'Newsreader'    /* body / italic labels */
 --font-mono:    'JetBrains Mono' /* code, data, wordmark */
@@ -86,20 +105,18 @@ Always refer to `mocks/insidethe-ai-style-system.html` for the source of truth. 
 **Wordmark** — always rendered as four token chips with IDs floating above:
 - `in` (2294) · `side` (3349) · `the` (1820) · `.ai` (13, acid accent)
 
-**Background** — every page uses the gravitational lensing grid canvas (`BgCanvas.tsx`). The grid is a warped Cartesian grid bent toward a central void. See `landing-mock-01.html` JS for the exact algorithm.
+**Background** — every page uses the gravitational lensing grid canvas (`BackgroundCanvas.tsx`). The grid is a warped Cartesian grid bent toward a central void. See `frontend/mocks/landing-mock-01.html` JS for the exact algorithm.
 
 **Header** — every page has the same fixed nav: wordmark left, status indicator right, solid `--bg` background, 1px bottom border.
 
 ---
 
-## The Four Entrance Points
+## Entrance Points
 
 | # | Name | Route | Status | Description |
 |---|---|---|---|---|
 | 01 | Inside the Processing | `/processing` | **Active** | Full forward pass visualization. Input → tokens → 12 layers → output |
-| 02 | Inside the Chip | `/chip` | Coming Soon | Hardware-level: matrix ops, memory, silicon |
-| 03 | Inside the Algorithms | `/algorithms` | Coming Soon | Training dynamics: loss landscape, gradients, optimizers |
-| 04 | Inside the Agent | `/agent` | Coming Soon | Agentic loops: perception, reasoning, tool use, action |
+| 02 | Inside the Transformer | `/transformer` | Coming Soon | Transformer architecture deep-dive |
 
 ---
 
@@ -148,7 +165,7 @@ This is the active section. Layout is two-column, full-viewport:
 { "type": "layer", "layer": 0, "component": "mlp",       "data": [float×3072] }
 { "type": "layer", "layer": 0, "component": "mlp_write", "data": [float×seq] }
 
-{ "type": "output", "data": [{"text": "mat", "id": 2087, "prob": 0.42}, ...] }
+{ "type": "output", "data": [{"text": "mat", "id": 2087, "prob": 0.42}, ...] }  // top-10 candidates
 { "type": "done" }
 
 // On error:
@@ -167,11 +184,11 @@ This is the active section. Layout is two-column, full-viewport:
 | `mlp` | `float[3072]` | Post-GELU MLP activations (last token), abs magnitude normalized to [0, 1] |
 | `mlp_write` | `float[seq]` | L2 norm of MLP output per token, normalized to [0.05, 1] |
 
-### BPE Stages (backend/model.py)
+### BPE Stages (backend/experiences/processing/runner.py)
 
 Real merge stages are computed using `GPT2Tokenizer` (slow tokenizer) before the nnsight trace. The slow tokenizer exposes `bpe_ranks` (merge priority table) and `byte_encoder`/`byte_decoder` (byte↔unicode mapping). Stages are computed word-by-word using GPT-2's actual `pat` regex for pre-tokenization and the real BPE algorithm.
 
-### nnsight Hooks (backend/model.py)
+### nnsight Hooks (backend/experiences/processing/runner.py)
 
 Use nnsight's `Tracer` context to intercept:
 - `model.transformer.wte` — token embedding lookup (input to the transformer)
@@ -193,7 +210,7 @@ Use nnsight's `Tracer` context to intercept:
 - **No inline styles** except for dynamic values (e.g. activation magnitude as opacity)
 - Server Components by default; use `'use client'` only for canvas, WebSocket, interactive state
 - Python: type hints everywhere, async FastAPI handlers
-- The `BgCanvas` component must be a client component with `useEffect` + `requestAnimationFrame`
+- The `BackgroundCanvas` component must be a client component with `useEffect` + `requestAnimationFrame`
 
 ---
 
@@ -204,6 +221,10 @@ Always use the `/commit-review` skill when committing — never commit directly 
 1. Do all work on a `type/description` feature branch (e.g. `fix/canvas-dpr`, `feat/processing-page`)
 2. Run `/commit-review` to stage and commit interactively
 3. Open a PR from the feature branch → **`develop`** (always `develop`, never `main` or `init`)
+
+**Merge strategy:**
+- Feature branch → `develop`: use **Squash and merge** (condenses WIP commits into one)
+- `develop` → `main`: use **Create a merge commit** (preserves history, prevents squash divergence conflicts)
 
 Branch names must follow `type/description`. Never create bare branches or commit directly to integration branches.
 
