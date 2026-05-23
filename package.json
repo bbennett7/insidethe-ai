@@ -2,7 +2,7 @@
   "name": "insidethe-ai",
   "private": true,
   "author": "Bryn Bennett <bryn.bennett@gmail.com>",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "dev":        "pnpm --filter frontend dev",
     "build":      "pnpm --filter frontend build",
